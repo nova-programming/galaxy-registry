@@ -1,0 +1,9 @@
+{
+  "package": "nova-http",
+  "github_repo": "nova-programming/nova-http",
+  "version": "1.0.2",
+  "author": "Nova Core Team",
+  "description": "High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.",
+  "tags": ["network", "http", "api"],
+  "download_url": "https://github.com/nova-programming/nova-http/archive/refs/heads/main.zip"
+}

@@ -1,0 +1,9 @@
+{
+  "package": "nova-math",
+  "github_repo": "nova-programming/nova-math",
+  "version": "0.9.5",
+  "author": "Nova Core Team",
+  "description": "Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.",
+  "tags": ["crypto", "math", "random"],
+  "download_url": "https://github.com/nova-programming/nova-math/archive/refs/heads/main.zip"
+}
