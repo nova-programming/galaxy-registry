@@ -531,34 +531,108 @@
     <section id="view-docs" class="view-section active">
         <div class="doc-layout">
             <nav class="doc-sidebar">
+
                 <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; word-break: break-word; overflow-wrap: break-word;">Contents</h4>
                 <ul>
                     <li><a href="#doc-intro">Introduction</a></li>
-                    <li><a href="#doc-unique-features">Unique Features & Examples</a></li>
-                    <li><a href="#doc-flow">Flow & Structure</a></li>
-                    <li><a href="#doc-types">Built-In Types</a></li>
-                    <li><a href="#doc-operators">Operators</a></li>
-                    <li><a href="#doc-functions">Standard Functions</a></li>
-                    <li><a href="#doc-os">OS Interface</a></li>
-                    <li><a href="#doc-unsafe">Unsafe & Pointers</a></li>
-                    <li><a href="#doc-compiler">Compiler Architecture</a></li>
-                    <li><a href="#doc-cli">CLI Modes</a></li>
+                    <li><a href="#doc-why-nova">Why Nova? (The Philosophy)</a></li>
+                    <li><a href="#doc-basics">The Basics (For Beginners)</a></li>
+                    <li><a href="#doc-intermediate">Functions & Classes</a></li>
+                    <li><a href="#doc-unique">Unique & Advanced Features</a></li>
+                    <li><a href="#doc-os">Native OS Integration</a></li>
+                    <li><a href="#doc-architecture">Compiler Architecture</a></li>
                 </ul>
+
 </nav>
             
             <div class="doc-content prose">
 
                 <h1 id="doc-intro" style="margin-top: 0;">Nova Language Documentation</h1>
-                <p>Nova bridges high-level Pythonic simplicity with low-level C-like control. This document provides a complete, detailed architectural guide to all keywords, types, pointer properties, operators, built-in functions, and compiler internals of the Nova language.</p>
+                <p>Welcome to the official documentation for Nova. Whether you are a newcomer to programming looking to write your first script, or a seasoned systems engineer aiming to write high-performance bare-metal OS kernels, this guide covers everything you need to know.</p>
 
+                <h2 id="doc-why-nova">Why Nova? (The Philosophy)</h2>
+                <p>Modern developers are often forced to make a difficult choice: write in a high-level language like Python to iterate quickly but suffer from terrible runtime performance, or write in C/C++ to get maximum speed but suffer through manual memory management and massive gigabyte-sized compiler toolchains (like GCC or MSVC).</p>
+                <p><strong>Nova eliminates this compromise.</strong></p>
+                <ul>
+                    <li><strong>14x Faster than Python:</strong> Nova is not interpreted. It compiles directly down to pure x86 machine code. In heavy computational benchmarks, Nova scripts execute 14 times faster than Python equivalents.</li>
+                    <li><strong>Near-C Performance Out of the Box:</strong> Nova sits right next to highly optimized C code in benchmarks, achieving near-parity with GCC <code>-O3</code> flags.</li>
+                    <li><strong>Zero Dependencies:</strong> The Nova compiler is entirely self-hosted. It features its own built-in lexer, parser, assembler, and linker. You do not need to download gigabytes of C++ build tools. A single, tiny executable is all you need to compile Windows PE executables or bare-metal OS flats.</li>
+                    <li><strong>Pythonic Syntax:</strong> You get the raw metal speed of C, but you write code that looks as simple and clean as Python.</li>
+                </ul>
+
+                <h2 id="doc-basics">The Basics (For Beginners)</h2>
+                <p>Nova is designed to be easy to read and write. Here are the absolute basics of the language.</p>
                 
-                <h2 id="doc-unique-features">Unique Features & Examples</h2>
-                <p>Nova brings powerful, unique features not commonly found in dynamic languages. Here are the core unique features and their use cases:</p>
-                
-                <h3>1. Unsafe <code>@raw</code> Blocks</h3>
+                <h3>Hello World</h3>
+                <p>To print text to the screen, use the <code>print</code> keyword. This invokes highly optimized native C-level printf equivalents under the hood.</p>
+                <pre><code>print("Hello, World!")</code></pre>
+
+                <h3>Variables & Data Types</h3>
+                <p>Variables hold data. Nova uses static type inference, meaning it automatically figures out what kind of data you are using, but you can also explicitly declare them.</p>
+                <ul>
+                    <li><strong><code>int</code></strong>: Whole numbers (e.g., <code>42</code>, <code>-10</code>)</li>
+                    <li><strong><code>float</code></strong>: Decimal numbers (e.g., <code>3.14</code>). Processed using the hardware x87 FPU.</li>
+                    <li><strong><code>string</code></strong>: Text (e.g., <code>"Nova is fast"</code>)</li>
+                    <li><strong><code>bool</code></strong>: True or False values.</li>
+                    <li><strong><code>list[T]</code></strong>: Dynamic arrays. e.g., a list of numbers. Nova automatically protects you from crashing by checking list boundaries safely.</li>
+                </ul>
+
+                <h3>Making Decisions (If / Else)</h3>
+                <p>You can tell your program to take different paths using <code>if</code> statements.</p>
+                <pre><code>age: int = 18
+
+if age >= 18 {
+    print("You are an adult.")
+} else {
+    print("You are a minor.")
+}</code></pre>
+
+                <h3>Repeating Actions (Loops)</h3>
+                <p>Instead of copying and pasting code, use a <code>for</code> loop to repeat actions.</p>
+                <pre><code># Prints numbers 1 through 5
+for i = 1 to 5 step 1 {
+    print(i)
+}
+
+# Loops can also go backwards
+for x = 10 downto 1 step 1 {
+    print(x)
+}</code></pre>
+
+                <h2 id="doc-intermediate">Functions & Classes</h2>
+                <p>As your programs grow, you'll need to organize your code into reusable blocks.</p>
+
+                <h3>Functions</h3>
+                <p>Use the <code>def</code> keyword to create a reusable block of code. Functions compile down to standard x86 <code>call</code> and <code>ret</code> routines.</p>
+                <pre><code>def add_numbers(a: int, b: int) -> int {
+    return a + b
+}
+
+result = add_numbers(10, 5)
+print(result) # Prints 15</code></pre>
+
+                <h3>Object-Oriented Classes</h3>
+                <p>Nova supports defining objects with properties and methods. Method calls use "dynamic dispatch" (vtables) natively.</p>
+                <pre><code>class Player {
+    health: int
+    
+    # The __init__ method sets up the object when it's created
+    def __init__(starting_health: int) {
+        self.health = starting_health
+    }
+    
+    def take_damage(amount: int) {
+        self.health = self.health - amount
+    }
+}</code></pre>
+
+                <h2 id="doc-unique">Unique & Advanced Features</h2>
+                <p>For advanced developers, Nova brings powerful, unique tools not commonly found in high-level languages.</p>
+
+                <h3>1. Unsafe <code>@raw</code> Blocks (Inline Assembly)</h3>
                 <p>Nova allows you to drop directly into inline x86 assembly anywhere in your code. This is uniquely powerful for system-level programming and manual optimization.</p>
                 <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example Use Case: Fast inverse square root</strong>
+                    <strong>Example: Fast inverse square root</strong>
                     <pre style="margin: 0.5rem 0 0 0;"><code>def fast_inv_sqrt(number: float) -> float {
     @raw {
         mov eax, dword [ebp+8]  ; Load float bytes
@@ -571,9 +645,9 @@
                 </div>
 
                 <h3>2. Zero-Cost Debug Printing</h3>
-                <p>The <code>printd</code> keyword acts as a native debug assertion. It only compiles to assembly when the <code>--debug</code> flag is present, effectively giving you zero-cost debug traces in production.</p>
+                <p>The <code>printd</code> keyword acts as a native debug assertion. It only compiles to assembly when the <code>--debug</code> flag is passed to the compiler. In production, it costs zero CPU cycles.</p>
                 <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example Use Case: Logging high-frequency loops</strong>
+                    <strong>Example: Logging high-frequency loops</strong>
                     <pre style="margin: 0.5rem 0 0 0;"><code>for i = 0 to 1000000 step 1 {
     # In production, this emits ZERO assembly instructions.
     # In --debug mode, it prints: "debug - [line 42]: 500"
@@ -581,13 +655,11 @@
 }</code></pre>
                 </div>
 
-                <h3>3. The <code>has</code> Keyword (Static Duck Typing)</h3>
+                <h3>3. Static Duck Typing (The <code>has</code> Keyword)</h3>
                 <p>Nova features the <code>has</code> keyword to statically verify if a data structure possesses a specific field at compile time.</p>
                 <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example Use Case: Safe generic serialization</strong>
-                    <pre style="margin: 0.5rem 0 0 0;"><code>data Player { name: string, score: int }
-
-def serialize(entity: any) {
+                    <strong>Example: Safe generic serialization</strong>
+                    <pre style="margin: 0.5rem 0 0 0;"><code>def serialize(entity: any) {
     if entity has score {
         print("Entity score is:")
         print(entity.score)
@@ -598,17 +670,15 @@ def serialize(entity: any) {
                 <h3>4. Built-in CSPRNG (ChaCha20)</h3>
                 <p>Nova natively embeds a Cryptographically Secure Pseudorandom Number Generator (ChaCha20) into the runtime. You don't need external libraries to generate secure keys or randomness.</p>
                 <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example Use Case: Generating a secure salt</strong>
+                    <strong>Example: Generating a secure salt</strong>
                     <pre style="margin: 0.5rem 0 0 0;"><code># random() is auto-seeded securely at startup via OS tick count
-const secure_salt = random()
-print("Secure salt generated:")
-print(secure_salt)</code></pre>
+const secure_salt = random()</code></pre>
                 </div>
 
                 <h3>5. Pointer Suffix Directives</h3>
-                <p>Unlike C which uses asterisks, Nova uses explicit suffix properties to read and write arbitrary memory sizes from raw pointer addresses.</p>
+                <p>Unlike C which uses confusing asterisks, Nova uses explicit suffix properties to read and write arbitrary memory sizes from raw pointer addresses.</p>
                 <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example Use Case: Writing a custom memory allocator</strong>
+                    <strong>Example: Custom memory allocator tracking</strong>
                     <pre style="margin: 0.5rem 0 0 0;"><code>def write_header(memory_ptr: int, size: int) {
     # Write a 4-byte dword at the exact memory address
     memory_ptr.value_dword = size
@@ -619,106 +689,27 @@ print(secure_salt)</code></pre>
 }</code></pre>
                 </div>
 
-                <h2 id="doc-flow">1. Flow & Structure Control</h2>
+                <h2 id="doc-os">Native OS Integration</h2>
+                <p>Nova talks directly to the host Operating System (Windows/Linux) via built-in standard library wrappers.</p>
                 <ul>
-                    <li><strong><code>def</code></strong>: Declares a function. Native codegen generates standard x86 <code>call</code>/<code>ret</code> routines using the <code>cdecl</code> calling convention.</li>
-                    <li><strong><code>class</code></strong>: Defines an object-oriented class template. Methods are compiled with virtual method table (vtable) entry offsets for dynamic dispatch.
-<pre><code>class Point {
-    x: int
-    y: int
-    def __init__(x_val: int, y_val: int) {
-        self.x = x_val
-        self.y = y_val
-    }
-}</code></pre>
-                    </li>
-                    <li><strong><code>self</code></strong>: Reference to the current class instance (implicitly passed as the first parameter to methods).</li>
-                    <li><strong><code>import / from / as</code></strong>: Loads external modules or libraries. Circular imports are handled safely. FFI bindings are supported via <code>import "kernel32.dll" as kernel32</code>.</li>
-                    <li><strong><code>if / elif / else</code></strong>: Conditional branching emitting hardware <code>cmp</code> and <code>je/jne</code> instructions.</li>
-                    <li><strong><code>for / while</code></strong>: Supports range loops (<code>for i = 0 to 10 step 1</code>, <code>downto</code>) and collection iterations (<code>for item in list</code>).</li>
-                    <li><strong><code>const</code></strong>: Enforces compile-time variable immutability.</li>
-                    <li><strong><code>null</code></strong>: Evaluates to the memory address <code>0</code>.</li>
-                </ul>
-
-                <h3>File I/O & Output</h3>
-                <ul>
-                    <li><strong><code>open(path, mode)</code></strong>, <strong><code>read(fd)</code></strong>, <strong><code>write(fd, content)</code></strong>, <strong><code>close(fd)</code></strong>: Standard file operations returning a 32-bit descriptor.</li>
-                    <li><strong><code>print(x)</code></strong>: Outputs values invoking type-safe C-level printf equivalents.</li>
-                    <li><strong><code>printd(x)</code></strong>: Debug print. Automatically injects the source file line number into the output (e.g., <code>debug - [line 42]: &lt;value&gt;</code>). Only emits assembly if the <code>--debug</code> compiler flag is passed.</li>
-                </ul>
-
-                <h2 id="doc-types">2. Built-In Data Types</h2>
-                <p>The static type checker (<code>type_checker.nv</code>) resolves and enforces:</p>
-                <ul>
-                    <li><strong><code>int</code></strong> (32-bit signed), <strong><code>float</code></strong> (IEEE-754 32-bit), <strong><code>bool</code></strong>, <strong><code>string</code></strong>, <strong><code>byte</code></strong>, <strong><code>void</code></strong></li>
-                    <li><strong><code>list[T]</code></strong>: Dynamically-sized array containing elements of type <code>T</code>. Includes aggressive capacity allocation (<code>HeapReAlloc</code>) to prevent linear overhead, and strict bounds-checking to safely terminate out-of-bounds reads.</li>
-                    <li><strong>User-defined Structs (<code>data</code>)</strong>: C-style structs with statically typed fields resolved via 4-byte offsets.</li>
-                </ul>
-
-                <h2 id="doc-operators">3. Operators</h2>
-                <ul>
-                    <li><strong>Arithmetic</strong>: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> (modulo)</li>
-                    <li><strong>Bitwise</strong>: <code>&amp;</code> (AND), <code>|</code> (OR), <code>^</code> (XOR), <code>~</code> (NOT), <code>&lt;&lt;</code> (left shift), <code>&gt;&gt;</code> (right shift)</li>
-                    <li><strong>Logical</strong>: <code>and</code>, <code>or</code>, <code>not</code> (Short-circuiting supported)</li>
-                    <li><strong>Structure Check</strong>: <code>has</code> (evaluates whether a property field exists on a structure at compile-time)</li>
-                </ul>
-
-                <h2 id="doc-functions">4. Standard Functions</h2>
-                <ul>
-                    <li><strong><code>len(var)</code></strong>: Returns count of elements. For strings, computes via <code>_strlen</code> loop. For lists, reads capacity fields.</li>
-                    <li><strong><code>str(var)</code></strong>: Converts numbers to strings via FFI <code>sprintf</code>.</li>
-                    <li><strong><code>sizeof(var)</code></strong>: Evaluates the compile-time byte size of variables.</li>
-                    <li><strong><code>lst.append(value)</code> / <code>lst.pop()</code></strong>: Dynamically modifies list buffers.</li>
-                </ul>
-
-                <h2 id="doc-os">5. Native OS Interface</h2>
-                <ul>
-                    <li><strong><code>sys_get_args()</code></strong>: Extracts CLI arguments via FFI (<code>GetCommandLineA</code>) returning a parsed string array.</li>
+                    <li><strong><code>sys_get_args()</code></strong>: Extracts CLI arguments (strips quotes automatically).</li>
                     <li><strong><code>sys_system(cmd)</code></strong>: Executes shell sub-processes.</li>
                     <li><strong><code>sys_exit(code)</code></strong>: Terminates the process immediately.</li>
-                    <li><strong><code>sys_get_tick_count()</code></strong>: Returns system uptime in ms.</li>
-                    <li><strong><code>random()</code></strong>: Returns a cryptographically secure 32-bit random integer using an optimized ChaCha20 block algorithm, auto-seeded at runtime using the tick count.</li>
+                    <li><strong><code>sys_get_tick_count()</code></strong>: Returns system uptime in milliseconds.</li>
+                    <li><strong>File I/O</strong>: <code>open(path, mode)</code>, <code>read(fd)</code>, <code>write(fd, content)</code>, <code>close(fd)</code>.</li>
                 </ul>
 
-                <h2 id="doc-unsafe">6. Unsafe & Memory Directives</h2>
-                <p>Nova allows dropping to bare-metal using the <code>@raw { ... }</code> block directive. Inside raw blocks, you gain access to:</p>
-                <ul>
-                    <li><strong>Inline Assembly</strong>: Lines starting with x86 mnemonics are emitted directly.</li>
-                    <li><strong>Heap Allocations</strong>: <code>alloc(size)</code> and <code>free(ptr)</code> manually manage memory bytes.</li>
-                    <li><strong>Symbol Exporting</strong>: <code>@export { name1 }</code> exposes global symbols for external linkage.</li>
-                </ul>
-                <h3>Pointer Arithmetic</h3>
-                <p>Variables representing memory addresses can be manipulated directly:</p>
-                <ul>
-                    <li><code>ptr.value</code> / <code>ptr.value_dword</code>: Read/write 32-bit double-word (4 bytes).</li>
-                    <li><code>ptr.value_word</code>: Read/write 16-bit word (2 bytes).</li>
-                    <li><code>ptr.value_byte</code>: Read/write 8-bit byte.</li>
-                    <li><code>ptr.addr</code>: Returns the raw memory address.</li>
-                    <li><code>ptr.isValid</code> / <code>ptr.isNull</code>: Evaluates if pointer is non-zero or zero.</li>
-                    <li><code>ptr.bytes</code>: Accesses raw byte-level array representations.</li>
-                </ul>
-
-                <h2 id="doc-compiler">7. Compiler Architecture & Optimizations</h2>
-                <p>When running <code>nova_main.exe build</code>, the self-hosted compiler executes in a single pipeline:</p>
+                <h2 id="doc-architecture">Compiler Architecture</h2>
+                <p>When running <code>nova_main.exe build</code>, the self-hosted compiler executes in a single pipeline without invoking GCC:</p>
                 <ol>
-                    <li><code>lexer.nv</code>: Tokenizes source characters into a stream of structured <code>Token</code> structs.</li>
-                    <li><code>parser.nv</code>: Constructs a syntax tree (AST) via recursive-descent parsing and performs aggressive constant folding.</li>
-                    <li><code>type_checker.nv</code>: Infers and validates static types.</li>
-                    <li><code>codegen.nv</code>: Generates Intel-syntax x86-32 assembly lines. Injects list/array bounds checking and maps variables to <code>esi/edi</code> registers (Variable-to-Register Promotion).</li>
-                    <li><code>assembler.nv</code>: Encodes assembly to native machine code bytes (in-process).</li>
-                    <li><code>linker.nv</code>: Packages machine code into a Windows PE binary (GCC-free compilation).</li>
+                    <li><strong><code>lexer.nv</code></strong>: Tokenizes source characters into a stream of structured <code>Token</code> structs.</li>
+                    <li><strong><code>parser.nv</code></strong>: Constructs a syntax tree (AST) via recursive-descent parsing and performs aggressive constant folding.</li>
+                    <li><strong><code>type_checker.nv</code></strong>: Infers and validates static types.</li>
+                    <li><strong><code>codegen.nv</code></strong>: Generates Intel-syntax x86-32 assembly lines. Injects list/array bounds checking and maps variables to <code>esi/edi</code> registers (Variable-to-Register Promotion).</li>
+                    <li><strong><code>assembler.nv</code></strong>: Encodes assembly to native machine code bytes (in-process).</li>
+                    <li><strong><code>linker.nv</code></strong>: Packages machine code into a valid Windows PE binary natively.</li>
                 </ol>
-                <p><strong>Tree-Shaking Dead Code Elimination:</strong> The compiler builds a dependency graph of function calls and slices out unused standard library routines, reducing final binary sizes by up to 70%.</p>
-
-                <h2 id="doc-cli">8. CLI Modes</h2>
-                <p>Nova supports multiple modes depending on your target:</p>
-                <ul>
-                    <li><code>python main.py build program.nv</code>: Production build (uses GCC).</li>
-                    <li><code>python main.py dev program.nv</code>: Runs instantly in Python VM.</li>
-                    <li><code>nova_main.exe build program.nv</code>: Self-hosted build (No GCC).</li>
-                    <li><code>nova_main.exe assemble-link input.s output.exe</code>: Directly assembles/links raw x86 assembly to PE.</li>
-                    <li><code>nova_main.exe build-bare program.nv &lt;org&gt; &lt;entry&gt;</code>: Flat, headerless binary for bare-metal OS development.</li>
-                </ul>
+                <p><strong>Tree-Shaking Dead Code Elimination:</strong> The compiler builds a dependency graph of function calls and dynamically slices out unused standard library routines, which reduces final binary sizes by up to 70%.</p>
 
 </div>
 </div>
