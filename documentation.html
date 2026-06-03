@@ -534,6 +534,7 @@
                 <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; word-break: break-word; overflow-wrap: break-word;">Contents</h4>
                 <ul>
                     <li><a href="#doc-intro">Introduction</a></li>
+                    <li><a href="#doc-unique-features">Unique Features & Examples</a></li>
                     <li><a href="#doc-flow">Flow & Structure</a></li>
                     <li><a href="#doc-types">Built-In Types</a></li>
                     <li><a href="#doc-operators">Operators</a></li>
@@ -549,6 +550,74 @@
 
                 <h1 id="doc-intro" style="margin-top: 0;">Nova Language Documentation</h1>
                 <p>Nova bridges high-level Pythonic simplicity with low-level C-like control. This document provides a complete, detailed architectural guide to all keywords, types, pointer properties, operators, built-in functions, and compiler internals of the Nova language.</p>
+
+                
+                <h2 id="doc-unique-features">Unique Features & Examples</h2>
+                <p>Nova brings powerful, unique features not commonly found in dynamic languages. Here are the core unique features and their use cases:</p>
+                
+                <h3>1. Unsafe <code>@raw</code> Blocks</h3>
+                <p>Nova allows you to drop directly into inline x86 assembly anywhere in your code. This is uniquely powerful for system-level programming and manual optimization.</p>
+                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+                    <strong>Example Use Case: Fast inverse square root</strong>
+                    <pre style="margin: 0.5rem 0 0 0;"><code>def fast_inv_sqrt(number: float) -> float {
+    @raw {
+        mov eax, dword [ebp+8]  ; Load float bytes
+        shr eax, 1              ; Bitwise shift right
+        mov ecx, 0x5f3759df     ; Magic constant
+        sub ecx, eax
+        mov dword [ebp-4], ecx  ; Store result
+    }
+}</code></pre>
+                </div>
+
+                <h3>2. Zero-Cost Debug Printing</h3>
+                <p>The <code>printd</code> keyword acts as a native debug assertion. It only compiles to assembly when the <code>--debug</code> flag is present, effectively giving you zero-cost debug traces in production.</p>
+                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+                    <strong>Example Use Case: Logging high-frequency loops</strong>
+                    <pre style="margin: 0.5rem 0 0 0;"><code>for i = 0 to 1000000 step 1 {
+    # In production, this emits ZERO assembly instructions.
+    # In --debug mode, it prints: "debug - [line 42]: 500"
+    printd(i)
+}</code></pre>
+                </div>
+
+                <h3>3. The <code>has</code> Keyword (Static Duck Typing)</h3>
+                <p>Nova features the <code>has</code> keyword to statically verify if a data structure possesses a specific field at compile time.</p>
+                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+                    <strong>Example Use Case: Safe generic serialization</strong>
+                    <pre style="margin: 0.5rem 0 0 0;"><code>data Player { name: string, score: int }
+
+def serialize(entity: any) {
+    if entity has score {
+        print("Entity score is:")
+        print(entity.score)
+    }
+}</code></pre>
+                </div>
+
+                <h3>4. Built-in CSPRNG (ChaCha20)</h3>
+                <p>Nova natively embeds a Cryptographically Secure Pseudorandom Number Generator (ChaCha20) into the runtime. You don't need external libraries to generate secure keys or randomness.</p>
+                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+                    <strong>Example Use Case: Generating a secure salt</strong>
+                    <pre style="margin: 0.5rem 0 0 0;"><code># random() is auto-seeded securely at startup via OS tick count
+const secure_salt = random()
+print("Secure salt generated:")
+print(secure_salt)</code></pre>
+                </div>
+
+                <h3>5. Pointer Suffix Directives</h3>
+                <p>Unlike C which uses asterisks, Nova uses explicit suffix properties to read and write arbitrary memory sizes from raw pointer addresses.</p>
+                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+                    <strong>Example Use Case: Writing a custom memory allocator</strong>
+                    <pre style="margin: 0.5rem 0 0 0;"><code>def write_header(memory_ptr: int, size: int) {
+    # Write a 4-byte dword at the exact memory address
+    memory_ptr.value_dword = size
+    
+    # Write a 1-byte flag directly after it
+    flag_ptr = memory_ptr + 4
+    flag_ptr.value_byte = 1
+}</code></pre>
+                </div>
 
                 <h2 id="doc-flow">1. Flow & Structure Control</h2>
                 <ul>
