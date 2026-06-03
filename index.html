@@ -532,19 +532,61 @@
         <!-- DOCUMENTATION VIEW -->
         <section id="view-docs" class="view-section">
             <div class="prose">
-                <h1>Documentation</h1>
-                <p>Learn how to use Galaxy to manage dependencies in your Nova projects.</p>
+                <h1>Nova Language Documentation</h1>
+                <p>Nova is a systems programming language that bridges high-level Pythonic simplicity with low-level C-like control. It features a fully functional self-hosted compiler pipeline capable of generating native x86 assembly and standalone PE executables without relying on external tools like GCC.</p>
                 
-                <h2>Installing Packages</h2>
-                <p>To install a package globally from the registry, simply run:</p>
-                <pre><code>nova galaxy install &lt;package_name&gt;</code></pre>
+                <h2>Getting Started</h2>
+                <p>To use the Galaxy package manager, you first need to have the Nova compiler installed.</p>
+                <pre><code>git clone https://github.com/nova-programming/Nova.git
+cd Nova</code></pre>
                 
-                <h2>Project Initialization</h2>
-                <p>You can initialize a new Nova project using a boilerplate template hosted on Galaxy:</p>
-                <pre><code>nova galaxy init &lt;template_name&gt;</code></pre>
+                <h3>CLI Usage</h3>
+                <p>Nova supports multiple execution and compilation modes out of the box:</p>
+                <ul>
+                    <li><code>python main.py build program.nv</code>: Builds to a native executable (requires GCC).</li>
+                    <li><code>nova_main.exe build program.nv</code>: Builds using the fully self-hosted compiler (no GCC needed).</li>
+                    <li><code>python main.py dev program.nv</code>: Runs in the Python bytecode VM for fast iteration.</li>
+                    <li><code>nova_main.exe assemble-link input.s output.exe</code>: Assembles and links directly to a Windows PE file.</li>
+                    <li><code>nova_main.exe build-bare program.nv</code>: Builds a flat binary (no PE headers, ideal for OS development).</li>
+                </ul>
                 
-                <h2>Module Resolution</h2>
-                <p>When you compile a Nova project using <code>nova build</code>, the compiler will automatically look for imports inside your local <code>galaxy_modules/</code> directory as well as the standard library.</p>
+                <h2>Language Keywords & Flow Control</h2>
+                <ul>
+                    <li><strong><code>def</code></strong>: Declares a function. Compiles to standard x86 <code>call</code>/<code>ret</code> routines using the <code>cdecl</code> calling convention.</li>
+                    <li><strong><code>class / data</code></strong>: Defines an object-oriented class template (with vtable virtual dispatch) or a static C-style data structure.</li>
+                    <li><strong><code>import / from / as</code></strong>: Module import system. Galaxy packages are automatically resolved when imported.</li>
+                    <li><strong><code>for</code></strong>: Supports both range loops (<code>for i = 0 to 10 step 1</code>) and collection loops (<code>for item in list</code>).</li>
+                    <li><strong><code>const</code></strong>: Enforces compile-time immutability.</li>
+                </ul>
+                
+                <h2>Built-in Data Types</h2>
+                <p>The static type checker automatically infers and enforces strict types:</p>
+                <ul>
+                    <li><strong>Primitives</strong>: <code>int</code> (32-bit signed), <code>float</code> (IEEE-754 32-bit), <code>bool</code>, <code>string</code>, <code>byte</code>, <code>void</code>.</li>
+                    <li><strong>Collections</strong>: <code>list[T]</code> (Dynamically-sized typed arrays with capacity allocation and automatic bounds-checking).</li>
+                </ul>
+                
+                <h2>Unsafe & Low-Level Directives</h2>
+                <p>Nova allows you to drop down to bare-metal control at any time using the <code>@raw</code> block directive.</p>
+                <pre><code>@raw {
+    mov eax, 42
+    push eax
+}</code></pre>
+                <p>Inside raw blocks, you have access to direct heap allocations (<code>alloc(size)</code> and <code>free(ptr)</code>), inline x86 assembly, and raw pointer dereferencing suffixes like <code>ptr.value_dword</code>, <code>ptr.value_byte</code>, and <code>ptr.addr</code>.</p>
+                
+                <h2>Self-Hosted Compiler Pipeline</h2>
+                <p>When you run <code>nova_main.exe build</code>, the self-hosted compiler processes your code through a series of internal Nova modules:</p>
+                <ol>
+                    <li><code>lexer.nv</code>: Tokenizes source characters into structural tokens.</li>
+                    <li><code>parser.nv</code>: Constructs a syntax tree (AST) via recursive-descent parsing.</li>
+                    <li><code>type_checker.nv</code>: Infers and validates static types across all nodes.</li>
+                    <li><code>codegen.nv</code>: Generates Intel-syntax x86-32 assembly lines and maps local variables to CPU registers.</li>
+                    <li><code>assembler.nv</code>: Encodes assembly into raw native machine code bytes.</li>
+                    <li><code>linker.nv</code>: Packages the machine code into a valid Windows PE binary natively.</li>
+                </ol>
+                
+                <h2>Standard Library Auto-Injection</h2>
+                <p>Core system functions like <code>sys_get_args()</code>, <code>sys_system()</code>, and the ChaCha20 Cryptographically Secure PRNG (<code>random()</code>) are automatically injected into all executables. Furthermore, Nova's <strong>Tree-Shaking Dead Code Elimination</strong> automatically slices out unused standard library functions, reducing final binary sizes by up to 70%!</p>
             </div>
         </section>
 
