@@ -6,6 +6,10 @@
     <title>Galaxy | Nova Package Manager & Docs</title>
     <meta name="description" content="The official package registry and language documentation for the Nova programming language.">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Markdown Parsers -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    
     <style>
         :root {
             --bg-color: #050505;
@@ -52,6 +56,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
+            cursor: pointer;
         }
 
         nav a {
@@ -152,6 +157,7 @@
             transition: transform 0.3s ease, border-color 0.3s ease;
             display: flex;
             flex-direction: column;
+            cursor: pointer;
         }
 
         .card:hover {
@@ -162,6 +168,120 @@
 
         .card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; color: var(--text-main); }
         .card p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; flex-grow: 1; }
+
+        /* Package Details View */
+        #package-details-view {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+            padding-top: 2rem;
+        }
+
+        .details-header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+        }
+        
+        .details-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: 'Outfit';
+            margin-bottom: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .back-btn:hover { background: var(--surface); color: white; }
+
+        .details-layout {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 3rem;
+        }
+
+        @media (max-width: 800px) {
+            .details-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .markdown-body {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            line-height: 1.7;
+        }
+        
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+        .markdown-body h1:first-child { margin-top: 0; }
+        
+        .markdown-body p { margin-bottom: 1rem; color: var(--text-muted); }
+        .markdown-body pre {
+            background: #000;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+        .markdown-body code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .markdown-body pre code { background: none; padding: 0; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1.5rem; color: var(--text-muted); }
+        .markdown-body blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .sidebar-section {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+        
+        .sidebar-section h4 { color: white; margin-bottom: 0.8rem; font-size: 1.1rem; }
+        .sidebar-section p, .sidebar-section a { color: var(--text-muted); font-size: 0.95rem; text-decoration: none; }
+        .sidebar-section a:hover { color: var(--primary); }
+        
+        .tag-list { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .tag {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
 
         /* Tables for Types & Ops */
         .data-table {
@@ -240,6 +360,13 @@
         .blob { position: fixed; filter: blur(120px); z-index: -1; opacity: 0.3; }
         .blob-1 { top: 10%; left: -5%; width: 400px; height: 400px; background: var(--primary); border-radius: 50%; }
         .blob-2 { bottom: 10%; right: -5%; width: 500px; height: 500px; background: var(--secondary); border-radius: 50%; }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 4rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -247,64 +374,49 @@
     <div class="blob blob-2"></div>
 
     <header>
-        <div class="logo">Galaxy</div>
+        <div class="logo" onclick="showHome()">Galaxy</div>
         <nav>
             <a href="https://github.com/nova-programming/Nova" target="_blank">Compiler GitHub</a>
         </nav>
     </header>
 
-    <section class="hero">
-        <h1>Nova Language Registry</h1>
-        <p>The universe of Nova packages and complete official documentation for the Nova language. Ultra-fast, natively compiled, and brutally elegant.</p>
-        
-        <div class="install-cmd" onclick="copyText('nova galaxy install nova-http', this)">
-            <span>$</span> nova galaxy install nova-http
-        </div>
-    </section>
-
-    <div class="container">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('tab-packages')">Packages</button>
-            <button class="tab-btn" onclick="switchTab('tab-syntax')">Syntax & Core</button>
-            <button class="tab-btn" onclick="switchTab('tab-types')">Data Types & Built-ins</button>
-            <button class="tab-btn" onclick="switchTab('tab-pointers')">Raw Pointers</button>
-        </div>
-
-        <!-- PACKAGES TAB -->
-        <div id="tab-packages" class="tab-content active">
-            <div class="search-bar">
-                <input type="text" id="pkg-search" placeholder="Search for a package..." onkeyup="filterPackages()">
+    <div id="home-view">
+        <section class="hero">
+            <h1>Nova Language Registry</h1>
+            <p>The universe of Nova packages and complete official documentation for the Nova language. Ultra-fast, natively compiled, and brutally elegant.</p>
+            
+            <div class="install-cmd" onclick="copyText('nova galaxy install nova-http', this)">
+                <span>$</span> nova galaxy install nova-http
             </div>
-            <div class="grid" id="package-grid">
-                <!-- Will be dynamically populated via JS, but we'll hardcode the standard ones -->
-                <div class="card pkg-card">
-                    <h3>nova-http</h3>
-                    <p>High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyText('nova galaxy install nova-http', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">$ nova galaxy install nova-http</div>
-                    </div>
+        </section>
+
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('tab-packages')">Packages</button>
+                <button class="tab-btn" onclick="switchTab('tab-syntax')">Syntax & Core</button>
+                <button class="tab-btn" onclick="switchTab('tab-types')">Data Types & Built-ins</button>
+                <button class="tab-btn" onclick="switchTab('tab-pointers')">Raw Pointers</button>
+            </div>
+
+            <!-- PACKAGES TAB -->
+            <div id="tab-packages" class="tab-content active">
+                <div class="search-bar">
+                    <input type="text" id="pkg-search" placeholder="Search for a package..." onkeyup="filterPackages()">
                 </div>
-                <div class="card pkg-card">
-                    <h3>nova-math</h3>
-                    <p>Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyText('nova galaxy install nova-math', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">$ nova galaxy install nova-math</div>
-                    </div>
+                <div class="grid" id="package-grid">
+                    <div class="loading-spinner">Loading registry...</div>
                 </div>
             </div>
-        </div>
 
-        <!-- SYNTAX TAB -->
-        <div id="tab-syntax" class="tab-content">
-            <div class="grid">
-                <div class="card">
-                    <h3>Functions & Control Flow</h3>
-                    <p>Uses standard cdecl calling convention. Loops support both index tracking and item iteration.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">
+            <!-- SYNTAX TAB -->
+            <div id="tab-syntax" class="tab-content">
+                <div class="grid">
+                    <div class="card" style="cursor:default">
+                        <h3>Functions & Control Flow</h3>
+                        <p>Uses standard cdecl calling convention. Loops support both index tracking and item iteration.</p>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <div class="code-block">
 <span class="code-keyword">def</span> <span class="code-func">calculate</span>(a: <span class="code-type">int</span>, b: <span class="code-type">int</span>) -> <span class="code-type">int</span> {
     <span class="code-keyword">if</span> a == <span class="code-string">null</span> { <span class="code-keyword">return</span> 0 }
     
@@ -313,16 +425,16 @@
     }
     <span class="code-keyword">return</span> a + b
 }
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card">
-                    <h3>Native Structs (data)</h3>
-                    <p>Define tightly packed C-style memory structures. Offsets are calculated statically.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">
+                    <div class="card" style="cursor:default">
+                        <h3>Native Structs (data)</h3>
+                        <p>Define tightly packed C-style memory structures. Offsets are calculated statically.</p>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <div class="code-block">
 <span class="code-keyword">data</span> Vector3 {
     x: <span class="code-type">int</span>
     y: <span class="code-type">int</span>
@@ -332,85 +444,85 @@
 <span class="code-keyword">def</span> <span class="code-func">move</span>(v: <span class="code-type">Vector3</span>) {
     v.x = v.x + 10
 }
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card">
-                    <h3>Object-Oriented (class)</h3>
-                    <p>Dynamic dispatch with virtual method tables (vtables) automatically managed by the compiler.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">
+                    <div class="card" style="cursor:default">
+                        <h3>Object-Oriented (class)</h3>
+                        <p>Dynamic dispatch with virtual method tables (vtables) automatically managed by the compiler.</p>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <div class="code-block">
 <span class="code-keyword">class</span> Entity {
     id: <span class="code-type">int</span>
     <span class="code-keyword">def</span> <span class="code-func">__init__</span>(start_id: <span class="code-type">int</span>) {
         <span class="code-keyword">self</span>.id = start_id
     }
 }
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="card">
-                    <h3>API / Networking</h3>
-                    <p>Make REST calls out-of-the-box using the built-in compiler networking pipeline.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">
+                    
+                    <div class="card" style="cursor:default">
+                        <h3>API / Networking</h3>
+                        <p>Make REST calls out-of-the-box using the built-in compiler networking pipeline.</p>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <div class="code-block">
 <span class="code-comment"># Native network request</span>
 req = <span class="code-func">api</span>(<span class="code-string">"https://api.github.com"</span>)
 <span class="code-keyword">if</span> req.status() == 200 {
     <span class="code-func">print</span>(req.json())
 }
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- TYPES TAB -->
-        <div id="tab-types" class="tab-content">
-            <h2 style="margin-bottom:1rem">Core Data Types</h2>
-            <table class="data-table" style="margin-bottom:3rem">
-                <tr><th>Type</th><th>Size</th><th>Description</th></tr>
-                <tr><td><code>int</code></td><td>32-bit</td><td>Signed double-word integer.</td></tr>
-                <tr><td><code>float</code></td><td>32-bit</td><td>IEEE-754 single-precision floating point.</td></tr>
-                <tr><td><code>byte</code></td><td>8-bit</td><td>Unsigned 8-bit byte.</td></tr>
-                <tr><td><code>bool</code></td><td>1-bit</td><td>Evaluates to <code>true</code> or <code>false</code>.</td></tr>
-                <tr><td><code>string</code></td><td>Dynamic</td><td>Null-terminated character arrays.</td></tr>
-                <tr><td><code>list[T]</code></td><td>Dynamic</td><td>Dynamically sized heap array of type T. Uses <code>HeapReAlloc</code>.</td></tr>
-            </table>
+            <!-- TYPES TAB -->
+            <div id="tab-types" class="tab-content">
+                <h2 style="margin-bottom:1rem">Core Data Types</h2>
+                <table class="data-table" style="margin-bottom:3rem">
+                    <tr><th>Type</th><th>Size</th><th>Description</th></tr>
+                    <tr><td><code>int</code></td><td>32-bit</td><td>Signed double-word integer.</td></tr>
+                    <tr><td><code>float</code></td><td>32-bit</td><td>IEEE-754 single-precision floating point.</td></tr>
+                    <tr><td><code>byte</code></td><td>8-bit</td><td>Unsigned 8-bit byte.</td></tr>
+                    <tr><td><code>bool</code></td><td>1-bit</td><td>Evaluates to <code>true</code> or <code>false</code>.</td></tr>
+                    <tr><td><code>string</code></td><td>Dynamic</td><td>Null-terminated character arrays.</td></tr>
+                    <tr><td><code>list[T]</code></td><td>Dynamic</td><td>Dynamically sized heap array of type T. Uses <code>HeapReAlloc</code>.</td></tr>
+                </table>
 
-            <h2 style="margin-bottom:1rem">Built-in Functions</h2>
-            <div class="grid">
-                <div class="card">
-                    <h3><code>len(var)</code> / <code>sizeof(var)</code></h3>
-                    <p><code>len()</code> evaluates dynamic bounds (strings, lists) or calls <code>__len__</code> on objects. <code>sizeof()</code> resolves compile-time byte sizes.</p>
-                </div>
-                <div class="card">
-                    <h3><code>sys_system(cmd)</code></h3>
-                    <p>Execute shell sub-processes dynamically (WinExec wrapping).</p>
-                </div>
-                <div class="card">
-                    <h3><code>random()</code></h3>
-                    <p>Cryptographically secure 32-bit random number generated via unrolled ChaCha20 blocks.</p>
-                </div>
-                <div class="card">
-                    <h3><code>open(path, mode)</code></h3>
-                    <p>Native file descriptor access. Returns FD integer. Use with <code>read(fd)</code> and <code>write(fd, val)</code>.</p>
+                <h2 style="margin-bottom:1rem">Built-in Functions</h2>
+                <div class="grid">
+                    <div class="card" style="cursor:default">
+                        <h3><code>len(var)</code> / <code>sizeof(var)</code></h3>
+                        <p><code>len()</code> evaluates dynamic bounds (strings, lists) or calls <code>__len__</code> on objects. <code>sizeof()</code> resolves compile-time byte sizes.</p>
+                    </div>
+                    <div class="card" style="cursor:default">
+                        <h3><code>sys_system(cmd)</code></h3>
+                        <p>Execute shell sub-processes dynamically (WinExec wrapping).</p>
+                    </div>
+                    <div class="card" style="cursor:default">
+                        <h3><code>random()</code></h3>
+                        <p>Cryptographically secure 32-bit random number generated via unrolled ChaCha20 blocks.</p>
+                    </div>
+                    <div class="card" style="cursor:default">
+                        <h3><code>open(path, mode)</code></h3>
+                        <p>Native file descriptor access. Returns FD integer. Use with <code>read(fd)</code> and <code>write(fd, val)</code>.</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- POINTERS TAB -->
-        <div id="tab-pointers" class="tab-content">
-            <div class="card" style="margin-bottom: 2rem;">
-                <h3>The @raw Block</h3>
-                <p>Nova restricts pointer arithmetic and assembly generation to blocks explicitly marked with <code>@raw</code> to ensure safety elsewhere.</p>
-                <div class="code-container">
-                    <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                    <div class="code-block">
+            <!-- POINTERS TAB -->
+            <div id="tab-pointers" class="tab-content">
+                <div class="card" style="margin-bottom: 2rem; cursor:default">
+                    <h3>The @raw Block</h3>
+                    <p>Nova restricts pointer arithmetic and assembly generation to blocks explicitly marked with <code>@raw</code> to ensure safety elsewhere.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                        <div class="code-block">
 <span class="code-keyword">@raw</span> {
     ptr = <span class="code-func">alloc</span>(4)     <span class="code-comment"># Allocate 4 bytes on Heap</span>
     ptr.value = 100  <span class="code-comment"># Write dword</span>
@@ -421,22 +533,78 @@ req = <span class="code-func">api</span>(<span class="code-string">"https://api.
     
     <span class="code-func">free</span>(ptr)        <span class="code-comment"># Deallocate</span>
 }
+                        </div>
+                    </div>
+                </div>
+                
+                <table class="data-table">
+                    <tr><th>Pointer Suffix</th><th>Operation</th></tr>
+                    <tr><td><code>ptr.value</code> / <code>ptr.value_dword</code></td><td>Reads/Writes 32-bit (4 bytes) at address.</td></tr>
+                    <tr><td><code>ptr.value_word</code></td><td>Reads/Writes 16-bit (2 bytes) at address.</td></tr>
+                    <tr><td><code>ptr.value_byte</code></td><td>Reads/Writes 8-bit (1 byte) at address.</td></tr>
+                    <tr><td><code>ptr.addr</code></td><td>Returns the raw memory address integer.</td></tr>
+                    <tr><td><code>ptr.isValid</code> / <code>ptr.isNull</code></td><td>Checks if address is <code>!= 0</code> or <code>== 0</code>.</td></tr>
+                </table>
+            </div>
+        </div>
+    </div> <!-- /home-view -->
+
+    <!-- PACKAGE DETAILS VIEW (PyPI Style) -->
+    <div id="package-details-view" class="container">
+        <button class="back-btn" onclick="showHome()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Registry
+        </button>
+        
+        <div id="pkg-detail-loader" class="loading-spinner">Fetching package data...</div>
+        
+        <div id="pkg-detail-content" style="display: none;">
+            <div class="details-header">
+                <h1 id="detail-title">nova-package</h1>
+                <p id="detail-desc" style="color: var(--text-muted); font-size: 1.2rem;">Package description goes here.</p>
+            </div>
+            
+            <div class="details-layout">
+                <div class="main-column">
+                    <div class="markdown-body" id="detail-readme">
+                        <!-- Markdown rendered here -->
+                    </div>
+                </div>
+                
+                <div class="sidebar">
+                    <div class="sidebar-section">
+                        <h4>Install</h4>
+                        <div class="install-cmd" style="padding: 0.8rem 1rem; font-size: 0.95rem; box-shadow: none; width: 100%; display: flex; justify-content: space-between;" onclick="copyText(document.getElementById('detail-install').innerText, this)">
+                            <div style="overflow:hidden; text-overflow: ellipsis; white-space: nowrap;"><span style="color:var(--primary)">$</span> <span id="detail-install">nova galaxy install package</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h4>Meta</h4>
+                        <p style="margin-bottom: 0.5rem"><strong>Version:</strong> <span id="detail-version">1.0.0</span></p>
+                        <p style="margin-bottom: 0.5rem"><strong>Author:</strong> <span id="detail-author">Nova Team</span></p>
+                        <p style="margin-bottom: 0.5rem"><strong>License:</strong> MIT</p>
+                        <p><strong>Links:</strong></p>
+                        <ul style="list-style-type: none; margin-top: 0.3rem;">
+                            <li><a href="#" id="detail-repo" target="_blank">GitHub Repository ↗</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h4>Tags</h4>
+                        <div class="tag-list" id="detail-tags">
+                            <!-- Tags go here -->
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <table class="data-table">
-                <tr><th>Pointer Suffix</th><th>Operation</th></tr>
-                <tr><td><code>ptr.value</code> / <code>ptr.value_dword</code></td><td>Reads/Writes 32-bit (4 bytes) at address.</td></tr>
-                <tr><td><code>ptr.value_word</code></td><td>Reads/Writes 16-bit (2 bytes) at address.</td></tr>
-                <tr><td><code>ptr.value_byte</code></td><td>Reads/Writes 8-bit (1 byte) at address.</td></tr>
-                <tr><td><code>ptr.addr</code></td><td>Returns the raw memory address integer.</td></tr>
-                <tr><td><code>ptr.isValid</code> / <code>ptr.isNull</code></td><td>Checks if address is <code>!= 0</code> or <code>== 0</code>.</td></tr>
-            </table>
         </div>
-    </div>
+    </div> <!-- /package-details-view -->
 
     <script>
+        const copyIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+        const checkIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -444,21 +612,62 @@ req = <span class="code-func">api</span>(<span class="code-string">"https://api.
             document.getElementById(tabId).classList.add('active');
         }
 
-                        const copyIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-        const checkIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        function showHome() {
+            document.getElementById('package-details-view').style.display = 'none';
+            document.getElementById('home-view').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showPackageDetails(pkgName) {
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('package-details-view').style.display = 'block';
+            document.getElementById('pkg-detail-content').style.display = 'none';
+            document.getElementById('pkg-detail-loader').style.display = 'block';
+            window.scrollTo(0, 0);
+            
+            // Fetch PyPI-style data
+            fetch(`/api/packages/${pkgName}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('pkg-detail-loader').style.display = 'none';
+                    document.getElementById('pkg-detail-content').style.display = 'block';
+                    
+                    document.getElementById('detail-title').innerText = data.package;
+                    document.getElementById('detail-desc').innerText = data.description;
+                    document.getElementById('detail-install').innerText = `nova galaxy install ${data.package}`;
+                    document.getElementById('detail-version').innerText = data.version;
+                    document.getElementById('detail-author').innerText = data.author;
+                    document.getElementById('detail-repo').href = `https://github.com/${data.github_repo}`;
+                    
+                    // Render tags
+                    const tagContainer = document.getElementById('detail-tags');
+                    tagContainer.innerHTML = '';
+                    data.tags.forEach(tag => {
+                        tagContainer.innerHTML += `<span class="tag">${tag}</span>`;
+                    });
+                    
+                    // Render Markdown
+                    const rawHtml = marked.parse(data.readme);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml);
+                    document.getElementById('detail-readme').innerHTML = cleanHtml;
+                })
+                .catch(e => {
+                    document.getElementById('pkg-detail-loader').innerText = "Failed to load package details.";
+                });
+        }
 
         function copyText(text, btn) {
             navigator.clipboard.writeText(text);
             const originalHTML = btn.innerHTML;
-            
-            // If it's a small button, replace fully. If it's the big hero box, just append
             if(btn.classList.contains('copy-btn')) {
                 btn.innerHTML = checkIcon;
             } else {
                 btn.innerHTML = originalHTML + ' <span style="margin-left:8px">' + checkIcon + '</span>';
             }
-            
             setTimeout(() => btn.innerHTML = originalHTML, 2000);
+            
+            // Prevent event from bubbling to card click
+            if(event) event.stopPropagation();
         }
 
         function copyCode(btn) {
@@ -481,14 +690,27 @@ req = <span class="code-func">api</span>(<span class="code-string">"https://api.
             });
         }
         
-        // Fetch live packages dynamically from the API (for the future when more are added)
+        // Fetch live packages dynamically from the API on load
         fetch('/api/packages')
             .then(res => res.json())
             .then(data => {
-                // If the API supported listing packages, we would render them here.
-            }).catch(e => console.log('Registry list endpoint not built yet.'));
+                const grid = document.getElementById('package-grid');
+                grid.innerHTML = '';
+                data.packages.forEach(pkg => {
+                    grid.innerHTML += `
+                        <div class="card pkg-card" onclick="showPackageDetails('${pkg.name}')">
+                            <h3>${pkg.name}</h3>
+                            <p>${pkg.description}</p>
+                            <div class="code-container">
+                                <button class="copy-btn" onclick="copyText('nova galaxy install ${pkg.name}', this); event.stopPropagation();">${copyIcon}</button>
+                                <div class="code-block">$ nova galaxy install ${pkg.name}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }).catch(e => {
+                document.getElementById('package-grid').innerHTML = '<div class="loading-spinner" style="color:red">Failed to connect to Registry API.</div>';
+            });
     </script>
 </body>
 </html>
-
-
