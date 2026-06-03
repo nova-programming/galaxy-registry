@@ -165,11 +165,16 @@
             letter-spacing: -0.02em;
             margin-top: 2rem;
             margin-bottom: 1rem;
+            overflow-wrap: break-word;
         }
         
         .prose h1 { font-size: 2.25rem; }
         .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .prose p { margin-bottom: 1rem; color: #333; }
+        .prose p, .prose li { 
+            margin-bottom: 1rem; 
+            color: #333; 
+            overflow-wrap: break-word; 
+        }
         
         .prose code {
             font-family: 'JetBrains Mono', monospace;
@@ -177,6 +182,7 @@
             background-color: var(--code-bg);
             padding: 0.2em 0.4em;
             border-radius: 4px;
+            word-break: break-all;
         }
         
         .prose pre {
@@ -186,12 +192,14 @@
             border-radius: 8px;
             overflow-x: auto;
             margin: 1.5rem 0;
+            max-width: 100%;
         }
         
         .prose pre code {
             background-color: transparent;
             padding: 0;
             color: inherit;
+            word-break: normal;
         }
         
         .prose a {
@@ -304,6 +312,11 @@
             display: grid;
             grid-template-columns: 1fr 300px;
             gap: 4rem;
+            align-items: start;
+        }
+        
+        .main-column {
+            min-width: 0; /* Prevents grid blowout on long text */
         }
 
         @media (max-width: 768px) {
@@ -425,11 +438,12 @@
         .doc-content {
             padding: 3rem 4rem;
             max-width: 1000px;
+            min-width: 0; /* Prevents grid blowout on long text/code */
         }
         
         @media (max-width: 768px) {
             .doc-content {
-                padding: 2rem;
+                padding: 2rem 1.5rem;
             }
             .doc-sidebar {
                 position: relative;
@@ -437,6 +451,7 @@
                 height: auto;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
+                padding: 1.5rem;
             }
         }
 
