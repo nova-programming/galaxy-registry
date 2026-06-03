@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import os
 
@@ -15,11 +16,17 @@ class PublishRequest(BaseModel):
     package_name: str
     github_repo: str
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def read_root():
-    return {"status": "online", "message": "Welcome to the Galaxy Package Registry API"}
+    # Attempt to load the stunning HTML template
+    try:
+        with open("templates/index.html", "r") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content, status_code=200)
+    except FileNotFoundError:
+        return HTMLResponse(content="<h1>Galaxy Registry Online</h1>", status_code=200)
 
-@app.get("/packages/{package_name}")
+@app.get("/api/packages/{package_name}")
 def get_package(package_name: str):
     # TODO: Fetch from Supabase
     repo = MOCK_DB.get(package_name)
@@ -32,7 +39,7 @@ def get_package(package_name: str):
         "download_url": f"https://github.com/{repo}/archive/refs/heads/main.zip"
     }
 
-@app.post("/publish")
+@app.post("/api/publish")
 def publish_package(req: PublishRequest):
     # TODO: Insert into Supabase
     MOCK_DB[req.package_name] = req.github_repo

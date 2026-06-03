@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy | Nova Package Manager</title>
+    <meta name="description" content="The official package registry and language documentation for the Nova programming language.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --surface: #111111;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, var(--surface) 0%, var(--bg-color) 70%);
+        }
+
+        /* Glassmorphism Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 5%;
+            background: rgba(5, 5, 5, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--text-main);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 12rem 5% 6rem;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1.5px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-inline: auto;
+        }
+
+        .install-cmd {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1rem 2rem;
+            border-radius: 100px;
+            font-family: 'Fira Code', monospace;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 0 40px var(--primary-glow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .install-cmd:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 60px var(--primary-glow);
+        }
+
+        .install-cmd span {
+            color: var(--primary);
+        }
+
+        /* Documentation Grid */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 5%;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .card p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .code-block {
+            background: #000;
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        
+        .code-keyword { color: #c678dd; }
+        .code-func { color: #61afef; }
+        .code-string { color: #98c379; }
+        .code-comment { color: #5c6370; font-style: italic; }
+
+        /* Floating background elements */
+        .blob {
+            position: absolute;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .blob-1 {
+            top: 20%;
+            left: 10%;
+            width: 300px;
+            height: 300px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+        .blob-2 {
+            top: 40%;
+            right: 10%;
+            width: 400px;
+            height: 400px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <header>
+        <div class="logo">Galaxy Registry</div>
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#keywords">Keywords</a>
+            <a href="#packages">Packages</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>The Universe of Nova Packages</h1>
+        <p>Discover, install, and publish ultra-fast C-level native libraries for the Nova programming language with a single command.</p>
+        
+        <div class="install-cmd" onclick="navigator.clipboard.writeText('nova galaxy install nova-http')">
+            <span>$</span> nova galaxy install nova-http
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 10px; color: var(--text-muted);">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        </div>
+    </section>
+
+    <div class="container" id="keywords">
+        <h2 class="section-title">Language Core & Syntax</h2>
+        <div class="grid">
+            
+            <div class="card">
+                <h3>Unsafe Blocks & Pointers</h3>
+                <p>Drop down to raw memory control and inline assembly with the <code>@raw</code> directive. Perform manual heap allocations instantly.</p>
+                <div class="code-block">
+<span class="code-comment"># Allocate memory and write pointer bytes</span>
+<span class="code-keyword">def</span> <span class="code-func">manual_mem</span>() {
+    <span class="code-keyword">@raw</span> {
+        ptr = alloc(4)
+        ptr.value_dword = 42
+        free(ptr)
+    }
+}
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Native C-Structs</h3>
+                <p>Define tightly packed data structures using the <code>data</code> keyword for high-performance memory alignment.</p>
+                <div class="code-block">
+<span class="code-keyword">data</span> Vector3 {
+    x: int
+    y: int
+    z: int
+}
+
+<span class="code-keyword">def</span> <span class="code-func">calculate</span>(v: Vector3) {
+    v.x = v.y + v.z
+}
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>High-Level API I/O</h3>
+                <p>Built-in networking and JSON handling makes REST APIs as easy as Python, compiled natively to x86.</p>
+                <div class="code-block">
+<span class="code-comment"># Fetch API with integrated status checking</span>
+req = <span class="code-func">api</span>(<span class="code-string">"https://api.github.com"</span>)
+
+<span class="code-keyword">if</span> req.status() == 200 {
+    <span class="code-func">print</span>(req.json())
+}
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div class="container" id="packages">
+        <h2 class="section-title">Top Packages</h2>
+        <div class="grid">
+            <div class="card" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin-bottom: 0.2rem;">nova-http</h3>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">High-performance HTTP client</p>
+                </div>
+                <div style="color: var(--text-muted); font-family: monospace;">v1.0.0</div>
+            </div>
+            <div class="card" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin-bottom: 0.2rem;">nova-math</h3>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">Fast cryptographic functions</p>
+                </div>
+                <div style="color: var(--text-muted); font-family: monospace;">v2.1.4</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
