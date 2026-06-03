@@ -101,10 +101,7 @@ def get_package(package_name: str):
         with urllib.request.urlopen(req) as response:
             readme_content = response.read().decode('utf-8')
     except urllib.error.URLError:
-        readme_content = MOCK_MARKDOWN.format(
-            package_name=package_name,
-            description=data["description"]
-        )
+        readme_content = MOCK_MARKDOWN.replace("{package_name}", package_name).replace("{description}", data["description"])
         
     return {
         "package": package_name,
