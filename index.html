@@ -3,637 +3,674 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy | Nova Package Manager & Docs</title>
-    <meta name="description" content="The official package registry and language documentation for the Nova programming language.">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <title>Galaxy Registry</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
     <!-- Markdown Parsers -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    
+
     <style>
         :root {
-            --bg-color: #050505;
-            --surface: #111111;
-            --surface-hover: #1a1a1a;
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.4);
-            --secondary: #a855f7;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
+            --bg-color: #ffffff;
+            --text-primary: #171717;
+            --text-secondary: #666666;
+            --border-color: #eaeaea;
+            --accent-color: #0070f3; /* Vercel Blue */
+            --accent-hover: #0051a8;
+            --code-bg: #f5f5f5;
+            --header-bg: rgba(255, 255, 255, 0.8);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
         body {
-            font-family: 'Outfit', sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-main);
+            color: var(--text-primary);
             line-height: 1.6;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 0%, var(--surface) 0%, var(--bg-color) 70%);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Header */
-        header {
-            position: fixed;
+        /* Navigation */
+        nav {
+            position: sticky;
             top: 0;
-            width: 100%;
-            padding: 1rem 5%;
-            background: rgba(5, 5, 5, 0.8);
+            z-index: 100;
+            background-color: var(--header-bg);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 100;
+            padding: 0 2rem;
+            height: 64px;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+        .nav-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        nav a {
-            color: var(--text-muted);
+        .nav-brand svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
             text-decoration: none;
-            margin-left: 2rem;
-            font-weight: 600;
-            transition: color 0.3s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
         }
 
-        nav a:hover, nav a.active { color: var(--text-main); }
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-primary);
+        }
 
-        /* Hero */
-        .hero {
-            padding: 10rem 5% 4rem;
-            text-align: center;
-            max-width: 900px;
+        /* Container */
+        .container {
+            max-width: 1000px;
             margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero (Home) */
+        .hero {
+            text-align: center;
+            padding: 4rem 0 6rem 0;
         }
 
         .hero h1 {
             font-size: 4rem;
             font-weight: 800;
+            letter-spacing: -0.05em;
             line-height: 1.1;
             margin-bottom: 1.5rem;
-            letter-spacing: -1.5px;
         }
 
         .hero p {
             font-size: 1.25rem;
-            color: var(--text-muted);
-            margin-bottom: 3rem;
+            color: var(--text-secondary);
             max-width: 600px;
-            margin-inline: auto;
+            margin: 0 auto 3rem auto;
         }
 
-        .install-cmd {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 1rem 2rem;
-            border-radius: 100px;
-            font-family: 'Fira Code', monospace;
-            font-size: 1.1rem;
+        .hero-terminal {
+            background-color: #000;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
             display: inline-flex;
             align-items: center;
             gap: 1rem;
-            box-shadow: 0 0 40px var(--primary-glow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1);
+        }
+        
+        .hero-terminal .copy-btn {
+            background: none;
+            border: none;
+            color: #888;
             cursor: pointer;
-        }
-
-        .install-cmd:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 60px var(--primary-glow);
-        }
-
-        .install-cmd span { color: var(--primary); }
-
-        /* Tabs */
-        .tabs {
             display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-            flex-wrap: wrap;
+        }
+        
+        .hero-terminal .copy-btn:hover {
+            color: #fff;
         }
 
-        .tab-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 0.8rem 1.5rem;
-            border-radius: 100px;
-            font-family: 'Outfit', sans-serif;
+        /* Typography / Markdown */
+        .prose h1, .prose h2, .prose h3 {
             font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
+            letter-spacing: -0.02em;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .prose h1 { font-size: 2.25rem; }
+        .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .prose p { margin-bottom: 1rem; color: #333; }
+        
+        .prose code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+            background-color: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+        }
+        
+        .prose pre {
+            background-color: #000;
+            color: #fff;
+            padding: 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        
+        .prose pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        
+        .prose a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .prose a:hover {
+            text-decoration: underline;
         }
 
-        .tab-btn:hover { background: var(--surface); color: var(--text-main); }
-        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
 
-        .tab-content { display: none; animation: fadeIn 0.4s ease forwards; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
 
-        /* Content Grid & Cards */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 5% 5rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
 
         .card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            cursor: pointer;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.04);
+            border-color: #ccc;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; color: var(--text-main); }
-        .card p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; flex-grow: 1; }
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .badge {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+        }
 
         /* Package Details View */
-        #package-details-view {
-            display: none;
-            animation: fadeIn 0.4s ease forwards;
-            padding-top: 2rem;
-        }
-
-        .details-header {
-            margin-bottom: 3rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 2rem;
-        }
-        
-        .details-header h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        
         .back-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Outfit';
-            margin-bottom: 2rem;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 2rem;
         }
-        .back-btn:hover { background: var(--surface); color: white; }
+        
+        .back-btn:hover {
+            color: var(--text-primary);
+        }
 
         .details-layout {
             display: grid;
-            grid-template-columns: 3fr 1fr;
-            gap: 3rem;
+            grid-template-columns: 1fr 300px;
+            gap: 4rem;
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 768px) {
             .details-layout {
                 grid-template-columns: 1fr;
+                gap: 2rem;
             }
         }
 
-        .markdown-body {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 2.5rem;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            line-height: 1.7;
-        }
-        
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--text-main);
-        }
-        .markdown-body h1:first-child { margin-top: 0; }
-        
-        .markdown-body p { margin-bottom: 1rem; color: var(--text-muted); }
-        .markdown-body pre {
-            background: #000;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            overflow-x: auto;
-            margin-bottom: 1.5rem;
-        }
-        .markdown-body code {
-            font-family: 'Fira Code', monospace;
-            background: rgba(255,255,255,0.1);
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .markdown-body pre code { background: none; padding: 0; }
-        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1.5rem; color: var(--text-muted); }
-        .markdown-body blockquote {
-            border-left: 4px solid var(--primary);
-            padding-left: 1rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-muted);
-            font-style: italic;
+        .sidebar {
+            border-left: 1px solid var(--border-color);
+            padding-left: 2rem;
         }
 
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+        @media (max-width: 768px) {
+            .sidebar {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid var(--border-color);
+                padding-top: 2rem;
+            }
+        }
+
+        .sidebar h4 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
         }
         
         .sidebar-section {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 1.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-        }
-        
-        .sidebar-section h4 { color: white; margin-bottom: 0.8rem; font-size: 1.1rem; }
-        .sidebar-section p, .sidebar-section a { color: var(--text-muted); font-size: 0.95rem; text-decoration: none; }
-        .sidebar-section a:hover { color: var(--primary); }
-        
-        .tag-list { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .tag {
-            background: rgba(99, 102, 241, 0.15);
-            color: var(--primary);
-            padding: 0.3rem 0.8rem;
-            border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            margin-bottom: 2.5rem;
         }
 
-        /* Tables for Types & Ops */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        .data-table th, .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        .data-table th { background: rgba(0,0,0,0.3); color: var(--primary); font-weight: 600; }
-        .data-table tr:last-child td { border-bottom: none; }
-        .data-table code { background: rgba(255,255,255,0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.9rem; }
-
-        /* Code Blocks */
-        .code-container { position: relative; margin-top: auto; }
-        .code-block {
-            background: #000;
-            border-radius: 12px;
-            padding: 1.5rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            color: #e2e8f0;
-            border: 1px solid var(--border);
-            overflow-x: auto;
-        }
-        
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 5px 10px;
+        .install-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
             cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
+            transition: border-color 0.2s;
         }
-        .copy-btn:hover { background: rgba(255,255,255,0.2); }
 
-        .code-keyword { color: #c678dd; }
-        .code-func { color: #61afef; }
-        .code-string { color: #98c379; }
-        .code-comment { color: #5c6370; font-style: italic; }
-        .code-type { color: #e5c07b; }
-
-        /* Search Bar */
-        .search-bar {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto 3rem;
-            position: relative;
+        .install-box:hover {
+            border-color: #ccc;
         }
-        .search-bar input {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 1rem 1.5rem;
-            border-radius: 100px;
-            color: white;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .search-bar input:focus { border-color: var(--primary); }
-
-        /* Blobs */
-        .blob { position: fixed; filter: blur(120px); z-index: -1; opacity: 0.3; }
-        .blob-1 { top: 10%; left: -5%; width: 400px; height: 400px; background: var(--primary); border-radius: 50%; }
-        .blob-2 { bottom: 10%; right: -5%; width: 500px; height: 500px; background: var(--secondary); border-radius: 50%; }
         
-        .loading-spinner {
+        .install-box .prefix { color: var(--text-secondary); margin-right: 0.5rem; }
+
+        .meta-list {
+            list-style: none;
+        }
+        
+        .meta-list li {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .meta-list a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .meta-list a:hover { text-decoration: underline; }
+        
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--text-primary);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #333;
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #999;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .loading {
             text-align: center;
-            padding: 4rem;
-            color: var(--primary);
-            font-size: 1.5rem;
+            color: var(--text-secondary);
+            padding: 4rem 0;
         }
     </style>
 </head>
 <body>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
 
-    <header>
-        <div class="logo" onclick="showHome()">Galaxy</div>
-        <nav>
-            <a href="https://github.com/nova-programming/Nova" target="_blank">Compiler GitHub</a>
-        </nav>
-    </header>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-brand" onclick="switchNav('view-home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Galaxy
+        </div>
+        <div class="nav-links">
+            <a class="nav-link active" onclick="switchNav('view-home')">Home</a>
+            <a class="nav-link" onclick="switchNav('view-libraries')">Libraries</a>
+            <a class="nav-link" onclick="switchNav('view-docs')">Documentation</a>
+            <a class="nav-link" onclick="switchNav('view-contribute')">Contribute</a>
+            <a class="nav-link" onclick="switchNav('view-contact')">Contact</a>
+        </div>
+    </nav>
 
-    <div id="home-view">
-        <section class="hero">
-            <h1>Nova Language Registry</h1>
-            <p>The universe of Nova packages and complete official documentation for the Nova language. Ultra-fast, natively compiled, and brutally elegant.</p>
-            
-            <div class="install-cmd" onclick="copyText('nova galaxy install nova-http', this)">
-                <span>$</span> nova galaxy install nova-http
+    <div class="container">
+        
+        <!-- HOME VIEW -->
+        <section id="view-home" class="view-section active">
+            <div class="hero">
+                <h1>The native package manager for Nova.</h1>
+                <p>Fast, minimal, and fully Git-backed. Discover and publish libraries instantly without ever leaving the terminal.</p>
+                
+                <div class="hero-terminal">
+                    <span>$ nova galaxy install nova-http</span>
+                    <button class="copy-btn" onclick="copyText('nova galaxy install nova-http', this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 3rem;">
+                    <button class="btn-primary" onclick="switchNav('view-libraries')">Explore Libraries</button>
+                    <button class="btn-secondary" onclick="switchNav('view-docs')">Read the Docs</button>
+                </div>
             </div>
         </section>
 
-        <div class="container">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('tab-packages')">Packages</button>
-                <button class="tab-btn" onclick="switchTab('tab-syntax')">Syntax & Core</button>
-                <button class="tab-btn" onclick="switchTab('tab-types')">Data Types & Built-ins</button>
-                <button class="tab-btn" onclick="switchTab('tab-pointers')">Raw Pointers</button>
-            </div>
-
-            <!-- PACKAGES TAB -->
-            <div id="tab-packages" class="tab-content active">
-                <div class="search-bar">
-                    <input type="text" id="pkg-search" placeholder="Search for a package..." onkeyup="filterPackages()">
-                </div>
-                <div class="grid" id="package-grid">
-                    <div class="loading-spinner">Loading registry...</div>
-                </div>
-            </div>
-
-            <!-- SYNTAX TAB -->
-            <div id="tab-syntax" class="tab-content">
-                <div class="grid">
-                    <div class="card" style="cursor:default">
-                        <h3>Functions & Control Flow</h3>
-                        <p>Uses standard cdecl calling convention. Loops support both index tracking and item iteration.</p>
-                        <div class="code-container">
-                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                            <div class="code-block">
-<span class="code-keyword">def</span> <span class="code-func">calculate</span>(a: <span class="code-type">int</span>, b: <span class="code-type">int</span>) -> <span class="code-type">int</span> {
-    <span class="code-keyword">if</span> a == <span class="code-string">null</span> { <span class="code-keyword">return</span> 0 }
-    
-    <span class="code-keyword">for</span> i = 0 <span class="code-keyword">to</span> 10 <span class="code-keyword">step</span> 1 {
-        <span class="code-func">print</span>(i)
-    }
-    <span class="code-keyword">return</span> a + b
-}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card" style="cursor:default">
-                        <h3>Native Structs (data)</h3>
-                        <p>Define tightly packed C-style memory structures. Offsets are calculated statically.</p>
-                        <div class="code-container">
-                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                            <div class="code-block">
-<span class="code-keyword">data</span> Vector3 {
-    x: <span class="code-type">int</span>
-    y: <span class="code-type">int</span>
-    z: <span class="code-type">int</span>
-}
-
-<span class="code-keyword">def</span> <span class="code-func">move</span>(v: <span class="code-type">Vector3</span>) {
-    v.x = v.x + 10
-}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card" style="cursor:default">
-                        <h3>Object-Oriented (class)</h3>
-                        <p>Dynamic dispatch with virtual method tables (vtables) automatically managed by the compiler.</p>
-                        <div class="code-container">
-                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                            <div class="code-block">
-<span class="code-keyword">class</span> Entity {
-    id: <span class="code-type">int</span>
-    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(start_id: <span class="code-type">int</span>) {
-        <span class="code-keyword">self</span>.id = start_id
-    }
-}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="cursor:default">
-                        <h3>API / Networking</h3>
-                        <p>Make REST calls out-of-the-box using the built-in compiler networking pipeline.</p>
-                        <div class="code-container">
-                            <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                            <div class="code-block">
-<span class="code-comment"># Native network request</span>
-req = <span class="code-func">api</span>(<span class="code-string">"https://api.github.com"</span>)
-<span class="code-keyword">if</span> req.status() == 200 {
-    <span class="code-func">print</span>(req.json())
-}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TYPES TAB -->
-            <div id="tab-types" class="tab-content">
-                <h2 style="margin-bottom:1rem">Core Data Types</h2>
-                <table class="data-table" style="margin-bottom:3rem">
-                    <tr><th>Type</th><th>Size</th><th>Description</th></tr>
-                    <tr><td><code>int</code></td><td>32-bit</td><td>Signed double-word integer.</td></tr>
-                    <tr><td><code>float</code></td><td>32-bit</td><td>IEEE-754 single-precision floating point.</td></tr>
-                    <tr><td><code>byte</code></td><td>8-bit</td><td>Unsigned 8-bit byte.</td></tr>
-                    <tr><td><code>bool</code></td><td>1-bit</td><td>Evaluates to <code>true</code> or <code>false</code>.</td></tr>
-                    <tr><td><code>string</code></td><td>Dynamic</td><td>Null-terminated character arrays.</td></tr>
-                    <tr><td><code>list[T]</code></td><td>Dynamic</td><td>Dynamically sized heap array of type T. Uses <code>HeapReAlloc</code>.</td></tr>
-                </table>
-
-                <h2 style="margin-bottom:1rem">Built-in Functions</h2>
-                <div class="grid">
-                    <div class="card" style="cursor:default">
-                        <h3><code>len(var)</code> / <code>sizeof(var)</code></h3>
-                        <p><code>len()</code> evaluates dynamic bounds (strings, lists) or calls <code>__len__</code> on objects. <code>sizeof()</code> resolves compile-time byte sizes.</p>
-                    </div>
-                    <div class="card" style="cursor:default">
-                        <h3><code>sys_system(cmd)</code></h3>
-                        <p>Execute shell sub-processes dynamically (WinExec wrapping).</p>
-                    </div>
-                    <div class="card" style="cursor:default">
-                        <h3><code>random()</code></h3>
-                        <p>Cryptographically secure 32-bit random number generated via unrolled ChaCha20 blocks.</p>
-                    </div>
-                    <div class="card" style="cursor:default">
-                        <h3><code>open(path, mode)</code></h3>
-                        <p>Native file descriptor access. Returns FD integer. Use with <code>read(fd)</code> and <code>write(fd, val)</code>.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- POINTERS TAB -->
-            <div id="tab-pointers" class="tab-content">
-                <div class="card" style="margin-bottom: 2rem; cursor:default">
-                    <h3>The @raw Block</h3>
-                    <p>Nova restricts pointer arithmetic and assembly generation to blocks explicitly marked with <code>@raw</code> to ensure safety elsewhere.</p>
-                    <div class="code-container">
-                        <button class="copy-btn" onclick="copyCode(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                        <div class="code-block">
-<span class="code-keyword">@raw</span> {
-    ptr = <span class="code-func">alloc</span>(4)     <span class="code-comment"># Allocate 4 bytes on Heap</span>
-    ptr.value = 100  <span class="code-comment"># Write dword</span>
-    
-    <span class="code-comment"># Inline x86 assembly</span>
-    mov eax, ptr.value
-    push eax
-    
-    <span class="code-func">free</span>(ptr)        <span class="code-comment"># Deallocate</span>
-}
-                        </div>
-                    </div>
-                </div>
-                
-                <table class="data-table">
-                    <tr><th>Pointer Suffix</th><th>Operation</th></tr>
-                    <tr><td><code>ptr.value</code> / <code>ptr.value_dword</code></td><td>Reads/Writes 32-bit (4 bytes) at address.</td></tr>
-                    <tr><td><code>ptr.value_word</code></td><td>Reads/Writes 16-bit (2 bytes) at address.</td></tr>
-                    <tr><td><code>ptr.value_byte</code></td><td>Reads/Writes 8-bit (1 byte) at address.</td></tr>
-                    <tr><td><code>ptr.addr</code></td><td>Returns the raw memory address integer.</td></tr>
-                    <tr><td><code>ptr.isValid</code> / <code>ptr.isNull</code></td><td>Checks if address is <code>!= 0</code> or <code>== 0</code>.</td></tr>
-                </table>
-            </div>
-        </div>
-    </div> <!-- /home-view -->
-
-    <!-- PACKAGE DETAILS VIEW (PyPI Style) -->
-    <div id="package-details-view" class="container">
-        <button class="back-btn" onclick="showHome()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Back to Registry
-        </button>
-        
-        <div id="pkg-detail-loader" class="loading-spinner">Fetching package data...</div>
-        
-        <div id="pkg-detail-content" style="display: none;">
-            <div class="details-header">
-                <h1 id="detail-title">nova-package</h1>
-                <p id="detail-desc" style="color: var(--text-muted); font-size: 1.2rem;">Package description goes here.</p>
+        <!-- LIBRARIES VIEW (Registry Index) -->
+        <section id="view-libraries" class="view-section">
+            <div class="prose" style="margin-bottom: 2rem;">
+                <h1>Libraries</h1>
+                <p>Browse packages created by the Nova community.</p>
             </div>
             
-            <div class="details-layout">
-                <div class="main-column">
-                    <div class="markdown-body" id="detail-readme">
-                        <!-- Markdown rendered here -->
-                    </div>
+            <div class="search-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="pkg-search" class="search-input" placeholder="Search for packages..." onkeyup="filterPackages()">
+            </div>
+            
+            <div id="package-grid" class="grid">
+                <div class="loading">Loading packages...</div>
+            </div>
+        </section>
+        
+        <!-- PACKAGE DETAILS VIEW -->
+        <section id="view-package-details" class="view-section">
+            <button class="back-btn" onclick="switchNav('view-libraries')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back to Libraries
+            </button>
+            
+            <div id="pkg-detail-loader" class="loading">Loading documentation...</div>
+            
+            <div id="pkg-detail-content" class="details-layout" style="display:none;">
+                <div class="main-column prose">
+                    <!-- Title gets injected if fallback needed -->
+                    <div id="detail-readme"></div>
                 </div>
                 
                 <div class="sidebar">
                     <div class="sidebar-section">
                         <h4>Install</h4>
-                        <div class="install-cmd" style="padding: 0.8rem 1rem; font-size: 0.95rem; box-shadow: none; width: 100%; display: flex; justify-content: space-between;" onclick="copyText(document.getElementById('detail-install').innerText, this)">
-                            <div style="overflow:hidden; text-overflow: ellipsis; white-space: nowrap;"><span style="color:var(--primary)">$</span> <span id="detail-install">nova galaxy install package</span></div>
+                        <div class="install-box" onclick="copyText(document.getElementById('detail-install').innerText, this)">
+                            <div style="overflow:hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span class="prefix">$</span><span id="detail-install"></span>
+                            </div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </div>
                     </div>
                     
                     <div class="sidebar-section">
-                        <h4>Meta</h4>
-                        <p style="margin-bottom: 0.5rem"><strong>Version:</strong> <span id="detail-version">1.0.0</span></p>
-                        <p style="margin-bottom: 0.5rem"><strong>Author:</strong> <span id="detail-author">Nova Team</span></p>
-                        <p style="margin-bottom: 0.5rem"><strong>License:</strong> MIT</p>
-                        <p><strong>Links:</strong></p>
-                        <ul style="list-style-type: none; margin-top: 0.3rem;">
+                        <h4>Information</h4>
+                        <ul class="meta-list">
+                            <li><strong>Version:</strong> <span id="detail-version"></span></li>
+                            <li><strong>Author:</strong> <span id="detail-author"></span></li>
+                            <li><strong>License:</strong> MIT</li>
                             <li><a href="#" id="detail-repo" target="_blank">GitHub Repository ↗</a></li>
                         </ul>
                     </div>
                     
                     <div class="sidebar-section">
                         <h4>Tags</h4>
-                        <div class="tag-list" id="detail-tags">
-                            <!-- Tags go here -->
-                        </div>
+                        <div class="tag-list" id="detail-tags"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div> <!-- /package-details-view -->
+        </section>
 
+        <!-- DOCUMENTATION VIEW -->
+        <section id="view-docs" class="view-section">
+            <div class="prose">
+                <h1>Documentation</h1>
+                <p>Learn how to use Galaxy to manage dependencies in your Nova projects.</p>
+                
+                <h2>Installing Packages</h2>
+                <p>To install a package globally from the registry, simply run:</p>
+                <pre><code>nova galaxy install &lt;package_name&gt;</code></pre>
+                
+                <h2>Project Initialization</h2>
+                <p>You can initialize a new Nova project using a boilerplate template hosted on Galaxy:</p>
+                <pre><code>nova galaxy init &lt;template_name&gt;</code></pre>
+                
+                <h2>Module Resolution</h2>
+                <p>When you compile a Nova project using <code>nova build</code>, the compiler will automatically look for imports inside your local <code>galaxy_modules/</code> directory as well as the standard library.</p>
+            </div>
+        </section>
+
+        <!-- CONTRIBUTE VIEW -->
+        <section id="view-contribute" class="view-section">
+            <div class="prose">
+                <h1>Contribute</h1>
+                <p>Galaxy is a fully static, Git-backed registry. There is no central database or authentication. To publish your package, you simply open a Pull Request to our GitHub repository.</p>
+                
+                <h2>How to Publish a Package</h2>
+                <ol>
+                    <li>Host your Nova library publicly on GitHub.</li>
+                    <li>Ensure your repository has a descriptive <code>README.md</code>.</li>
+                    <li>Fork the <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">nova-programming/galaxy-registry</a> repository.</li>
+                    <li>Create a new JSON file in the <code>packages/</code> folder named after your package (e.g. <code>my-package.json</code>).</li>
+                </ol>
+                
+                <h2>JSON Schema</h2>
+                <p>Your JSON file must follow this structure:</p>
+                <pre><code>{
+  "package": "my-package",
+  "github_repo": "yourusername/my-package",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "A brief description of what your package does.",
+  "tags": ["cli", "utility"],
+  "download_url": "https://github.com/yourusername/my-package/archive/refs/heads/main.zip"
+}</code></pre>
+                
+                <p>Submit your Pull Request, and upon approval, your package will instantly be available globally via <code>nova galaxy install</code>.</p>
+            </div>
+        </section>
+
+        <!-- CONTACT VIEW -->
+        <section id="view-contact" class="view-section">
+            <div class="prose">
+                <h1>Contact & Community</h1>
+                <p>Nova is an open-source systems programming language. We'd love for you to get involved.</p>
+                
+                <ul class="meta-list" style="margin-top: 2rem;">
+                    <li><strong>GitHub Organization:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming ↗</a></li>
+                    <li><strong>Report Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker ↗</a></li>
+                    <li><strong>Discord:</strong> Coming Soon</li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Application Logic -->
     <script>
-        const copyIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-        const checkIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        // Icons
+        const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+        const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-        }
+        // Router
+        function switchNav(viewId) {
+            // Update Active Nav Link
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            if(event && event.target.classList.contains('nav-link')) {
+                event.target.classList.add('active');
+            } else {
+                // Fallback for button clicks routing to another tab
+                const mapping = {
+                    'view-home': 0,
+                    'view-libraries': 1,
+                    'view-docs': 2,
+                    'view-contribute': 3,
+                    'view-contact': 4,
+                    'view-package-details': 1 // Highlight libraries when in details
+                };
+                if(mapping[viewId] !== undefined) {
+                    document.querySelectorAll('.nav-link')[mapping[viewId]].classList.add('active');
+                }
+            }
 
-        function showHome() {
-            document.getElementById('package-details-view').style.display = 'none';
-            document.getElementById('home-view').style.display = 'block';
+            // Hide all sections, show target
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
             window.scrollTo(0, 0);
         }
 
+        // Copy Utility
+        function copyText(text, btnElement) {
+            navigator.clipboard.writeText(text);
+            const originalHTML = btnElement.innerHTML;
+            
+            // Attempt to replace just the SVG if it's the box, or the whole content
+            if (btnElement.querySelector('svg')) {
+                const svg = btnElement.querySelector('svg');
+                svg.outerHTML = checkIcon;
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHTML;
+                }, 2000);
+            }
+            
+            if(event) event.stopPropagation();
+        }
+
+        // Search Filter
+        function filterPackages() {
+            const search = document.getElementById('pkg-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.pkg-card');
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                const desc = card.querySelector('p').innerText.toLowerCase();
+                if (title.includes(search) || desc.includes(search)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Package Detail Loader
         function showPackageDetails(pkgName) {
-            document.getElementById('home-view').style.display = 'none';
-            document.getElementById('package-details-view').style.display = 'block';
+            switchNav('view-package-details');
             document.getElementById('pkg-detail-content').style.display = 'none';
             document.getElementById('pkg-detail-loader').style.display = 'block';
-            window.scrollTo(0, 0);
             
-            // Fetch PyPI-style data from static JSON
             fetch(`/packages/${pkgName}.json`)
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('pkg-detail-loader').style.display = 'none';
-                    document.getElementById('pkg-detail-content').style.display = 'block';
+                    document.getElementById('pkg-detail-content').style.display = 'grid'; // Grid layout
                     
-                    document.getElementById('detail-title').innerText = data.package;
-                    document.getElementById('detail-desc').innerText = data.description;
                     document.getElementById('detail-install').innerText = `nova galaxy install ${data.package}`;
                     document.getElementById('detail-version').innerText = data.version;
                     document.getElementById('detail-author').innerText = data.author;
@@ -643,10 +680,10 @@ req = <span class="code-func">api</span>(<span class="code-string">"https://api.
                     const tagContainer = document.getElementById('detail-tags');
                     tagContainer.innerHTML = '';
                     data.tags.forEach(tag => {
-                        tagContainer.innerHTML += `<span class="tag">${tag}</span>`;
+                        tagContainer.innerHTML += `<span class="badge">${tag}</span>`;
                     });
                     
-                    // Fetch live Markdown from GitHub Repo
+                    // Fetch live Markdown
                     fetch(`https://raw.githubusercontent.com/${data.github_repo}/main/README.md`)
                         .then(readmeRes => {
                             if (!readmeRes.ok) throw new Error("No README");
@@ -654,14 +691,12 @@ req = <span class="code-func">api</span>(<span class="code-string">"https://api.
                         })
                         .then(markdownText => {
                             const rawHtml = marked.parse(markdownText);
-                            const cleanHtml = DOMPurify.sanitize(rawHtml);
-                            document.getElementById('detail-readme').innerHTML = cleanHtml;
+                            document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(rawHtml);
                         })
                         .catch(() => {
                             // Fallback mockup
                             const fallbackMarkdown = `
 # ${data.package}
-
 ${data.description}
 
 ## Installation
@@ -669,19 +704,9 @@ ${data.description}
 nova galaxy install ${data.package}
 \`\`\`
 
-## Quick Start
-\`\`\`nova
-import ${data.package}
-
-def main() {
-    print("Successfully imported!")
-}
-\`\`\`
-
-> **Note**: This is a mock readme generated by the registry because the actual GitHub repository does not have a README.md yet.
+> **Note**: This is a mock readme generated by the registry because the GitHub repository does not have a README.md yet.
                             `;
-                            const rawHtml = marked.parse(fallbackMarkdown);
-                            document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(rawHtml);
+                            document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(fallbackMarkdown));
                         });
                 })
                 .catch(e => {
@@ -689,41 +714,7 @@ def main() {
                 });
         }
 
-        function copyText(text, btn) {
-            navigator.clipboard.writeText(text);
-            const originalHTML = btn.innerHTML;
-            if(btn.classList.contains('copy-btn')) {
-                btn.innerHTML = checkIcon;
-            } else {
-                btn.innerHTML = originalHTML + ' <span style="margin-left:8px">' + checkIcon + '</span>';
-            }
-            setTimeout(() => btn.innerHTML = originalHTML, 2000);
-            
-            // Prevent event from bubbling to card click
-            if(event) event.stopPropagation();
-        }
-
-        function copyCode(btn) {
-            const codeBlock = btn.nextElementSibling.innerText;
-            navigator.clipboard.writeText(codeBlock);
-            btn.innerHTML = checkIcon;
-            setTimeout(() => btn.innerHTML = copyIcon, 2000);
-        }
-
-        function filterPackages() {
-            const search = document.getElementById('pkg-search').value.toLowerCase();
-            const cards = document.querySelectorAll('.pkg-card');
-            cards.forEach(card => {
-                const title = card.querySelector('h3').innerText.toLowerCase();
-                if (title.includes(search)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-        
-        // Fetch live packages dynamically from the API on load
+        // Bootstrapping: Load Package Grid
         fetch('/packages/index.json')
             .then(res => res.json())
             .then(data => {
@@ -734,15 +725,14 @@ def main() {
                         <div class="card pkg-card" onclick="showPackageDetails('${pkg.name}')">
                             <h3>${pkg.name}</h3>
                             <p>${pkg.description}</p>
-                            <div class="code-container">
-                                <button class="copy-btn" onclick="copyText('nova galaxy install ${pkg.name}', this); event.stopPropagation();">${copyIcon}</button>
-                                <div class="code-block">$ nova galaxy install ${pkg.name}</div>
+                            <div class="card-footer">
+                                <span class="badge">v${pkg.version}</span>
                             </div>
                         </div>
                     `;
                 });
             }).catch(e => {
-                document.getElementById('package-grid').innerHTML = '<div class="loading-spinner" style="color:red">Failed to connect to Registry API.</div>';
+                document.getElementById('package-grid').innerHTML = '<div class="loading" style="color:red">Failed to connect to Registry.</div>';
             });
     </script>
 </body>
