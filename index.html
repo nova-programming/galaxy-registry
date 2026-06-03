@@ -522,7 +522,7 @@
         <div class="nav-links">
             <a class="nav-link active" onclick="switchNav('view-home')">Home</a>
             <a class="nav-link" onclick="switchNav('view-libraries')">Libraries</a>
-            <a class="nav-link" onclick="switchNav('view-docs')">Documentation</a>
+            <a class="nav-link" href="documentation.html">Documentation</a>
             <a class="nav-link" onclick="switchNav('view-contribute')">Contribute</a>
             <a class="nav-link" onclick="switchNav('view-contact')">Contact</a>
         </div>
@@ -545,7 +545,7 @@
                 
                 <div class="btn-group" style="margin-top: 3rem;">
                     <button class="btn-primary" onclick="switchNav('view-libraries')">Explore Libraries</button>
-                    <button class="btn-secondary" onclick="switchNav('view-docs')">Read the Docs</button>
+                    <button class="btn-secondary" onclick="window.location.href='documentation.html'">Read the Docs</button>
                 </div>
             </div>
         </section>
@@ -657,113 +657,6 @@
 
     </div>
 
-    <!-- DOCUMENTATION VIEW (Full Width outside container) -->
-    <section id="view-docs" class="view-section">
-        <div class="doc-layout">
-            <nav class="doc-sidebar">
-                <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; word-break: break-all;">Contents</h4>
-                <ul>
-                    <li><a href="#doc-intro">Introduction</a></li>
-                    <li><a href="#doc-why-nova">Why Nova? (Comparisons)</a></li>
-                    <li><a href="#doc-getting-started">Getting Started</a></li>
-                    <li><a href="#doc-cli">CLI Modes & Flags</a></li>
-                    <li><a href="#doc-optimizations">Unique Optimizations</a></li>
-                    <li><a href="#doc-keywords">Keywords & Flow Control</a></li>
-                    <li><a href="#doc-types">Built-in Data Types</a></li>
-                    <li><a href="#doc-unsafe">Unsafe & Memory</a></li>
-                    <li><a href="#doc-pipeline">Compiler Architecture</a></li>
-                </ul>
-            </nav>
-            
-            <div class="doc-content prose">
-                <h1 id="doc-intro" style="margin-top: 0;">Nova Language Documentation</h1>
-                <p>Nova is a systems programming language that bridges high-level Pythonic simplicity with low-level C-like control. It features a fully functional self-hosted compiler pipeline capable of generating native x86 assembly and standalone Windows PE executables without relying on external toolchains like GCC.</p>
-                
-                <h2 id="doc-why-nova">Why Nova?</h2>
-                <p>Nova is built for developers who want the rapid iteration speed of Python but the raw metal performance of C.</p>
-                <ul>
-                    <li><strong>Versus Python:</strong> Nova compiles down directly to x86-32 assembly. In heavy computational benchmarks (e.g., recursion, modulo arithmetic), Nova runs <strong>14x faster than Python</strong> (104ms vs 1458ms).</li>
-                    <li><strong>Versus C/GCC:</strong> Nova doesn't require a multi-gigabyte build environment. The entire compiler, assembler, and linker are fully integrated into a single pipeline. It achieves near-C performance (104ms vs GCC's 62ms with <code>-O3</code>) out of the box.</li>
-                </ul>
-                
-                <h2 id="doc-getting-started">Getting Started</h2>
-                <p>To start building with Nova and using the Galaxy package manager, clone the compiler:</p>
-                <pre><code>git clone https://github.com/nova-programming/Nova.git
-cd Nova</code></pre>
-                
-                <h2 id="doc-cli">CLI Modes & Flags</h2>
-                <p>Nova is exceptionally flexible. It can run code instantly via a Python VM, or build a bare-metal OS image.</p>
-                
-                <h3>Core Modes</h3>
-                <ul>
-                    <li><code>python main.py build program.nv</code>: <strong>Production</strong> - Compiles to native x86 executable using python codegen + GCC.</li>
-                    <li><code>python main.py dev program.nv</code>: <strong>Development</strong> - Runs instantly in the Python bytecode VM. Great for rapid testing.</li>
-                    <li><code>nova_main.exe build program.nv</code>: <strong>Self-hosted</strong> - The Nova-compiled compiler compiles your script directly to a native PE executable using its internal assembler and linker (No GCC required).</li>
-                    <li><code>nova_main.exe assemble-link input.s output.exe</code>: <strong>Assembler/Linker</strong> - Assembles and links a raw x86 assembly file directly to a PE executable.</li>
-                    <li><code>nova_main.exe build-bare program.nv &lt;org&gt; &lt;entry&gt;</code>: <strong>Flat Binary</strong> - Compiles to a flat, headerless binary without OS imports. Perfect for bootloaders and bare-metal OS development.</li>
-                </ul>
-                
-                <h3>Compiler Flags</h3>
-                <ul>
-                    <li><code>--debug</code>: Enables debug prints. Any <code>printd(x)</code> statement in your code will only be emitted as assembly if this flag is present. It automatically injects the file line number into the output (e.g., <code>debug - [line 42]: &lt;value&gt;</code>).</li>
-                </ul>
-                
-                <h2 id="doc-optimizations">Unique Optimizations</h2>
-                <p>Nova packs several advanced compiler optimization techniques to ensure lean, blazing-fast binaries.</p>
-                <ul>
-                    <li><strong>Tree-Shaking Dead Code Elimination:</strong> The compiler natively builds a dependency graph of all function calls. It slices out unused standard library functions, reducing final binary sizes by up to <strong>70%</strong>. (e.g., A minimal program drops from 11.5 KB to 3.5 KB).</li>
-                    <li><strong>Variable-to-Register Promotion:</strong> The compiler greedily maps local variables to high-speed CPU registers (<code>esi</code> and <code>edi</code>), drastically minimizing expensive stack memory reads/writes.</li>
-                    <li><strong>Native Standard Library Injection:</strong> Functions from <code>os_win</code> and <code>math_utils</code> are automatically injected and natively compiled into all executables. No manual imports of core modules required.</li>
-                    <li><strong>Automatic CSPRNG Initialization:</strong> The built-in <code>random()</code> function uses a highly-optimized ChaCha20 block generation algorithm. It automatically seeds itself at runtime using the host system tick count.</li>
-                </ul>
-                
-                <h2 id="doc-keywords">Keywords & Flow Control</h2>
-                <ul>
-                    <li><strong><code>def</code></strong>: Declares a function. Compiles to standard x86 <code>call</code>/<code>ret</code> routines using the <code>cdecl</code> calling convention (caller cleans the stack).</li>
-                    <li><strong><code>class / data</code></strong>: Defines an object-oriented class template (with vtable virtual dispatch via offset resolution) or a static C-style data structure.</li>
-                    <li><strong><code>import / from / as</code></strong>: Module import system. Galaxy packages and FFI libraries (e.g., <code>import "kernel32.dll" as kernel32</code>) are seamlessly resolved.</li>
-                    <li><strong><code>for</code></strong>: Supports range loops (<code>for i = 0 to 10 step 2</code>, <code>downto</code>) and collection iterations (<code>for item in list</code>).</li>
-                    <li><strong><code>const</code></strong>: Enforces strict compile-time variable immutability.</li>
-                    <li><strong><code>has</code></strong>: Evaluates whether a property field exists on a data structure at compile-time.</li>
-                </ul>
-                
-                <h2 id="doc-types">Built-in Data Types</h2>
-                <p>The static type checker automatically infers and enforces strict types:</p>
-                <ul>
-                    <li><strong><code>int</code></strong> (32-bit signed), <strong><code>float</code></strong> (IEEE-754 32-bit, uses x87 FPU hardware at runtime).</li>
-                    <li><strong><code>bool</code></strong> (Supports short-circuiting <code>and</code>/<code>or</code> evaluation).</li>
-                    <li><strong><code>string</code></strong> (Null-terminated character sequences).</li>
-                    <li><strong><code>list[T]</code></strong>: Dynamically-sized typed arrays. Uses exponential capacity allocation (<code>HeapReAlloc</code>) to prevent linear insertion overhead. Includes bounds-checking instructions (<code>cmp ecx, [edx]</code>, <code>jl</code>, <code>jge</code>) on every access to safely terminate out-of-bounds reads.</li>
-                </ul>
-                
-                <h2 id="doc-unsafe">Unsafe & Memory Directives</h2>
-                <p>Nova allows you to drop down to bare-metal control at any time using the <code>@raw</code> block directive. Everything inside a raw block bypasses safety checks.</p>
-                <pre><code>@raw {
-    mov eax, 42
-    push eax
-}</code></pre>
-                <p>Inside raw blocks, you gain access to:</p>
-                <ul>
-                    <li><strong>Inline Assembly:</strong> Lines starting with x86 mnemonics are emitted directly into the assembly pipeline.</li>
-                    <li><strong>Symbol Exporting:</strong> Use <code>@export { name1 }</code> to expose global symbols for external linkage.</li>
-                    <li><strong>Heap Allocations:</strong> Call <code>alloc(size)</code> and <code>free(ptr)</code> to manually request and release raw memory bytes.</li>
-                    <li><strong>Pointer Arithmetic:</strong> Read/write directly to memory addresses using suffixes: <code>ptr.value_dword</code> (4 bytes), <code>ptr.value_word</code> (2 bytes), <code>ptr.value_byte</code> (1 byte). Evaluate memory using <code>ptr.addr</code>, <code>ptr.isValid</code>, and <code>ptr.isNull</code>.</li>
-                </ul>
-                
-                <h2 id="doc-pipeline">Compiler Architecture</h2>
-                <p>When you run <code>nova_main.exe build</code>, the self-hosted compiler processes your code through a pipeline of internal modules written completely in Nova:</p>
-                <ol>
-                    <li><code>lexer.nv</code>: Tokenizes source characters into structural tokens.</li>
-                    <li><code>parser.nv</code>: Constructs a syntax tree (AST) via recursive-descent parsing and performs constant folding (e.g., <code>1+2</code> becomes <code>3</code> at compile-time).</li>
-                    <li><code>type_checker.nv</code>: Infers and validates static types across all nodes.</li>
-                    <li><code>codegen.nv</code>: Generates Intel-syntax x86-32 assembly lines, injects array bounds checking, and maps variables to registers.</li>
-                    <li><code>assembler.nv</code>: Encodes assembly mnemonics into raw native machine code bytes (in-process).</li>
-                    <li><code>linker.nv</code>: Packages the machine code, imports, and resources into a valid Windows PE binary natively.</li>
-                </ol>
-            </div>
-        </div>
-    </section>
-
     <!-- Application Logic -->
     <script>
         // Icons
@@ -771,6 +664,16 @@ cd Nova</code></pre>
         const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 
         // Router
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get('view');
+            if(view) {
+                switchNav(view);
+                // Clean up URL without refreshing
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+        
         function switchNav(viewId) {
             // Update Active Nav Link
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));

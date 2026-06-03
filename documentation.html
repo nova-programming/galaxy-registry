@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Registry</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Markdown Parsers -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-primary: #171717;
+            --text-secondary: #666666;
+            --border-color: #eaeaea;
+            --accent-color: #0070f3; /* Vercel Blue */
+            --accent-hover: #0051a8;
+            --code-bg: #f5f5f5;
+            --header-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--header-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            height: 64px;
+        }
+
+        .nav-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-brand svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-primary);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero (Home) */
+        .hero {
+            text-align: center;
+            padding: 4rem 0 6rem 0;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+        }
+
+        .hero-terminal {
+            background-color: #000;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1);
+        }
+        
+        .hero-terminal .copy-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+        }
+        
+        .hero-terminal .copy-btn:hover {
+            color: #fff;
+        }
+
+        /* Typography / Markdown */
+        .prose h1, .prose h2, .prose h3 {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            overflow-wrap: break-word;
+        }
+        
+        .prose h1 { font-size: 2.25rem; }
+        .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .prose p, .prose li { 
+            margin-bottom: 1rem; 
+            color: #333; 
+            overflow-wrap: break-word; 
+        }
+        
+        .prose code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+            background-color: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        
+        .prose pre {
+            background-color: #000;
+            color: #fff;
+            padding: 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            max-width: 100%;
+        }
+        
+        .prose pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            word-break: normal;
+        }
+        
+        .prose a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .prose a:hover {
+            text-decoration: underline;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            border-color: #ccc;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .badge {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Package Details View */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+        
+        .back-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .details-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 4rem;
+            align-items: start;
+        }
+        
+        .main-column {
+            min-width: 0; /* Prevents grid blowout on long text */
+        }
+
+        @media (max-width: 768px) {
+            .details-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        .sidebar {
+            border-left: 1px solid var(--border-color);
+            padding-left: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid var(--border-color);
+                padding-top: 2rem;
+            }
+        }
+
+        .sidebar h4 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .install-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .install-box:hover {
+            border-color: #ccc;
+        }
+        
+        .install-box .prefix { color: var(--text-secondary); margin-right: 0.5rem; }
+
+        .meta-list {
+            list-style: none;
+        }
+        
+        .meta-list li {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .meta-list a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .meta-list a:hover { text-decoration: underline; }
+        
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .doc-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 64px);
+        }
+        
+        @media (max-width: 768px) {
+            .doc-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .doc-sidebar {
+            position: sticky;
+            top: 64px;
+            align-self: start;
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            background-color: #fafafa;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .doc-sidebar ul {
+            list-style: none;
+        }
+        
+        .doc-sidebar li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .doc-sidebar a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        
+        .doc-sidebar a:hover, .doc-sidebar a.active {
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+        
+        .doc-content {
+            padding: 3rem 4rem;
+            max-width: 1000px;
+            min-width: 0; /* Prevents grid blowout on long text/code */
+        }
+        
+        @media (max-width: 768px) {
+            .doc-content {
+                padding: 2rem 1.5rem;
+            }
+            .doc-sidebar {
+                position: relative;
+                top: 0;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1.5rem;
+            }
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--text-primary);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #333;
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #999;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 4rem 0;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a class="nav-brand" href="index.html" style="text-decoration:none; color:inherit;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Galaxy
+        </a>
+        <div class="nav-links">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="index.html?view=view-libraries">Libraries</a>
+            <a class="nav-link" href="#" class="nav-link active">Documentation</a>
+            <a class="nav-link" href="index.html?view=view-contribute">Contribute</a>
+            <a class="nav-link" href="index.html?view=view-contact">Contact</a>
+        </div>
+    </nav>
+
+    <!-- DOCUMENTATION VIEW (Full Width outside container) -->
+    <section id="view-docs" class="view-section">
+        <div class="doc-layout">
+            <nav class="doc-sidebar">
+                <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; word-break: break-word; overflow-wrap: break-word;">Contents</h4>
+                <ul>
+                    <li><a href="#doc-intro">Introduction</a></li>
+                    <li><a href="#doc-why-nova">Why Nova? (Comparisons)</a></li>
+                    <li><a href="#doc-getting-started">Getting Started</a></li>
+                    <li><a href="#doc-cli">CLI Modes & Flags</a></li>
+                    <li><a href="#doc-optimizations">Unique Optimizations</a></li>
+                    <li><a href="#doc-keywords">Keywords & Flow Control</a></li>
+                    <li><a href="#doc-types">Built-in Data Types</a></li>
+                    <li><a href="#doc-unsafe">Unsafe & Memory</a></li>
+                    <li><a href="#doc-pipeline">Compiler Architecture</a></li>
+                </ul>
+            </nav>
+            
+            <div class="doc-content prose">
+                <h1 id="doc-intro" style="margin-top: 0;">Nova Language Documentation</h1>
+                <p>Nova is a systems programming language that bridges high-level Pythonic simplicity with low-level C-like control. It features a fully functional self-hosted compiler pipeline capable of generating native x86 assembly and standalone Windows PE executables without relying on external toolchains like GCC.</p>
+                
+                <h2 id="doc-why-nova">Why Nova?</h2>
+                <p>Nova is built for developers who want the rapid iteration speed of Python but the raw metal performance of C.</p>
+                <ul>
+                    <li><strong>Versus Python:</strong> Nova compiles down directly to x86-32 assembly. In heavy computational benchmarks (e.g., recursion, modulo arithmetic), Nova runs <strong>14x faster than Python</strong> (104ms vs 1458ms).</li>
+                    <li><strong>Versus C/GCC:</strong> Nova doesn't require a multi-gigabyte build environment. The entire compiler, assembler, and linker are fully integrated into a single pipeline. It achieves near-C performance (104ms vs GCC's 62ms with <code>-O3</code>) out of the box.</li>
+                </ul>
+                
+                <h2 id="doc-getting-started">Getting Started</h2>
+                <p>To start building with Nova and using the Galaxy package manager, clone the compiler:</p>
+                <pre><code>git clone https://github.com/nova-programming/Nova.git
+cd Nova</code></pre>
+                
+                <h2 id="doc-cli">CLI Modes & Flags</h2>
+                <p>Nova is exceptionally flexible. It can run code instantly via a Python VM, or build a bare-metal OS image.</p>
+                
+                <h3>Core Modes</h3>
+                <ul>
+                    <li><code>python main.py build program.nv</code>: <strong>Production</strong> - Compiles to native x86 executable using python codegen + GCC.</li>
+                    <li><code>python main.py dev program.nv</code>: <strong>Development</strong> - Runs instantly in the Python bytecode VM. Great for rapid testing.</li>
+                    <li><code>nova_main.exe build program.nv</code>: <strong>Self-hosted</strong> - The Nova-compiled compiler compiles your script directly to a native PE executable using its internal assembler and linker (No GCC required).</li>
+                    <li><code>nova_main.exe assemble-link input.s output.exe</code>: <strong>Assembler/Linker</strong> - Assembles and links a raw x86 assembly file directly to a PE executable.</li>
+                    <li><code>nova_main.exe build-bare program.nv &lt;org&gt; &lt;entry&gt;</code>: <strong>Flat Binary</strong> - Compiles to a flat, headerless binary without OS imports. Perfect for bootloaders and bare-metal OS development.</li>
+                </ul>
+                
+                <h3>Compiler Flags</h3>
+                <ul>
+                    <li><code>--debug</code>: Enables debug prints. Any <code>printd(x)</code> statement in your code will only be emitted as assembly if this flag is present. It automatically injects the file line number into the output (e.g., <code>debug - [line 42]: &lt;value&gt;</code>).</li>
+                </ul>
+                
+                <h2 id="doc-optimizations">Unique Optimizations</h2>
+                <p>Nova packs several advanced compiler optimization techniques to ensure lean, blazing-fast binaries.</p>
+                <ul>
+                    <li><strong>Tree-Shaking Dead Code Elimination:</strong> The compiler natively builds a dependency graph of all function calls. It slices out unused standard library functions, reducing final binary sizes by up to <strong>70%</strong>. (e.g., A minimal program drops from 11.5 KB to 3.5 KB).</li>
+                    <li><strong>Variable-to-Register Promotion:</strong> The compiler greedily maps local variables to high-speed CPU registers (<code>esi</code> and <code>edi</code>), drastically minimizing expensive stack memory reads/writes.</li>
+                    <li><strong>Native Standard Library Injection:</strong> Functions from <code>os_win</code> and <code>math_utils</code> are automatically injected and natively compiled into all executables. No manual imports of core modules required.</li>
+                    <li><strong>Automatic CSPRNG Initialization:</strong> The built-in <code>random()</code> function uses a highly-optimized ChaCha20 block generation algorithm. It automatically seeds itself at runtime using the host system tick count.</li>
+                </ul>
+                
+                <h2 id="doc-keywords">Keywords & Flow Control</h2>
+                <ul>
+                    <li><strong><code>def</code></strong>: Declares a function. Compiles to standard x86 <code>call</code>/<code>ret</code> routines using the <code>cdecl</code> calling convention (caller cleans the stack).</li>
+                    <li><strong><code>class / data</code></strong>: Defines an object-oriented class template (with vtable virtual dispatch via offset resolution) or a static C-style data structure.</li>
+                    <li><strong><code>import / from / as</code></strong>: Module import system. Galaxy packages and FFI libraries (e.g., <code>import "kernel32.dll" as kernel32</code>) are seamlessly resolved.</li>
+                    <li><strong><code>for</code></strong>: Supports range loops (<code>for i = 0 to 10 step 2</code>, <code>downto</code>) and collection iterations (<code>for item in list</code>).</li>
+                    <li><strong><code>const</code></strong>: Enforces strict compile-time variable immutability.</li>
+                    <li><strong><code>has</code></strong>: Evaluates whether a property field exists on a data structure at compile-time.</li>
+                </ul>
+                
+                <h2 id="doc-types">Built-in Data Types</h2>
+                <p>The static type checker automatically infers and enforces strict types:</p>
+                <ul>
+                    <li><strong><code>int</code></strong> (32-bit signed), <strong><code>float</code></strong> (IEEE-754 32-bit, uses x87 FPU hardware at runtime).</li>
+                    <li><strong><code>bool</code></strong> (Supports short-circuiting <code>and</code>/<code>or</code> evaluation).</li>
+                    <li><strong><code>string</code></strong> (Null-terminated character sequences).</li>
+                    <li><strong><code>list[T]</code></strong>: Dynamically-sized typed arrays. Uses exponential capacity allocation (<code>HeapReAlloc</code>) to prevent linear insertion overhead. Includes bounds-checking instructions (<code>cmp ecx, [edx]</code>, <code>jl</code>, <code>jge</code>) on every access to safely terminate out-of-bounds reads.</li>
+                </ul>
+                
+                <h2 id="doc-unsafe">Unsafe & Memory Directives</h2>
+                <p>Nova allows you to drop down to bare-metal control at any time using the <code>@raw</code> block directive. Everything inside a raw block bypasses safety checks.</p>
+                <pre><code>@raw {
+    mov eax, 42
+    push eax
+}</code></pre>
+                <p>Inside raw blocks, you gain access to:</p>
+                <ul>
+                    <li><strong>Inline Assembly:</strong> Lines starting with x86 mnemonics are emitted directly into the assembly pipeline.</li>
+                    <li><strong>Symbol Exporting:</strong> Use <code>@export { name1 }</code> to expose global symbols for external linkage.</li>
+                    <li><strong>Heap Allocations:</strong> Call <code>alloc(size)</code> and <code>free(ptr)</code> to manually request and release raw memory bytes.</li>
+                    <li><strong>Pointer Arithmetic:</strong> Read/write directly to memory addresses using suffixes: <code>ptr.value_dword</code> (4 bytes), <code>ptr.value_word</code> (2 bytes), <code>ptr.value_byte</code> (1 byte). Evaluate memory using <code>ptr.addr</code>, <code>ptr.isValid</code>, and <code>ptr.isNull</code>.</li>
+                </ul>
+                
+                <h2 id="doc-pipeline">Compiler Architecture</h2>
+                <p>When you run <code>nova_main.exe build</code>, the self-hosted compiler processes your code through a pipeline of internal modules written completely in Nova:</p>
+                <ol>
+                    <li><code>lexer.nv</code>: Tokenizes source characters into structural tokens.</li>
+                    <li><code>parser.nv</code>: Constructs a syntax tree (AST) via recursive-descent parsing and performs constant folding (e.g., <code>1+2</code> becomes <code>3</code> at compile-time).</li>
+                    <li><code>type_checker.nv</code>: Infers and validates static types across all nodes.</li>
+                    <li><code>codegen.nv</code>: Generates Intel-syntax x86-32 assembly lines, injects array bounds checking, and maps variables to registers.</li>
+                    <li><code>assembler.nv</code>: Encodes assembly mnemonics into raw native machine code bytes (in-process).</li>
+                    <li><code>linker.nv</code>: Packages the machine code, imports, and resources into a valid Windows PE binary natively.</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Scrollspy for documentation sidebar
+        window.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.doc-content h2, .doc-content h3');
+            const navLinks = document.querySelectorAll('.doc-sidebar a');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    // Adjust for sticky header
+                    if (scrollY >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
