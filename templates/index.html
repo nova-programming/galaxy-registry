@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy | Nova Package Manager</title>
+    <title>Galaxy | Nova Package Manager & Docs</title>
     <meta name="description" content="The official package registry and language documentation for the Nova programming language.">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #050505;
             --surface: #111111;
+            --surface-hover: #1a1a1a;
             --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.5);
+            --primary-glow: rgba(99, 102, 241, 0.4);
             --secondary: #a855f7;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -33,13 +30,13 @@
             background-image: radial-gradient(circle at 50% 0%, var(--surface) 0%, var(--bg-color) 70%);
         }
 
-        /* Glassmorphism Header */
+        /* Header */
         header {
             position: fixed;
             top: 0;
             width: 100%;
             padding: 1rem 5%;
-            background: rgba(5, 5, 5, 0.7);
+            background: rgba(5, 5, 5, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -62,23 +59,21 @@
             text-decoration: none;
             margin-left: 2rem;
             font-weight: 600;
-            transition: color 0.3s ease;
+            transition: color 0.3s;
         }
 
-        nav a:hover {
-            color: var(--text-main);
-        }
+        nav a:hover, nav a.active { color: var(--text-main); }
 
-        /* Hero Section */
+        /* Hero */
         .hero {
-            padding: 12rem 5% 6rem;
+            padding: 10rem 5% 4rem;
             text-align: center;
             max-width: 900px;
             margin: 0 auto;
         }
 
         .hero h1 {
-            font-size: 4.5rem;
+            font-size: 4rem;
             font-weight: 800;
             line-height: 1.1;
             margin-bottom: 1.5rem;
@@ -113,56 +108,81 @@
             box-shadow: 0 0 60px var(--primary-glow);
         }
 
-        .install-cmd span {
-            color: var(--primary);
-        }
+        .install-cmd span { color: var(--primary); }
 
-        /* Documentation Grid */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 4rem 5%;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 800;
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
             margin-bottom: 3rem;
-            text-align: center;
+            flex-wrap: wrap;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.8rem 1.5rem;
+            border-radius: 100px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
         }
+
+        .tab-btn:hover { background: var(--surface); color: var(--text-main); }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease forwards; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Content Grid & Cards */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5% 5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
 
         .card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 2.5rem;
+            border-radius: 20px;
+            padding: 2rem;
             backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, background 0.3s ease;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.2);
             background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.15);
         }
 
-        .card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--primary);
-        }
+        .card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; color: var(--text-main); }
+        .card p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; flex-grow: 1; }
 
-        .card p {
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
+        /* Tables for Types & Ops */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table th { background: rgba(0,0,0,0.3); color: var(--primary); font-weight: 600; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table code { background: rgba(255,255,255,0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.9rem; }
 
+        /* Code Blocks */
+        .code-container { position: relative; margin-top: auto; }
         .code-block {
             background: #000;
             border-radius: 12px;
@@ -174,34 +194,52 @@
             overflow-x: auto;
         }
         
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover { background: rgba(255,255,255,0.2); }
+
         .code-keyword { color: #c678dd; }
         .code-func { color: #61afef; }
         .code-string { color: #98c379; }
         .code-comment { color: #5c6370; font-style: italic; }
+        .code-type { color: #e5c07b; }
 
-        /* Floating background elements */
-        .blob {
-            position: absolute;
-            filter: blur(100px);
-            z-index: -1;
-            opacity: 0.4;
+        /* Search Bar */
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 3rem;
+            position: relative;
         }
-        .blob-1 {
-            top: 20%;
-            left: 10%;
-            width: 300px;
-            height: 300px;
-            background: var(--primary);
-            border-radius: 50%;
+        .search-bar input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            border-radius: 100px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
         }
-        .blob-2 {
-            top: 40%;
-            right: 10%;
-            width: 400px;
-            height: 400px;
-            background: var(--secondary);
-            border-radius: 50%;
-        }
+        .search-bar input:focus { border-color: var(--primary); }
+
+        /* Blobs */
+        .blob { position: fixed; filter: blur(120px); z-index: -1; opacity: 0.3; }
+        .blob-1 { top: 10%; left: -5%; width: 400px; height: 400px; background: var(--primary); border-radius: 50%; }
+        .blob-2 { bottom: 10%; right: -5%; width: 500px; height: 500px; background: var(--secondary); border-radius: 50%; }
     </style>
 </head>
 <body>
@@ -209,97 +247,237 @@
     <div class="blob blob-2"></div>
 
     <header>
-        <div class="logo">Galaxy Registry</div>
+        <div class="logo">Galaxy</div>
         <nav>
-            <a href="#features">Features</a>
-            <a href="#keywords">Keywords</a>
-            <a href="#packages">Packages</a>
+            <a href="https://github.com/nova-programming/Nova" target="_blank">Compiler GitHub</a>
         </nav>
     </header>
 
     <section class="hero">
-        <h1>The Universe of Nova Packages</h1>
-        <p>Discover, install, and publish ultra-fast C-level native libraries for the Nova programming language with a single command.</p>
+        <h1>Nova Language Registry</h1>
+        <p>The universe of Nova packages and complete official documentation for the Nova language. Ultra-fast, natively compiled, and brutally elegant.</p>
         
-        <div class="install-cmd" onclick="navigator.clipboard.writeText('nova galaxy install nova-http')">
+        <div class="install-cmd" onclick="copyText('nova galaxy install nova-http', this)">
             <span>$</span> nova galaxy install nova-http
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 10px; color: var(--text-muted);">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
         </div>
     </section>
 
-    <div class="container" id="keywords">
-        <h2 class="section-title">Language Core & Syntax</h2>
-        <div class="grid">
-            
-            <div class="card">
-                <h3>Unsafe Blocks & Pointers</h3>
-                <p>Drop down to raw memory control and inline assembly with the <code>@raw</code> directive. Perform manual heap allocations instantly.</p>
-                <div class="code-block">
-<span class="code-comment"># Allocate memory and write pointer bytes</span>
-<span class="code-keyword">def</span> <span class="code-func">manual_mem</span>() {
-    <span class="code-keyword">@raw</span> {
-        ptr = alloc(4)
-        ptr.value_dword = 42
-        free(ptr)
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-packages')">Packages</button>
+            <button class="tab-btn" onclick="switchTab('tab-syntax')">Syntax & Core</button>
+            <button class="tab-btn" onclick="switchTab('tab-types')">Data Types & Built-ins</button>
+            <button class="tab-btn" onclick="switchTab('tab-pointers')">Raw Pointers</button>
+        </div>
+
+        <!-- PACKAGES TAB -->
+        <div id="tab-packages" class="tab-content active">
+            <div class="search-bar">
+                <input type="text" id="pkg-search" placeholder="Search for a package..." onkeyup="filterPackages()">
+            </div>
+            <div class="grid" id="package-grid">
+                <!-- Will be dynamically populated via JS, but we'll hardcode the standard ones -->
+                <div class="card pkg-card">
+                    <h3>nova-http</h3>
+                    <p>High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyText('nova galaxy install nova-http', this)">Copy</button>
+                        <div class="code-block">$ nova galaxy install nova-http</div>
+                    </div>
+                </div>
+                <div class="card pkg-card">
+                    <h3>nova-math</h3>
+                    <p>Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyText('nova galaxy install nova-math', this)">Copy</button>
+                        <div class="code-block">$ nova galaxy install nova-math</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SYNTAX TAB -->
+        <div id="tab-syntax" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>Functions & Control Flow</h3>
+                    <p>Uses standard cdecl calling convention. Loops support both index tracking and item iteration.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <div class="code-block">
+<span class="code-keyword">def</span> <span class="code-func">calculate</span>(a: <span class="code-type">int</span>, b: <span class="code-type">int</span>) -> <span class="code-type">int</span> {
+    <span class="code-keyword">if</span> a == <span class="code-string">null</span> { <span class="code-keyword">return</span> 0 }
+    
+    <span class="code-keyword">for</span> i = 0 <span class="code-keyword">to</span> 10 <span class="code-keyword">step</span> 1 {
+        <span class="code-func">print</span>(i)
+    }
+    <span class="code-keyword">return</span> a + b
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Native Structs (data)</h3>
+                    <p>Define tightly packed C-style memory structures. Offsets are calculated statically.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <div class="code-block">
+<span class="code-keyword">data</span> Vector3 {
+    x: <span class="code-type">int</span>
+    y: <span class="code-type">int</span>
+    z: <span class="code-type">int</span>
+}
+
+<span class="code-keyword">def</span> <span class="code-func">move</span>(v: <span class="code-type">Vector3</span>) {
+    v.x = v.x + 10
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Object-Oriented (class)</h3>
+                    <p>Dynamic dispatch with virtual method tables (vtables) automatically managed by the compiler.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <div class="code-block">
+<span class="code-keyword">class</span> Entity {
+    id: <span class="code-type">int</span>
+    <span class="code-keyword">def</span> <span class="code-func">__init__</span>(start_id: <span class="code-type">int</span>) {
+        <span class="code-keyword">self</span>.id = start_id
     }
 }
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="card">
-                <h3>Native C-Structs</h3>
-                <p>Define tightly packed data structures using the <code>data</code> keyword for high-performance memory alignment.</p>
-                <div class="code-block">
-<span class="code-keyword">data</span> Vector3 {
-    x: int
-    y: int
-    z: int
-}
-
-<span class="code-keyword">def</span> <span class="code-func">calculate</span>(v: Vector3) {
-    v.x = v.y + v.z
-}
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>High-Level API I/O</h3>
-                <p>Built-in networking and JSON handling makes REST APIs as easy as Python, compiled natively to x86.</p>
-                <div class="code-block">
-<span class="code-comment"># Fetch API with integrated status checking</span>
+                
+                <div class="card">
+                    <h3>API / Networking</h3>
+                    <p>Make REST calls out-of-the-box using the built-in compiler networking pipeline.</p>
+                    <div class="code-container">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <div class="code-block">
+<span class="code-comment"># Native network request</span>
 req = <span class="code-func">api</span>(<span class="code-string">"https://api.github.com"</span>)
-
 <span class="code-keyword">if</span> req.status() == 200 {
     <span class="code-func">print</span>(req.json())
 }
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </div>
-    </div>
+
+        <!-- TYPES TAB -->
+        <div id="tab-types" class="tab-content">
+            <h2 style="margin-bottom:1rem">Core Data Types</h2>
+            <table class="data-table" style="margin-bottom:3rem">
+                <tr><th>Type</th><th>Size</th><th>Description</th></tr>
+                <tr><td><code>int</code></td><td>32-bit</td><td>Signed double-word integer.</td></tr>
+                <tr><td><code>float</code></td><td>32-bit</td><td>IEEE-754 single-precision floating point.</td></tr>
+                <tr><td><code>byte</code></td><td>8-bit</td><td>Unsigned 8-bit byte.</td></tr>
+                <tr><td><code>bool</code></td><td>1-bit</td><td>Evaluates to <code>true</code> or <code>false</code>.</td></tr>
+                <tr><td><code>string</code></td><td>Dynamic</td><td>Null-terminated character arrays.</td></tr>
+                <tr><td><code>list[T]</code></td><td>Dynamic</td><td>Dynamically sized heap array of type T. Uses <code>HeapReAlloc</code>.</td></tr>
+            </table>
+
+            <h2 style="margin-bottom:1rem">Built-in Functions</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3><code>len(var)</code> / <code>sizeof(var)</code></h3>
+                    <p><code>len()</code> evaluates dynamic bounds (strings, lists) or calls <code>__len__</code> on objects. <code>sizeof()</code> resolves compile-time byte sizes.</p>
+                </div>
+                <div class="card">
+                    <h3><code>sys_system(cmd)</code></h3>
+                    <p>Execute shell sub-processes dynamically (WinExec wrapping).</p>
+                </div>
+                <div class="card">
+                    <h3><code>random()</code></h3>
+                    <p>Cryptographically secure 32-bit random number generated via unrolled ChaCha20 blocks.</p>
+                </div>
+                <div class="card">
+                    <h3><code>open(path, mode)</code></h3>
+                    <p>Native file descriptor access. Returns FD integer. Use with <code>read(fd)</code> and <code>write(fd, val)</code>.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- POINTERS TAB -->
+        <div id="tab-pointers" class="tab-content">
+            <div class="card" style="margin-bottom: 2rem;">
+                <h3>The @raw Block</h3>
+                <p>Nova restricts pointer arithmetic and assembly generation to blocks explicitly marked with <code>@raw</code> to ensure safety elsewhere.</p>
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <div class="code-block">
+<span class="code-keyword">@raw</span> {
+    ptr = <span class="code-func">alloc</span>(4)     <span class="code-comment"># Allocate 4 bytes on Heap</span>
+    ptr.value = 100  <span class="code-comment"># Write dword</span>
     
-    <div class="container" id="packages">
-        <h2 class="section-title">Top Packages</h2>
-        <div class="grid">
-            <div class="card" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3 style="margin-bottom: 0.2rem;">nova-http</h3>
-                    <p style="margin-bottom: 0; font-size: 0.9rem;">High-performance HTTP client</p>
+    <span class="code-comment"># Inline x86 assembly</span>
+    mov eax, ptr.value
+    push eax
+    
+    <span class="code-func">free</span>(ptr)        <span class="code-comment"># Deallocate</span>
+}
+                    </div>
                 </div>
-                <div style="color: var(--text-muted); font-family: monospace;">v1.0.0</div>
             </div>
-            <div class="card" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3 style="margin-bottom: 0.2rem;">nova-math</h3>
-                    <p style="margin-bottom: 0; font-size: 0.9rem;">Fast cryptographic functions</p>
-                </div>
-                <div style="color: var(--text-muted); font-family: monospace;">v2.1.4</div>
-            </div>
+            
+            <table class="data-table">
+                <tr><th>Pointer Suffix</th><th>Operation</th></tr>
+                <tr><td><code>ptr.value</code> / <code>ptr.value_dword</code></td><td>Reads/Writes 32-bit (4 bytes) at address.</td></tr>
+                <tr><td><code>ptr.value_word</code></td><td>Reads/Writes 16-bit (2 bytes) at address.</td></tr>
+                <tr><td><code>ptr.value_byte</code></td><td>Reads/Writes 8-bit (1 byte) at address.</td></tr>
+                <tr><td><code>ptr.addr</code></td><td>Returns the raw memory address integer.</td></tr>
+                <tr><td><code>ptr.isValid</code> / <code>ptr.isNull</code></td><td>Checks if address is <code>!= 0</code> or <code>== 0</code>.</td></tr>
+            </table>
         </div>
     </div>
 
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text);
+            const oldText = btn.innerText;
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerHTML = btn.innerHTML.replace("Copied!", "Copy"), 2000);
+        }
+
+        function copyCode(btn) {
+            const codeBlock = btn.nextElementSibling.innerText;
+            navigator.clipboard.writeText(codeBlock);
+            const oldText = btn.innerText;
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerText = "Copy", 2000);
+        }
+
+        function filterPackages() {
+            const search = document.getElementById('pkg-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.pkg-card');
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                if (title.includes(search)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        // Fetch live packages dynamically from the API (for the future when more are added)
+        fetch('/api/packages')
+            .then(res => res.json())
+            .then(data => {
+                // If the API supported listing packages, we would render them here.
+            }).catch(e => console.log('Registry list endpoint not built yet.'));
+    </script>
 </body>
 </html>
