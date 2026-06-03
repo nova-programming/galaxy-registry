@@ -381,25 +381,25 @@
 
         .doc-layout {
             display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 4rem;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 64px);
         }
         
         @media (max-width: 768px) {
             .doc-layout {
                 grid-template-columns: 1fr;
-                gap: 2rem;
             }
         }
         
         .doc-sidebar {
             position: sticky;
-            top: 100px;
+            top: 64px;
             align-self: start;
             border-right: 1px solid var(--border-color);
-            padding-right: 2rem;
-            height: calc(100vh - 120px);
+            padding: 2rem;
+            height: calc(100vh - 64px);
             overflow-y: auto;
+            background-color: #fafafa;
         }
         
         .doc-sidebar ul {
@@ -423,7 +423,21 @@
         }
         
         .doc-content {
-            max-width: 800px;
+            padding: 3rem 4rem;
+            max-width: 1000px;
+        }
+        
+        @media (max-width: 768px) {
+            .doc-content {
+                padding: 2rem;
+            }
+            .doc-sidebar {
+                position: relative;
+                top: 0;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
         }
 
         /* Buttons */
@@ -576,83 +590,6 @@
                         <h4>Tags</h4>
                         <div class="tag-list" id="detail-tags"></div>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- DOCUMENTATION VIEW -->
-        <section id="view-docs" class="view-section">
-            <div class="doc-layout">
-                <nav class="doc-sidebar">
-                    <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Contents</h4>
-                    <ul>
-                        <li><a href="#doc-intro">Introduction</a></li>
-                        <li><a href="#doc-getting-started">Getting Started</a></li>
-                        <li><a href="#doc-cli">CLI Usage</a></li>
-                        <li><a href="#doc-keywords">Keywords & Flow Control</a></li>
-                        <li><a href="#doc-types">Built-in Data Types</a></li>
-                        <li><a href="#doc-unsafe">Unsafe Directives</a></li>
-                        <li><a href="#doc-pipeline">Compiler Pipeline</a></li>
-                        <li><a href="#doc-injection">Standard Library</a></li>
-                    </ul>
-                </nav>
-                
-                <div class="doc-content prose">
-                    <h1 id="doc-intro" style="margin-top: 0;">Nova Language Documentation</h1>
-                    <p>Nova is a systems programming language that bridges high-level Pythonic simplicity with low-level C-like control. It features a fully functional self-hosted compiler pipeline capable of generating native x86 assembly and standalone PE executables without relying on external tools like GCC.</p>
-                    
-                    <h2 id="doc-getting-started">Getting Started</h2>
-                    <p>To use the Galaxy package manager, you first need to have the Nova compiler installed.</p>
-                    <pre><code>git clone https://github.com/nova-programming/Nova.git
-cd Nova</code></pre>
-                    
-                    <h3 id="doc-cli">CLI Usage</h3>
-                    <p>Nova supports multiple execution and compilation modes out of the box:</p>
-                    <ul>
-                        <li><code>python main.py build program.nv</code>: Builds to a native executable (requires GCC).</li>
-                        <li><code>nova_main.exe build program.nv</code>: Builds using the fully self-hosted compiler (no GCC needed).</li>
-                        <li><code>python main.py dev program.nv</code>: Runs in the Python bytecode VM for fast iteration.</li>
-                        <li><code>nova_main.exe assemble-link input.s output.exe</code>: Assembles and links directly to a Windows PE file.</li>
-                        <li><code>nova_main.exe build-bare program.nv</code>: Builds a flat binary (no PE headers, ideal for OS development).</li>
-                    </ul>
-                    
-                    <h2 id="doc-keywords">Language Keywords & Flow Control</h2>
-                    <ul>
-                        <li><strong><code>def</code></strong>: Declares a function. Compiles to standard x86 <code>call</code>/<code>ret</code> routines using the <code>cdecl</code> calling convention.</li>
-                        <li><strong><code>class / data</code></strong>: Defines an object-oriented class template (with vtable virtual dispatch) or a static C-style data structure.</li>
-                        <li><strong><code>import / from / as</code></strong>: Module import system. Galaxy packages are automatically resolved when imported.</li>
-                        <li><strong><code>for</code></strong>: Supports both range loops (<code>for i = 0 to 10 step 1</code>) and collection loops (<code>for item in list</code>).</li>
-                        <li><strong><code>const</code></strong>: Enforces compile-time immutability.</li>
-                    </ul>
-                    
-                    <h2 id="doc-types">Built-in Data Types</h2>
-                    <p>The static type checker automatically infers and enforces strict types:</p>
-                    <ul>
-                        <li><strong>Primitives</strong>: <code>int</code> (32-bit signed), <code>float</code> (IEEE-754 32-bit), <code>bool</code>, <code>string</code>, <code>byte</code>, <code>void</code>.</li>
-                        <li><strong>Collections</strong>: <code>list[T]</code> (Dynamically-sized typed arrays with capacity allocation and automatic bounds-checking).</li>
-                    </ul>
-                    
-                    <h2 id="doc-unsafe">Unsafe & Low-Level Directives</h2>
-                    <p>Nova allows you to drop down to bare-metal control at any time using the <code>@raw</code> block directive.</p>
-                    <pre><code>@raw {
-    mov eax, 42
-    push eax
-}</code></pre>
-                    <p>Inside raw blocks, you have access to direct heap allocations (<code>alloc(size)</code> and <code>free(ptr)</code>), inline x86 assembly, and raw pointer dereferencing suffixes like <code>ptr.value_dword</code>, <code>ptr.value_byte</code>, and <code>ptr.addr</code>.</p>
-                    
-                    <h2 id="doc-pipeline">Self-Hosted Compiler Pipeline</h2>
-                    <p>When you run <code>nova_main.exe build</code>, the self-hosted compiler processes your code through a series of internal Nova modules:</p>
-                    <ol>
-                        <li><code>lexer.nv</code>: Tokenizes source characters into structural tokens.</li>
-                        <li><code>parser.nv</code>: Constructs a syntax tree (AST) via recursive-descent parsing.</li>
-                        <li><code>type_checker.nv</code>: Infers and validates static types across all nodes.</li>
-                        <li><code>codegen.nv</code>: Generates Intel-syntax x86-32 assembly lines and maps local variables to CPU registers.</li>
-                        <li><code>assembler.nv</code>: Encodes assembly into raw native machine code bytes.</li>
-                        <li><code>linker.nv</code>: Packages the machine code into a valid Windows PE binary natively.</li>
-                    </ol>
-                    
-                    <h2 id="doc-injection">Standard Library Auto-Injection</h2>
-                    <p>Core system functions like <code>sys_get_args()</code>, <code>sys_system()</code>, and the ChaCha20 Cryptographically Secure PRNG (<code>random()</code>) are automatically injected into all executables. Furthermore, Nova's <strong>Tree-Shaking Dead Code Elimination</strong> automatically slices out unused standard library functions, reducing final binary sizes by up to 70%!</p>
                 </div>
             </div>
         </section>
