@@ -3,6 +3,8 @@
   "tier": "community",
   "github_repo": "jane-doe/nova-cli",
   "version": "0.3.1",
+  "currentVersion": "0.3.1",
+  "newestVersion": "0.3.1",
   "author": "Jane Doe",
   "description": "Build CLI apps with argument parsing, colors, and interactive prompts.",
   "keywords": ["cli", "terminal", "utility", "argument-parser", "colors"],

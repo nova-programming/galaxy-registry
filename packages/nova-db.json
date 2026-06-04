@@ -3,6 +3,8 @@
   "tier": "community",
   "github_repo": "bob-user/nova-db",
   "version": "0.1.0",
+  "currentVersion": "0.1.0",
+  "newestVersion": "0.1.0",
   "author": "Bob Smith",
   "description": "Minimal SQLite binding with prepared statements and connection pooling.",
   "keywords": ["database", "sql", "storage", "sqlite"],

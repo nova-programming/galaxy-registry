@@ -3,6 +3,8 @@
   "tier": "core",
   "github_repo": "nova-programming/nova-math",
   "version": "0.9.5",
+  "currentVersion": "0.9.5",
+  "newestVersion": "0.9.5",
   "author": "Nova Core Team",
   "description": "Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.",
   "keywords": ["crypto", "math", "random", "chacha20", "linear-algebra"],

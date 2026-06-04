@@ -3,6 +3,8 @@
   "tier": "community",
   "github_repo": "alice-coder/nova-img",
   "version": "0.0.4",
+  "currentVersion": "0.0.4",
+  "newestVersion": "0.0.4",
   "author": "Alice Chen",
   "description": "PNG/JPEG decoding and pixel manipulation. Pure Nova implementation.",
   "keywords": ["image", "graphics", "png", "jpeg", "pixel"],
