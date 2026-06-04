@@ -537,16 +537,14 @@ salt = <span class="nv-fn">random</span>()</code></pre>
             <h3 id="galaxy-install">Installing Galaxy CLI</h3>
             <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command — no <code>python -m</code> prefix needed after installation.</p>
 
-            <h4>Method 1: Installer (Recommended)</h4>
-            <pre><code><span class="nv-cmt"># Clone the Nova repository</span>
-git clone https://github.com/nova-programming/Nova.git
-cd Nova
-
-<span class="nv-cmt"># Run the installer</span>
-python install.py</code></pre>
+            <h4>One-Line Install (Recommended)</h4>
+            <p>No repo clone needed. The bootstrapper downloads everything it needs:</p>
+            <pre><code>curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py</code></pre>
+            <p>On Windows without curl, use PowerShell:</p>
+            <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/galaxy.py -OutFile galaxy.py; python galaxy.py</code></pre>
             <p>The installer does three things:</p>
             <ul>
-                <li>Copies <code>_galaxy.py</code> to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix)</li>
+                <li>Downloads <code>_galaxy.py</code> from GitHub and installs it to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix)</li>
                 <li>Creates a <code>galaxy.bat</code> (Windows) or <code>galaxy</code> (Unix) launcher</li>
                 <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
             </ul>
@@ -554,16 +552,18 @@ python install.py</code></pre>
             <pre><code><span class="nv-cmt"># Verify installation</span>
 galaxy --help</code></pre>
 
-            <h4>Method 2: pip install (if you have pip)</h4>
-            <pre><code>pip install galaxy-nova</code></pre>
+            <h4>Method 2: From Source (if you already cloned the repo)</h4>
+            <pre><code>git clone https://github.com/nova-programming/Nova.git
+cd Nova
+python galaxy.py</code></pre>
 
-            <h4>Method 3: Direct (no install)</h4>
+            <h4>Method 3: Direct (no install, run from repo)</h4>
             <pre><code>python _galaxy.py --help
 <span class="nv-cmt"># or</span>
 python -m galaxy --help</code></pre>
 
             <h4>Uninstalling</h4>
-            <pre><code>python install.py --uninstall</code></pre>
+            <pre><code>python galaxy.py --uninstall</code></pre>
 
             <!-- ===== COMMANDS ===== -->
             <h3 id="galaxy-commands">CLI Commands</h3>

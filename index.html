@@ -339,10 +339,10 @@
             <div class="hero">
                 <h1>The native package manager<br>for <span class="accent">Nova</span>.</h1>
                 <p>Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries.</p>
-                <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-tertiary);">Install galaxy CLI:</div>
-                <div class="hero-terminal">
-                    <span>$ python install.py</span>
-                    <button class="copy-btn" onclick="copyText('python install.py', this)">
+                <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-tertiary);">One command to install galaxy CLI:</div>
+                <div class="hero-terminal" style="font-size:0.78rem;">
+                    <span>$ curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py</span>
+                    <button class="copy-btn" onclick="copyText('curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py', this)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
                 </div>
@@ -371,13 +371,13 @@
                 <p style="color:var(--text-secondary);font-size:1rem;margin-bottom:2rem;">Install the CLI, create a library, publish to the world.</p>
 
                 <h2 style="font-size:1.25rem;margin-top:0;">1. Install galaxy CLI</h2>
-                <p>Clone or download the <a href="https://github.com/nova-programming/Nova">Nova repository</a>, then run the installer:</p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>git clone https://github.com/nova-programming/Nova.git
-cd Nova
-python install.py</code></pre>
-                <p>This copies the CLI to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix), creates a launcher, and adds it to your PATH. Open a <strong>new terminal</strong> and run:</p>
+                <p>One command — no repo clone needed, no dependencies:</p>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py</code></pre>
+                <p>The <code>galaxy.py</code> installer downloads <code>_galaxy.py</code> from GitHub, installs it to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix), creates a launcher, and adds it to your PATH. Open a <strong>new terminal</strong> and run:</p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy --help</code></pre>
-                <div class="callout callout-info"><strong>No pip required</strong> The installer is fully self-contained. It copies a single Python file and creates a launcher — no dependencies.</div>
+                <div class="callout callout-info"><strong>No pip required</strong> The installer is fully self-contained. It downloads a single Python file and creates a launcher — no dependencies.</div>
+                <p>On Windows without curl, use PowerShell:</p>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/galaxy.py -OutFile galaxy.py; python galaxy.py</code></pre>
 
                 <h2 style="font-size:1.25rem;">2. Create a library project</h2>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy init library my-lib
