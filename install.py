@@ -23,10 +23,12 @@ import time
 
 
 APP_NAME = "Nova + Galaxy"
+# Try release zip first (leaner), fall back to full repo zip
+NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
 NOVA_ZIP_URL = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 ZIP_PREFIX = "Nova-develop"
 
-ALLOWED_ROOT_FILES = {"main.py", "_galaxy.py"}
+ALLOWED_ROOT_FILES = {"main.py", "_galaxy.py", "nova_main.nv"}
 ALLOWED_SUBDIRS = {
     "compiler", "parser", "lexer", "stdlib",
     "nova_ast", "tools", "galaxy", "vm", "modules",
@@ -131,24 +133,33 @@ class _ProgressReader(io.RawIOBase):
 
 
 def _download_zip():
-    info("Connecting to GitHub...")
-    try:
-        req = urllib.request.Request(
-            NOVA_ZIP_URL,
-            headers={"User-Agent": "nova-installer/1.0"},
-        )
-        rsp = urllib.request.urlopen(req, timeout=120)
-        reader = _ProgressReader(rsp, "Downloading Nova")
-        data = reader.read()
-        mb = len(data) / (1024 * 1024)
-        info(f"Downloaded {mb:.1f} MB — verifying...")
-        return data
-    except urllib.error.HTTPError as e:
-        fail(f"Download failed (HTTP {e.code}: {e.reason})")
-    except urllib.error.URLError as e:
-        fail(f"Network error: {e.reason}")
-    except Exception as e:
-        fail(f"Download failed: {e}")
+    is_unix = platform.system() != "Windows"
+    ext = ".tar.gz" if is_unix else ".zip"
+    urls_to_try = [
+        f"{NOVA_RELEASE_BASE}/nova-v0.6.0/nova-v0.6.0{ext}",
+        NOVA_ZIP_URL,
+    ]
+    last_err = None
+    for url in urls_to_try:
+        info(f"Connecting to GitHub...")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "nova-installer/1.0"})
+            rsp = urllib.request.urlopen(req, timeout=120)
+            reader = _ProgressReader(rsp, "Downloading Nova")
+            data = reader.read()
+            mb = len(data) / (1024 * 1024)
+            info(f"Downloaded {mb:.1f} MB — verifying...")
+            return data
+        except urllib.error.HTTPError as e:
+            if e.code == 404 and url != NOVA_ZIP_URL:
+                info(f"Release{ext} not yet available, trying full repo zip...")
+                continue
+            fail(f"Download failed (HTTP {e.code}: {e.reason})")
+        except urllib.error.URLError as e:
+            last_err = e.reason
+        except Exception as e:
+            last_err = str(e)
+    fail(f"Download failed: {last_err}")
 
 
 # ---------------------------------------------------------------------------
@@ -175,21 +186,70 @@ def _should_extract(rel_path: str) -> bool:
     return False
 
 
+def _extract_archive(data: bytes) -> int:
+    """Extract either a .zip or .tar.gz archive."""
+    # Try zip first
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            names = zf.namelist()
+            if names:
+                return _extract_zip(data)
+    except zipfile.BadZipFile:
+        pass
+    # Fallback to tar
+    import tarfile
+    return _extract_tar(data)
+
+
+def _extract_tar(data: bytes) -> int:
+    count = 0
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tf:
+        names = tf.getmembers()
+        first = names[0].name if names else ""
+        has_prefix = first.startswith(ZIP_PREFIX + "/")
+        for m in names:
+            if not m.isfile():
+                continue
+            name = m.name
+            if has_prefix:
+                if not name.startswith(ZIP_PREFIX + "/"):
+                    continue
+                rel = name[len(ZIP_PREFIX) + 1:]
+            else:
+                rel = name
+            if not rel or not _should_extract(rel):
+                continue
+            dst = os.path.join(INSTALL_DIR, rel)
+            dst_dir = os.path.dirname(dst)
+            os.makedirs(dst_dir, exist_ok=True)
+            with tf.extractfile(m) as src, open(dst, "wb") as df:
+                shutil.copyfileobj(src, df)
+            count += 1
+    return count
+
+
 def _extract_zip(zip_data: bytes) -> int:
-    prefix = ZIP_PREFIX + "/"
-    prefix_len = len(prefix)
     count = 0
     with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
-        # Validate the archive
         bad = zf.testzip()
         if bad is not None:
             fail(f"Corrupted zip archive: {bad}")
 
-        for name in zf.namelist():
-            if not name.startswith(prefix):
+        # Check if this is a release zip (flat) or repo zip (with prefix dir)
+        names = zf.namelist()
+        first = names[0] if names else ""
+        has_prefix = first.startswith(ZIP_PREFIX + "/")
+
+        for name in names:
+            if name.endswith("/"):
                 continue
-            rel = name[prefix_len:]
-            if not rel or rel.endswith("/"):
+            if has_prefix:
+                if not name.startswith(ZIP_PREFIX + "/"):
+                    continue
+                rel = name[len(ZIP_PREFIX) + 1:]
+            else:
+                rel = name
+            if not rel:
                 continue
             if not _should_extract(rel):
                 continue
@@ -380,9 +440,9 @@ def install():
     else:
         ok_msg = "Installed"
 
-    zip_data = _download_zip()
+    data = _download_zip()
     info("Extracting files (this may take a moment)...")
-    count = _extract_zip(zip_data)
+    count = _extract_archive(data)
     ok(f"Extracted {count} files")
 
     _create_launchers()

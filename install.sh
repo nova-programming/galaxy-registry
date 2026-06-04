@@ -6,7 +6,7 @@ RELEASE_BASE="https://github.com/nova-programming/Nova/releases/download"
 NOVA_REPO_ZIP="https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 ZIP_PREFIX="Nova-develop"
 INSTALL_DIR="${HOME}/.nova"
-ALLOWED_FILES="main.py _galaxy.py"
+ALLOWED_FILES="main.py _galaxy.py nova_main.nv"
 ALLOWED_DIRS="compiler parser lexer nova_ast vm stdlib modules tools galaxy"
 
 info()  { printf "  [..]  %s\n" "$1"; }

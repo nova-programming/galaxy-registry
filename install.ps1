@@ -20,7 +20,7 @@ $AppName = "Nova + Galaxy"
 $NovaZipUrl = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 $ZipPrefix = "Nova-develop"
 $InstallDir = Join-Path $env:LOCALAPPDATA "nova"
-$AllowedFiles = @("main.py", "_galaxy.py")
+$AllowedFiles = @("main.py", "_galaxy.py", "nova_main.nv")
 $AllowedDirs = @("compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy")
 
 function Info  { Write-Host "  [..]  $($args[0])" }
