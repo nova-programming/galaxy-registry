@@ -1,9 +1,20 @@
 {
   "package": "nova-http",
+  "tier": "verified",
   "github_repo": "nova-programming/nova-http",
   "version": "1.0.2",
   "author": "Nova Core Team",
   "description": "High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.",
   "tags": ["network", "http", "api"],
+  "license": "MIT",
+  "upvotes": 47,
+  "flags": 0,
+  "quarantined": false,
+  "issue_number": 12,
+  "versions": [
+    {"version": "1.0.0", "sha256": "a1b2c3d4e5..."},
+    {"version": "1.0.1", "sha256": "f6g7h8i9j0..."},
+    {"version": "1.0.2", "sha256": "k1l2m3n4o5..."}
+  ],
   "download_url": "https://github.com/nova-programming/nova-http/archive/refs/heads/main.zip"
 }

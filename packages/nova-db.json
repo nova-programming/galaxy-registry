@@ -1,0 +1,18 @@
+{
+  "package": "nova-db",
+  "tier": "community",
+  "github_repo": "bob-user/nova-db",
+  "version": "0.1.0",
+  "author": "Bob Smith",
+  "description": "Minimal SQLite binding with prepared statements and connection pooling.",
+  "tags": ["database", "sql", "storage"],
+  "license": "MIT",
+  "upvotes": 5,
+  "flags": 0,
+  "quarantined": false,
+  "issue_number": 19,
+  "versions": [
+    {"version": "0.1.0", "sha256": "jkl012..."}
+  ],
+  "download_url": "https://github.com/bob-user/nova-db/archive/refs/tags/v0.1.0.zip"
+}

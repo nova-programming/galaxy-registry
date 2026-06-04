@@ -11,16 +11,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <style>
         :root {
-            --bg: #ffffff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #888;
+            --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #888;
             --border: #e8e8ea; --accent: #0070f3;
             --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
             --code-bg: #0a0a0f; --nav-bg: rgba(255,255,255,0.85);
-            --sidebar-bg: #f7f7f8; --header-bg: rgba(255,255,255,0.8);
+            --sidebar-bg: #f7f7f8;
+            --core: #7928ca; --verified: #10b981; --community: #888;
+            --core-bg: #f3e8ff; --verified-bg: #ecfdf5; --community-bg: #f5f5f5;
+            --flag: #ef4444; --upvote: #10b981;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg); color: var(--text);
             line-height: 1.6; -webkit-font-smoothing: antialiased;
             min-height: 100vh; display: flex; flex-direction: column;
@@ -41,22 +44,19 @@
         .nav-links { display: flex; gap: 1.75rem; }
         .nav-links a {
             color: var(--text-secondary); text-decoration: none;
-            font-size: 0.875rem; font-weight: 500; transition: color .2s;
+            font-size: 0.875rem; font-weight: 500; transition: color .2s; cursor: pointer;
         }
         .nav-links a:hover, .nav-links a.active { color: var(--text); }
-        .container { max-width: 1000px; margin: 0 auto; padding: 4rem 2rem; flex: 1; }
+        .container { max-width: 1040px; margin: 0 auto; padding: 3rem 2rem; flex: 1; }
         .view-section { display: none; }
         .view-section.active { display: block; animation: fadeIn .35s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* -- Hero -- */
-        .hero { text-align: center; padding: 3rem 0 5rem 0; }
-        .hero h1 {
-            font-size: 3.75rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1.1;
-            margin-bottom: 1.25rem;
-        }
+        /* Hero */
+        .hero { text-align: center; padding: 2.5rem 0 4rem 0; }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1.1; margin-bottom: 1rem; }
         .hero h1 .accent { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .hero p { font-size: 1.2rem; color: var(--text-secondary); max-width: 560px; margin: 0 auto 2.5rem auto; }
+        .hero p { font-size: 1.15rem; color: var(--text-secondary); max-width: 540px; margin: 0 auto 2rem auto; }
         .hero-terminal {
             display: inline-flex; align-items: center; gap: 1rem;
             background: var(--code-bg); color: #e4e4e7;
@@ -70,107 +70,161 @@
         }
         .hero-terminal .copy-btn:hover { color: #fff; }
 
-        /* -- Typography -- */
-        .prose h1, .prose h2, .prose h3 { font-weight: 600; letter-spacing: -0.02em; margin-top: 2rem; margin-bottom: 1rem; overflow-wrap: break-word; }
-        .prose h1 { font-size: 2.25rem; }
-        .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-        .prose p, .prose li { margin-bottom: 1rem; color: var(--text-secondary); overflow-wrap: break-word; }
-        .prose code {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.875em;
-            background: #f0f0f2; padding: 0.2em 0.4em; border-radius: 4px; word-break: break-all;
+        /* Tier Badge */
+        .tier-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.15rem 0.5rem; border-radius: 4px;
+            font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
         }
-        .prose pre {
-            background: var(--code-bg); color: #e4e4e7;
-            padding: 1.25rem; border-radius: 8px; overflow-x: auto;
-            margin: 1.5rem 0; max-width: 100%;
-        }
-        .prose pre code { background: transparent; padding: 0; color: inherit; word-break: normal; }
-        .prose a { color: var(--accent); text-decoration: none; }
-        .prose a:hover { text-decoration: underline; }
+        .tier-badge.core { background: var(--core-bg); color: var(--core); }
+        .tier-badge.verified { background: var(--verified-bg); color: var(--verified); }
+        .tier-badge.community { background: var(--community-bg); color: var(--community); }
+        .tier-badge.quarantined { background: #fef2f2; color: var(--flag); }
 
-        /* -- Search -- */
-        .search-container { position: relative; margin-bottom: 2rem; }
+        /* Tier Filter Tabs */
+        .tier-tabs {
+            display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tier-tab {
+            padding: 0.4rem 1rem; border-radius: 6px;
+            background: var(--sidebar-bg); border: 1px solid var(--border);
+            font-size: 0.8rem; font-weight: 500; cursor: pointer;
+            color: var(--text-secondary); transition: all .15s;
+        }
+        .tier-tab:hover { border-color: #bbb; }
+        .tier-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+        /* Search */
+        .search-container { position: relative; margin-bottom: 1.5rem; }
         .search-input {
-            width: 100%; padding: 1rem 1rem 1rem 3rem; font-size: 1rem;
+            width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; font-size: 0.9rem;
             border: 1px solid var(--border); border-radius: 8px; outline: none;
             transition: border-color .2s, box-shadow .2s;
         }
         .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,112,243,0.1); }
         .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
 
-        /* -- Grid -- */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
         .card {
-            border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;
+            border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem;
             cursor: pointer; transition: border-color .2s, box-shadow .2s;
             display: flex; flex-direction: column;
         }
         .card:hover { border-color: #bbb; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
-        .card h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .card p { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem; flex-grow: 1; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-tertiary); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .card h3 { font-size: 1.1rem; font-weight: 600; }
+        .card p { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; flex-grow: 1; line-height: 1.5; }
+        .card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.75rem; color: var(--text-tertiary); flex-wrap: wrap; gap: 0.5rem;
+        }
+        .card-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .card-stats { display: flex; gap: 0.75rem; align-items: center; }
+        .stat { display: flex; align-items: center; gap: 0.25rem; }
+
         .badge {
+            background: #f0f0f2; padding: 0.1rem 0.4rem; border-radius: 3px;
+            font-size: 0.7rem; border: 1px solid var(--border);
+        }
+        .solo-badge {
             background: #f0f0f2; padding: 0.15rem 0.5rem; border-radius: 4px;
             font-weight: 500; border: 1px solid var(--border); font-size: 0.75rem;
         }
 
-        /* -- Package Detail -- */
+        /* Package Detail */
         .back-btn {
-            display: inline-flex; align-items: center; gap: 0.5rem;
+            display: inline-flex; align-items: center; gap: 0.4rem;
             background: none; border: none; color: var(--text-secondary);
-            font-size: 0.875rem; font-weight: 500; cursor: pointer; margin-bottom: 2rem;
+            font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-bottom: 1.5rem;
         }
         .back-btn:hover { color: var(--text); }
-        .details-layout { display: grid; grid-template-columns: 1fr 280px; gap: 4rem; align-items: start; }
+        .detail-top { margin-bottom: 2rem; }
+        .detail-top h1 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .detail-top .subtitle { color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.5rem; }
+        .details-layout { display: grid; grid-template-columns: 1fr 280px; gap: 3rem; align-items: start; }
         .main-column { min-width: 0; }
-        @media (max-width: 768px) {
-            .details-layout { grid-template-columns: 1fr; gap: 2rem; }
-        }
+        @media (max-width: 768px) { .details-layout { grid-template-columns: 1fr; gap: 2rem; } }
         .sidebar { border-left: 1px solid var(--border); padding-left: 2rem; }
         @media (max-width: 768px) {
             .sidebar { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 2rem; }
         }
-        .sidebar h4 {
-            font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
-            color: var(--text-tertiary); margin-bottom: 1rem;
-        }
-        .sidebar-section { margin-bottom: 2rem; }
+        .sidebar h4 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-tertiary); margin-bottom: 0.75rem; }
+        .sidebar-section { margin-bottom: 1.75rem; }
         .install-box {
             display: flex; align-items: center; justify-content: space-between;
             border: 1px solid var(--border); border-radius: 6px;
-            padding: 0.7rem 1rem; font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem; cursor: pointer; transition: border-color .2s;
+            padding: 0.6rem 0.85rem; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem; cursor: pointer; transition: border-color .2s;
         }
         .install-box:hover { border-color: #bbb; }
-        .install-box .prefix { color: var(--text-tertiary); margin-right: 0.5rem; }
+        .install-box .prefix { color: var(--text-tertiary); margin-right: 0.4rem; }
         .meta-list { list-style: none; }
-        .meta-list li { margin-bottom: 0.75rem; font-size: 0.875rem; }
+        .meta-list li { margin-bottom: 0.6rem; font-size: 0.85rem; }
         .meta-list a { color: var(--accent); text-decoration: none; }
         .meta-list a:hover { text-decoration: underline; }
-        .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .loading { text-align: center; color: var(--text-tertiary); padding: 4rem 0; }
-        .error-text { color: #dc2626; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+        /* Version Table */
+        .version-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+        .version-table th { text-align: left; padding: 0.4rem 0.6rem; font-weight: 600; border-bottom: 2px solid var(--border); color: var(--text-tertiary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .version-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+        .version-table tr:hover td { background: var(--sidebar-bg); }
+
+        /* Action Buttons */
+        .action-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1rem; border-radius: 6px;
+            font-size: 0.8rem; font-weight: 500; cursor: pointer;
+            border: 1px solid var(--border); background: #fff; transition: all .15s;
+        }
+        .action-btn:hover { border-color: #bbb; }
+        .action-btn.upvote:hover { color: var(--upvote); border-color: var(--upvote); }
+        .action-btn.flag:hover { color: var(--flag); border-color: var(--flag); }
+        .action-bar { display: flex; gap: 0.75rem; margin: 1.5rem 0; flex-wrap: wrap; }
+
+        /* Community Warning */
+        .community-warning {
+            background: #fffbeb; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b;
+            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+        .community-warning strong { color: #92400e; display: block; margin-bottom: 0.25rem; }
+        .community-warning p { color: #92400e; margin: 0; }
+
+        .quarantine-banner {
+            background: #fef2f2; border: 1px solid var(--flag); border-left: 4px solid var(--flag);
+            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+        .quarantine-banner strong { color: var(--flag); display: block; margin-bottom: 0.25rem; }
+        .quarantine-banner p { color: #991b1b; margin: 0; }
+
+        .loading { text-align: center; color: var(--text-tertiary); padding: 3rem 0; }
+        .error-text { color: var(--flag); }
+
         .btn-primary {
-            background: var(--text); color: #fff; padding: 0.7rem 1.5rem;
-            border-radius: 6px; border: none; font-weight: 500; font-size: 0.875rem;
+            background: var(--text); color: #fff; padding: 0.6rem 1.4rem;
+            border-radius: 6px; border: none; font-weight: 500; font-size: 0.85rem;
             cursor: pointer; transition: background .2s; text-decoration: none; display: inline-block;
         }
         .btn-primary:hover { background: #222; }
         .btn-secondary {
             background: #fff; color: var(--text); border: 1px solid var(--border);
-            padding: 0.7rem 1.5rem; border-radius: 6px; font-weight: 500;
-            font-size: 0.875rem; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block;
+            padding: 0.6rem 1.4rem; border-radius: 6px; font-weight: 500;
+            font-size: 0.85rem; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block;
         }
         .btn-secondary:hover { border-color: #999; }
-        .btn-group { display: flex; gap: 1rem; justify-content: center; }
+        .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
-        /* -- Footer -- */
+        /* Footer */
         footer {
-            border-top: 1px solid var(--border); padding: 2rem 2rem;
+            border-top: 1px solid var(--border); padding: 1.75rem 2rem;
             background: var(--sidebar-bg); margin-top: auto;
         }
         .footer-inner {
-            max-width: 1000px; margin: 0 auto;
+            max-width: 1040px; margin: 0 auto;
             display: flex; justify-content: space-between; align-items: center;
             font-size: 0.8rem; color: var(--text-tertiary);
         }
@@ -178,8 +232,9 @@
         .footer-links a { color: var(--text-tertiary); text-decoration: none; }
         .footer-links a:hover { color: var(--text); }
         @media (max-width: 600px) {
-            .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
-            .hero h1 { font-size: 2.5rem; }
+            .footer-inner { flex-direction: column; gap: 0.75rem; text-align: center; }
+            .hero h1 { font-size: 2.2rem; }
+            .card-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -194,11 +249,11 @@
             Galaxy
         </a>
         <div class="nav-links">
-            <a class="nav-link active" href="#" onclick="switchNav('view-home');return false;">Home</a>
-            <a class="nav-link" href="#" onclick="switchNav('view-libraries');return false;">Libraries</a>
+            <a class="nav-link active" onclick="switchNav('view-home');return false;">Home</a>
+            <a class="nav-link" onclick="switchNav('view-libraries');return false;">Libraries</a>
             <a class="nav-link" href="documentation.html">Documentation</a>
-            <a class="nav-link" href="#" onclick="switchNav('view-contribute');return false;">Contribute</a>
-            <a class="nav-link" href="#" onclick="switchNav('view-contact');return false;">Contact</a>
+            <a class="nav-link" onclick="switchNav('view-contribute');return false;">Contribute</a>
+            <a class="nav-link" onclick="switchNav('view-contact');return false;">Contact</a>
         </div>
     </nav>
 
@@ -207,30 +262,44 @@
         <section id="view-home" class="view-section active">
             <div class="hero">
                 <h1>The native package manager<br>for <span class="accent">Nova</span>.</h1>
-                <p>Fast, minimal, and fully Git-backed. Discover and publish libraries instantly without ever leaving the terminal.</p>
+                <p>Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries from the terminal.</p>
                 <div class="hero-terminal">
-                    <span>$ nova galaxy install nova-http</span>
-                    <button class="copy-btn" onclick="copyText('nova galaxy install nova-http', this)">
+                    <span>$ galaxy install nova-http</span>
+                    <button class="copy-btn" onclick="copyText('galaxy install nova-http', this)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
                 </div>
-                <div class="btn-group" style="margin-top: 2.5rem;">
+                <div class="btn-group" style="margin-top: 2rem;">
                     <button class="btn-primary" onclick="switchNav('view-libraries')">Explore Libraries</button>
                     <a class="btn-secondary" href="documentation.html">Read the Docs</a>
+                </div>
+                <div style="margin-top: 2.5rem; display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+                    <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge core">Core</span> Inbuilt runtime</span>
+                    <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge verified">Verified</span> Human-reviewed</span>
+                    <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge community">Community</span> User-submitted</span>
                 </div>
             </div>
         </section>
 
         <!-- LIBRARIES -->
         <section id="view-libraries" class="view-section">
-            <div class="prose" style="margin-bottom: 2rem;">
-                <h1>Libraries</h1>
-                <p>Browse packages created by the Nova community. Each package is open-source and hosted on GitHub.</p>
+            <div style="margin-bottom:1.5rem;">
+                <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Libraries</h1>
+                <p style="color:var(--text-secondary);font-size:0.9rem;">Browse packages across all trust tiers.</p>
             </div>
+
+            <div class="tier-tabs" id="tier-tabs">
+                <span class="tier-tab active" data-tier="all">All</span>
+                <span class="tier-tab" data-tier="core">Core</span>
+                <span class="tier-tab" data-tier="verified">Verified</span>
+                <span class="tier-tab" data-tier="community">Community</span>
+            </div>
+
             <div class="search-container">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input type="text" id="pkg-search" class="search-input" placeholder="Search packages..." onkeyup="filterPackages()">
             </div>
+
             <div id="package-grid" class="grid">
                 <div class="loading">Loading packages...</div>
             </div>
@@ -239,36 +308,76 @@
         <!-- PACKAGE DETAILS -->
         <section id="view-package-details" class="view-section">
             <button class="back-btn" onclick="switchNav('view-libraries')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 Back to Libraries
             </button>
-            <div id="pkg-detail-loader" class="loading">Loading documentation...</div>
-            <div id="pkg-detail-content" class="details-layout" style="display:none;">
-                <div class="main-column prose">
-                    <div id="detail-readme"></div>
+            <div id="pkg-detail-loader" class="loading">Loading package...</div>
+            <div id="pkg-detail-content" style="display:none;">
+                <div class="detail-top">
+                    <h1><span id="detail-name"></span> <span id="detail-tier-badge" class="tier-badge"></span></h1>
+                    <div class="subtitle" id="detail-description"></div>
                 </div>
-                <div class="sidebar">
-                    <div class="sidebar-section">
-                        <h4>Install</h4>
-                        <div class="install-box" onclick="copyText(document.getElementById('detail-install').innerText, this)">
-                            <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                <span class="prefix">$</span><span id="detail-install"></span>
-                            </div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+
+                <div id="quarantine-banner" class="quarantine-banner" style="display:none;">
+                    <strong>Package Quarantined</strong>
+                    <p>This package has been flagged by the community and is under review. Installation is blocked.</p>
+                </div>
+
+                <div id="community-warning" class="community-warning" style="display:none;">
+                    <strong>Community Package — Not Verified</strong>
+                    <p>This package was submitted by a community member and has not been reviewed by the Nova team. Review the source code before using it in production.</p>
+                </div>
+
+                <div class="details-layout">
+                    <div class="main-column">
+                        <div class="action-bar" id="detail-actions">
+                            <button class="action-btn upvote" onclick="mockUpvote(this)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                                Upvote <span id="detail-upvotes"></span>
+                            </button>
+                            <button class="action-btn flag" onclick="mockFlag()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path></svg>
+                                Flag
+                            </button>
+                            <a class="action-btn" id="detail-comments-link" href="#" target="_blank" style="text-decoration:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                Comments
+                            </a>
                         </div>
+
+                        <div id="detail-readme" class="prose" style="margin-top:1rem;"></div>
+
+                        <h3 style="font-size:1rem;font-weight:600;margin-top:2rem;margin-bottom:0.5rem;">Version History</h3>
+                        <table class="version-table" id="version-table">
+                            <thead><tr><th>Version</th><th>SHA-256</th></tr></thead>
+                            <tbody id="version-table-body"></tbody>
+                        </table>
                     </div>
-                    <div class="sidebar-section">
-                        <h4>Information</h4>
-                        <ul class="meta-list">
-                            <li><strong>Version:</strong> <span id="detail-version"></span></li>
-                            <li><strong>Author:</strong> <span id="detail-author"></span></li>
-                            <li><strong>License:</strong> MIT</li>
-                            <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
-                        </ul>
-                    </div>
-                    <div class="sidebar-section">
-                        <h4>Tags</h4>
-                        <div class="tag-list" id="detail-tags"></div>
+
+                    <div class="sidebar">
+                        <div class="sidebar-section">
+                            <h4>Install</h4>
+                            <div class="install-box" onclick="copyText(document.getElementById('detail-install').innerText, this)">
+                                <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    <span class="prefix">$</span><span id="detail-install"></span>
+                                </div>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </div>
+                        </div>
+                        <div class="sidebar-section">
+                            <h4>Information</h4>
+                            <ul class="meta-list">
+                                <li><strong>Version:</strong> <span id="detail-version"></span></li>
+                                <li><strong>Tier:</strong> <span id="detail-tier"></span></li>
+                                <li><strong>Author:</strong> <span id="detail-author"></span></li>
+                                <li><strong>License:</strong> <span id="detail-license"></span></li>
+                                <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
+                            </ul>
+                        </div>
+                        <div class="sidebar-section">
+                            <h4>Tags</h4>
+                            <div class="tag-list" id="detail-tags"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -278,25 +387,31 @@
         <section id="view-contribute" class="view-section">
             <div class="prose">
                 <h1>Contribute</h1>
-                <p>Galaxy is a fully static, Git-backed registry. There is no central database or authentication. To publish your package, you simply open a Pull Request to our GitHub repository.</p>
-                <h2>How to Publish a Package</h2>
+                <p>Galaxy is a fully static, Git-backed registry organized into three trust tiers.</p>
+                <h2>Tiers</h2>
+                <ul>
+                    <li><strong>Core</strong> — maintained by the Nova core team. Ships with the runtime.</li>
+                    <li><strong>Verified</strong> — human-reviewed for code quality and security. Promoted from Community.</li>
+                    <li><strong>Community</strong> — auto-published via PR. Anyone can contribute.</li>
+                </ul>
+                <h2>How to Publish</h2>
+                <p>All new submissions go to the <strong>Community</strong> tier. Verified status is earned through upvotes and human review.</p>
                 <ol>
-                    <li>Host your Nova library publicly on GitHub.</li>
-                    <li>Ensure your repository has a descriptive <code>README.md</code>.</li>
-                    <li>Fork the <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">nova-programming/galaxy-registry</a> repository.</li>
-                    <li>Create a new JSON file in the <code>packages/</code> folder named after your package (e.g. <code>my-package.json</code>).</li>
+                    <li>Host your Nova library on GitHub.</li>
+                    <li>Run <code>galaxy init library my-lib</code> to generate metadata.</li>
+                    <li>Run <code>galaxy publish</code> to open a PR to the registry.</li>
                 </ol>
-                <h2>JSON Schema</h2>
+                <p>Your package JSON must follow this schema:</p>
                 <pre><code>{
-  "package": "my-package",
-  "github_repo": "yourusername/my-package",
+  "package": "my-lib",
+  "tier": "community",
+  "github_repo": "yourusername/my-lib",
   "version": "1.0.0",
   "author": "Your Name",
-  "description": "A brief description of what your package does.",
-  "tags": ["cli", "utility"],
-  "download_url": "https://github.com/yourusername/my-package/archive/refs/heads/main.zip"
+  "description": "A brief description.",
+  "tags": ["utility"],
+  "download_url": "https://github.com/yourusername/my-lib/archive/refs/tags/v1.0.0.zip"
 }</code></pre>
-                <p>Submit your Pull Request, and upon approval, your package will instantly be available globally via <code>nova galaxy install</code>.</p>
             </div>
         </section>
 
@@ -304,11 +419,11 @@
         <section id="view-contact" class="view-section">
             <div class="prose">
                 <h1>Contact &amp; Community</h1>
-                <p>Nova is an open-source systems programming language. We'd love for you to get involved.</p>
+                <p>Nova is open-source. We'd love your involvement.</p>
                 <ul class="meta-list" style="margin-top:2rem;">
                     <li><strong>GitHub Organization:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming &nearr;</a></li>
                     <li><strong>Report Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker &nearr;</a></li>
-                    <li><strong>Registry Repository:</strong> <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry &nearr;</a></li>
+                    <li><strong>Registry:</strong> <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry &nearr;</a></li>
                     <li><strong>Discord:</strong> Coming Soon</li>
                 </ul>
             </div>
@@ -321,7 +436,7 @@
             <div class="footer-links">
                 <a href="https://github.com/nova-programming" target="_blank">GitHub</a>
                 <a href="documentation.html">Docs</a>
-                <a href="index.html?view=view-libraries">Libraries</a>
+                <a href="#" onclick="switchNav('view-libraries');return false;">Libraries</a>
             </div>
         </div>
     </footer>
@@ -329,23 +444,29 @@
     <script>
         const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        let allPackages = [];
+        let activeTier = 'all';
 
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const view = params.get('view');
             if (view) { switchNav(view); window.history.replaceState({}, document.title, window.location.pathname); }
+            document.querySelectorAll('.tier-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tier-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    activeTier = tab.dataset.tier;
+                    renderGrid();
+                });
+            });
         });
 
         function switchNav(viewId) {
-            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-            if (event && event.target.classList.contains('nav-link')) {
-                event.target.classList.add('active');
-            } else {
-                const mapping = { 'view-home': 0, 'view-libraries': 1, 'view-contribute': 3, 'view-contact': 4, 'view-package-details': 1 };
-                const idx = mapping[viewId];
-                if (idx !== undefined) document.querySelectorAll('.nav-link')[idx].classList.add('active');
-            }
-            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const mapping = { 'view-home': 0, 'view-libraries': 1, 'view-contribute': 3, 'view-contact': 4, 'view-package-details': 1 };
+            const idx = mapping[viewId];
+            if (idx !== undefined) document.querySelectorAll('.nav-link')[idx].classList.add('active');
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             const el = document.getElementById(viewId);
             if (el) el.classList.add('active');
             window.scrollTo(0, 0);
@@ -357,67 +478,131 @@
             if (svg) { svg.outerHTML = checkIcon; setTimeout(() => { svg.outerHTML = copyIcon; }, 2000); }
         }
 
-        function filterPackages() {
+        function filterPackages() { renderGrid(); }
+
+        function makeTierBadge(tier) {
+            const labels = { core: 'Core', verified: 'Verified', community: 'Community' };
+            return `<span class="tier-badge ${tier}">${labels[tier] || tier}</span>`;
+        }
+
+        function renderGrid() {
             const q = document.getElementById('pkg-search').value.toLowerCase();
-            document.querySelectorAll('.pkg-card').forEach(card => {
-                const title = card.querySelector('h3').innerText.toLowerCase();
-                const desc = card.querySelector('p').innerText.toLowerCase();
-                card.style.display = (title.includes(q) || desc.includes(q)) ? 'flex' : 'none';
+            const grid = document.getElementById('package-grid');
+            const filtered = allPackages.filter(p => {
+                if (activeTier !== 'all' && p.tier !== activeTier) return false;
+                if (q && !p.name.toLowerCase().includes(q) && !p.description.toLowerCase().includes(q)) return false;
+                return true;
             });
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="loading" style="color:var(--text-secondary);padding:2rem 0;">No packages match your filters.</div>';
+                return;
+            }
+            grid.innerHTML = filtered.map(p => `
+                <div class="card" onclick="showPackageDetails('${p.name}')">
+                    <div class="card-header">
+                        <h3>${p.name}</h3>
+                        ${makeTierBadge(p.tier)}
+                    </div>
+                    <p>${p.description}</p>
+                    <div class="card-footer">
+                        <div class="card-tags">${(p.tags||[]).map(t => `<span class="badge">${t}</span>`).join('')}</div>
+                        <div class="card-stats">
+                            ${p.tier === 'community' ? `<span class="stat"><span style="color:var(--upvote);">&#9650;</span> ${p.upvotes||0}</span>` : ''}
+                            <span class="stat">v${p.version}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function showPackageDetails(name) {
             switchNav('view-package-details');
             document.getElementById('pkg-detail-content').style.display = 'none';
             document.getElementById('pkg-detail-loader').style.display = 'block';
-            document.getElementById('pkg-detail-loader').innerText = 'Loading documentation...';
+            document.getElementById('pkg-detail-loader').innerText = 'Loading package...';
 
             fetch(`/packages/${name}.json`)
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('pkg-detail-loader').style.display = 'none';
-                    document.getElementById('pkg-detail-content').style.display = 'grid';
-                    document.getElementById('detail-install').innerText = `nova galaxy install ${data.package}`;
+                    document.getElementById('pkg-detail-content').style.display = 'block';
+
+                    document.getElementById('detail-name').innerText = data.package;
+                    const tierBadge = document.getElementById('detail-tier-badge');
+                    tierBadge.className = `tier-badge ${data.tier}`;
+                    tierBadge.innerText = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
+                    document.getElementById('detail-description').innerText = data.description;
+                    document.getElementById('detail-install').innerText = `galaxy install ${data.package}`;
                     document.getElementById('detail-version').innerText = data.version;
+                    document.getElementById('detail-tier').innerText = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
                     document.getElementById('detail-author').innerText = data.author;
+                    document.getElementById('detail-license').innerText = data.license || 'MIT';
+                    document.getElementById('detail-upvotes').innerText = data.upvotes || 0;
                     document.getElementById('detail-repo').href = `https://github.com/${data.github_repo}`;
+
                     const tc = document.getElementById('detail-tags');
                     tc.innerHTML = '';
-                    (data.tags || []).forEach(t => { tc.innerHTML += `<span class="badge">${t}</span>`; });
+                    (data.tags||[]).forEach(t => { tc.innerHTML += `<span class="badge">${t}</span>`; });
+
+                    const vb = document.getElementById('version-table-body');
+                    vb.innerHTML = '';
+                    (data.versions||[]).slice().reverse().forEach(v => {
+                        vb.innerHTML += `<tr><td>v${v.version}</td><td style="font-size:0.7rem;">${v.sha256}</td></tr>`;
+                    });
+
+                    const commentsLink = document.getElementById('detail-comments-link');
+                    if (data.issue_number) {
+                        commentsLink.href = `https://github.com/nova-programming/galaxy-registry/issues/${data.issue_number}`;
+                        commentsLink.style.display = 'inline-flex';
+                    } else {
+                        commentsLink.style.display = 'none';
+                    }
+
+                    const communityWarn = document.getElementById('community-warning');
+                    communityWarn.style.display = data.tier === 'community' ? 'block' : 'none';
+
+                    const quarantineBanner = document.getElementById('quarantine-banner');
+                    quarantineBanner.style.display = data.quarantined ? 'block' : 'none';
+
+                    const actions = document.getElementById('detail-actions');
+                    actions.style.display = data.tier === 'community' ? 'flex' : 'none';
+
                     fetch(`https://raw.githubusercontent.com/${data.github_repo}/main/README.md`)
                         .then(r => { if (!r.ok) throw Error(); return r.text(); })
                         .then(md => { document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(md)); })
                         .catch(() => {
                             document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(
-                                `# ${data.package}\n${data.description}\n\n## Installation\n\`\`\`bash\nnova galaxy install ${data.package}\n\`\`\`\n\n*This package description is auto-generated. The GitHub repository does not have a README.md yet.*`
+                                `## ${data.package}\n${data.description}\n\n\`\`\`bash\ngalaxy install ${data.package}\n\`\`\``
                             ));
                         });
                 })
-                .catch(e => {
-                    document.getElementById('pkg-detail-loader').innerHTML = '<span class="error-text">Failed to load package details. The package may not exist.</span>';
+                .catch(() => {
+                    document.getElementById('pkg-detail-loader').innerHTML = '<span class="error-text">Failed to load package details.</span>';
                 });
+        }
+
+        function mockUpvote(btn) {
+            const span = btn.querySelector('span');
+            const n = parseInt(span.innerText) || 0;
+            span.innerText = n + 1;
+            btn.style.borderColor = 'var(--upvote)';
+            btn.style.color = 'var(--upvote)';
+        }
+
+        function mockFlag() {
+            if (confirm('Flag this package as suspicious? This will notify the review team.')) {
+                alert('Package flagged. Thank you for helping keep the community safe.');
+            }
         }
 
         fetch('/packages/index.json')
             .then(r => r.json())
             .then(data => {
-                const grid = document.getElementById('package-grid');
-                grid.innerHTML = '';
-                (data.packages || []).forEach(pkg => {
-                    grid.innerHTML += `
-                        <div class="card pkg-card" onclick="showPackageDetails('${pkg.name}')">
-                            <h3>${pkg.name}</h3>
-                            <p>${pkg.description}</p>
-                            <div class="card-footer">
-                                <span>${(pkg.tags || []).slice(0,3).map(t => `<span class="badge">${t}</span>`).join(' ')}</span>
-                                <span class="badge">v${pkg.version}</span>
-                            </div>
-                        </div>
-                    `;
-                });
+                allPackages = data.packages || [];
+                renderGrid();
             })
-            .catch(e => {
-                document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to the registry. Is the server running?</div>';
+            .catch(() => {
+                document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to the registry.</div>';
             });
     </script>
 </body>
