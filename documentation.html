@@ -3,514 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy Registry</title>
-    <!-- Fonts -->
+    <title>Nova Language Documentation — Galaxy Registry</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Markdown Parsers -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-primary: #171717;
-            --text-secondary: #666666;
-            --border-color: #eaeaea;
-            --accent-color: #0070f3; /* Vercel Blue */
-            --accent-hover: #0051a8;
-            --code-bg: #f5f5f5;
-            --header-bg: rgba(255, 255, 255, 0.8);
+            --bg: #ffffff;
+            --text: #0a0a0f;
+            --text-secondary: #555;
+            --text-tertiary: #888;
+            --border: #e8e8ea;
+            --accent: #0070f3;
+            --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
+            --code-bg: #0a0a0f;
+            --code-text: #e4e4e7;
+            --nav-bg: rgba(255,255,255,0.85);
+            --sidebar-bg: #f7f7f8;
+            --keyword: #ff79c6;
+            --string: #50fa7b;
+            --number: #bd93f9;
+            --comment: #6272a4;
+            --builtin: #8be9fd;
+            --callout-info-bg: #eef4ff;
+            --callout-info-border: #0070f3;
+            --callout-tip-bg: #ecfdf5;
+            --callout-tip-border: #10b981;
+            --callout-warn-bg: #fffbeb;
+            --callout-warn-border: #f59e0b;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.6;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
             -webkit-font-smoothing: antialiased;
         }
-        
-        html {
-            scroll-behavior: smooth;
+        /* -- Nav -- */
+        nav.top-nav {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
         }
-
-        /* Navigation */
-        nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background-color: var(--header-bg);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-            height: 64px;
-        }
-
         .nav-brand {
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: -0.02em;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 700; font-size: 1.2rem;
+            letter-spacing: -0.03em; cursor: pointer;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none; color: inherit;
         }
-
-        .nav-brand svg {
-            width: 24px;
-            height: 24px;
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.875rem; font-weight: 500;
+            transition: color .2s;
         }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            color: var(--text-primary);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-
-        /* Views */
-        .view-section {
-            display: none;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .view-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Hero (Home) */
-        .hero {
-            text-align: center;
-            padding: 4rem 0 6rem 0;
-        }
-
-        .hero h1 {
-            font-size: 4rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 3rem auto;
-        }
-
-        .hero-terminal {
-            background-color: #000;
-            color: #fff;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            display: inline-flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 0.875rem;
-            box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1);
-        }
-        
-        .hero-terminal .copy-btn {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            display: flex;
-        }
-        
-        .hero-terminal .copy-btn:hover {
-            color: #fff;
-        }
-
-        /* Typography / Markdown */
-        .prose h1, .prose h2, .prose h3 {
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            overflow-wrap: break-word;
-        }
-        
-        .prose h1 { font-size: 2.25rem; }
-        .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .prose p, .prose li { 
-            margin-bottom: 1rem; 
-            color: #333; 
-            overflow-wrap: break-word; 
-        }
-        
-        .prose code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875em;
-            background-color: var(--code-bg);
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-            word-break: break-all;
-        }
-        
-        .prose pre {
-            background-color: #000;
-            color: #fff;
-            padding: 1.25rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            max-width: 100%;
-        }
-        
-        .prose pre code {
-            background-color: transparent;
-            padding: 0;
-            color: inherit;
-            word-break: normal;
-        }
-        
-        .prose a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-        .prose a:hover {
-            text-decoration: underline;
-        }
-
-        /* Search Bar */
-        .search-container {
-            position: relative;
-            margin-bottom: 2rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            font-size: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-        }
-
-        /* Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card:hover {
-            border-color: #ccc;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .card p {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-        
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-        
-        .badge {
-            background-color: var(--code-bg);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 500;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Package Details View */
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 2rem;
-        }
-        
-        .back-btn:hover {
-            color: var(--text-primary);
-        }
-
-        .details-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 4rem;
-            align-items: start;
-        }
-        
-        .main-column {
-            min-width: 0; /* Prevents grid blowout on long text */
-        }
-
-        @media (max-width: 768px) {
-            .details-layout {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-        }
-
-        .sidebar {
-            border-left: 1px solid var(--border-color);
-            padding-left: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                border-left: none;
-                padding-left: 0;
-                border-top: 1px solid var(--border-color);
-                padding-top: 2rem;
-            }
-        }
-
-        .sidebar h4 {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-        
-        .sidebar-section {
-            margin-bottom: 2.5rem;
-        }
-
-        .install-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-
-        .install-box:hover {
-            border-color: #ccc;
-        }
-        
-        .install-box .prefix { color: var(--text-secondary); margin-right: 0.5rem; }
-
-        .meta-list {
-            list-style: none;
-        }
-        
-        .meta-list li {
-            margin-bottom: 0.75rem;
-            font-size: 0.875rem;
-        }
-        
-        .meta-list a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-        .meta-list a:hover { text-decoration: underline; }
-        
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        /* -- Layout -- */
         .doc-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            min-height: calc(100vh - 64px);
+            display: grid; grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 60px);
         }
-        
-        @media (max-width: 768px) {
-            .doc-layout {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 860px) {
+            .doc-layout { grid-template-columns: 1fr; }
         }
-        
+        /* -- Sidebar -- */
         .doc-sidebar {
-            position: sticky;
-            top: 64px;
-            align-self: start;
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 1.5rem;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            background-color: #fafafa;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            display: block; /* Override global nav flexbox */
+            position: sticky; top: 60px; align-self: start;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem;
+            height: calc(100vh - 60px); overflow-y: auto;
+            background: var(--sidebar-bg);
         }
-        
-        .doc-sidebar ul {
-            list-style: none;
+        .doc-sidebar h4 {
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em;
+            color: var(--text-tertiary); margin-bottom: 1rem;
         }
-        
-        .doc-sidebar li {
-            margin-bottom: 0.75rem;
-        }
-        
+        .doc-sidebar ul { list-style: none; }
+        .doc-sidebar li { margin-bottom: 0.4rem; }
         .doc-sidebar a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.8rem; transition: color .15s;
+            display: block; padding: 0.2rem 0;
         }
-        
-        .doc-sidebar a:hover, .doc-sidebar a.active {
-            color: var(--accent-color);
-            font-weight: 500;
-        }
-        
-        .doc-content {
-            padding: 3rem 4rem;
-            max-width: 1000px;
-            min-width: 0; /* Prevents grid blowout on long text/code */
-        }
-        
-        @media (max-width: 768px) {
-            .doc-content {
-                padding: 2rem 1.5rem;
-            }
+        .doc-sidebar a:hover, .doc-sidebar a.active { color: var(--accent); font-weight: 500; }
+        .doc-sidebar .section-gap { margin-top: 1rem; }
+        @media (max-width:860px) {
             .doc-sidebar {
-                position: relative;
-                top: 0;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding: 1.5rem;
+                position: relative; top: 0; height: auto;
+                border-right: none; border-bottom: 1px solid var(--border);
+                padding: 1.25rem;
             }
         }
-
-        /* Buttons */
-        .btn-primary {
-            background-color: var(--text-primary);
-            color: #fff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-decoration: none;
-            display: inline-block;
+        /* -- Content -- */
+        .doc-content {
+            padding: 3rem 3.5rem; max-width: 880px;
+            min-width: 0;
         }
-        
-        .btn-primary:hover {
-            background-color: #333;
+        @media (max-width:860px) { .doc-content { padding: 2rem 1.25rem; } }
+        .doc-content h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; margin-top: 0; margin-bottom: 0.5rem; }
+        .doc-content h2 {
+            font-size: 1.35rem; font-weight: 600; letter-spacing: -0.02em;
+            margin-top: 2.5rem; margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
         }
-
-        .btn-secondary {
-            background-color: #fff;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
+        .doc-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: #1a1a2e; }
+        .doc-content p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .doc-content ul, .doc-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        .doc-content li { margin-bottom: 0.4rem; color: var(--text-secondary); }
+        .doc-content strong { color: var(--text); }
+        .doc-content a { color: var(--accent); text-decoration: none; }
+        .doc-content a:hover { text-decoration: underline; }
+        /* -- Code -- */
+        .doc-content code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82em; background: #f0f0f2;
+            padding: 0.15em 0.4em; border-radius: 4px;
+            color: #e03e8a;
         }
-        
-        .btn-secondary:hover {
-            border-color: #999;
+        .doc-content pre {
+            background: var(--code-bg); color: var(--code-text);
+            padding: 1.25rem 1.5rem; border-radius: 8px;
+            overflow-x: auto; margin: 1.25rem 0;
+            font-size: 0.82rem; line-height: 1.6;
+            border: 1px solid #1a1a2e;
         }
-        
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
+        .doc-content pre code {
+            background: transparent; padding: 0; color: inherit;
+            font-size: inherit; border-radius: 0;
         }
-        
-        .loading {
-            text-align: center;
+        /* Nova syntax highlighting inside pre blocks */
+        .nv-kw { color: var(--keyword); }
+        .nv-str { color: var(--string); }
+        .nv-num { color: var(--number); }
+        .nv-cmt { color: var(--comment); font-style: italic; }
+        .nv-fn { color: var(--builtin); }
+        .nv-type { color: #8be9fd; }
+        .nv-op { color: #f1fa8c; }
+        .hljs { color: var(--code-text); }
+        /* -- Callouts -- */
+        .callout {
+            padding: 1rem 1.25rem; border-radius: 6px;
+            margin: 1.25rem 0; border-left: 4px solid;
+            font-size: 0.9rem;
+        }
+        .callout strong { display: block; margin-bottom: 0.25rem; }
+        .callout-info { background: var(--callout-info-bg); border-color: var(--callout-info-border); }
+        .callout-tip { background: var(--callout-tip-bg); border-color: var(--callout-tip-border); }
+        .callout-warn { background: var(--callout-warn-bg); border-color: var(--callout-warn-border); }
+        .callout code { background: rgba(0,0,0,0.06); }
+        /* -- Table -- */
+        .doc-table {
+            width: 100%; border-collapse: collapse;
+            margin: 1.25rem 0; font-size: 0.88rem;
+        }
+        .doc-table th {
+            background: var(--sidebar-bg); text-align: left;
+            padding: 0.5rem 0.75rem; font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        .doc-table td {
+            padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
             color: var(--text-secondary);
-            padding: 4rem 0;
+        }
+        .doc-table code { font-size: 0.82em; }
+        /* -- Animations -- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .doc-content { animation: fadeIn .35s ease-out; }
+        .accent-text { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .inline-code-badge {
+            display: inline-block; background: #f0f0f2;
+            padding: 0.15em 0.5em; border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.8em;
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a class="nav-brand" href="index.html" style="text-decoration:none; color:inherit;">
+    <nav class="top-nav">
+        <a class="nav-brand" href="index.html" style="text-decoration:none;color:inherit;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                 <polyline points="2 17 12 22 22 17"></polyline>
@@ -519,223 +195,525 @@
             Galaxy
         </a>
         <div class="nav-links">
-            <a class="nav-link" href="index.html">Home</a>
-            <a class="nav-link" href="index.html?view=view-libraries">Libraries</a>
-            <a class="nav-link" href="#" class="nav-link active">Documentation</a>
-            <a class="nav-link" href="index.html?view=view-contribute">Contribute</a>
-            <a class="nav-link" href="index.html?view=view-contact">Contact</a>
+            <a href="index.html">Home</a>
+            <a href="index.html?view=view-libraries">Libraries</a>
+            <a href="#" class="active">Documentation</a>
+            <a href="index.html?view=view-contribute">Contribute</a>
+            <a href="index.html?view=view-contact">Contact</a>
         </div>
     </nav>
 
-    <!-- DOCUMENTATION VIEW (Full Width outside container) -->
-    <section id="view-docs" class="view-section active">
-        <div class="doc-layout">
-            <nav class="doc-sidebar">
+    <div class="doc-layout">
+        <nav class="doc-sidebar" id="sidebar">
+            <h4>Contents</h4>
+            <ul>
+                <li><a href="#intro">Introduction</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li class="section-gap"><a href="#philosophy">Why Nova?</a></li>
+                <li><a href="#basics">Language Basics</a></li>
+                <li><a href="#types">Type System</a></li>
+                <li><a href="#operators">Operators</a></li>
+                <li><a href="#control-flow">Control Flow</a></li>
+                <li><a href="#functions">Functions</a></li>
+                <li><a href="#classes">Classes &amp; Objects</a></li>
+                <li class="section-gap"><a href="#stdlib">Standard Library</a></li>
+                <li><a href="#galaxy">Galaxy Package Manager</a></li>
+                <li><a href="#imports">Import System</a></li>
+                <li class="section-gap"><a href="#compiler-cli">Compiler CLI</a></li>
+                <li><a href="#advanced">Advanced Features</a></li>
+                <li><a href="#os-integration">OS Integration</a></li>
+                <li class="section-gap"><a href="#architecture">Compiler Architecture</a></li>
+                <li><a href="#performance">Performance Tips</a></li>
+            </ul>
+        </nav>
 
-                <h4 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; word-break: break-word; overflow-wrap: break-word;">Contents</h4>
-                <ul>
-                    <li><a href="#doc-intro">Introduction</a></li>
-                    <li><a href="#doc-why-nova">Why Nova? (The Philosophy)</a></li>
-                    <li><a href="#doc-basics">The Basics (For Beginners)</a></li>
-                    <li><a href="#doc-intermediate">Functions & Classes</a></li>
-                    <li><a href="#doc-unique">Unique & Advanced Features</a></li>
-                    <li><a href="#doc-os">Native OS Integration</a></li>
-                    <li><a href="#doc-architecture">Compiler Architecture</a></li>
-                </ul>
+        <div class="doc-content">
 
-</nav>
-            
-            <div class="doc-content prose">
+            <h1 id="intro" style="margin-top:0;">Nova Language Documentation</h1>
+            <p>Welcome to the official Nova documentation. Nova is a systems programming language that compiles directly to x86 machine code — no interpreter, no VM, no gigabytes of build tools. It gives you <strong>C-level performance</strong> with <strong>Python-level readability</strong>.</p>
 
-                <h1 id="doc-intro" style="margin-top: 0;">Nova Language Documentation</h1>
-                <p>Welcome to the official documentation for Nova. Whether you are a newcomer to programming looking to write your first script, or a seasoned systems engineer aiming to write high-performance bare-metal OS kernels, this guide covers everything you need to know.</p>
+            <!-- ========== QUICK START ========== -->
+            <h2 id="quickstart">Quick Start</h2>
+            <p>Get a Nova program running in under a minute.</p>
+            <h3>Installation</h3>
+            <p>Download the <code>nova_main.exe</code> binary from the <a href="https://github.com/nova-programming/Nova/releases" target="_blank">releases page</a>. Place it anywhere in your <code>PATH</code>. No dependencies required.</p>
+            <h3>Your First Program</h3>
+            <p>Create <code>hello.nv</code>:</p>
+            <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello, World!"</span>)</code></pre>
+            <p>Compile and run:</p>
+            <pre><code><span class="nv-cmt"># Compile to a Windows executable</span>
+nova_main build hello.nv
 
-                <h2 id="doc-why-nova">Why Nova? (The Philosophy)</h2>
-                <p>Modern developers are often forced to make a difficult choice: write in a high-level language like Python to iterate quickly but suffer from terrible runtime performance, or write in C/C++ to get maximum speed but suffer through manual memory management and massive gigabyte-sized compiler toolchains (like GCC or MSVC).</p>
-                <p><strong>Nova eliminates this compromise.</strong></p>
-                <ul>
-                    <li><strong>14x Faster than Python:</strong> Nova is not interpreted. It compiles directly down to pure x86 machine code. In heavy computational benchmarks, Nova scripts execute 14 times faster than Python equivalents.</li>
-                    <li><strong>Near-C Performance Out of the Box:</strong> Nova sits right next to highly optimized C code in benchmarks, achieving near-parity with GCC <code>-O3</code> flags.</li>
-                    <li><strong>Zero Dependencies:</strong> The Nova compiler is entirely self-hosted. It features its own built-in lexer, parser, assembler, and linker. You do not need to download gigabytes of C++ build tools. A single, tiny executable is all you need to compile Windows PE executables or bare-metal OS flats.</li>
-                    <li><strong>Pythonic Syntax:</strong> You get the raw metal speed of C, but you write code that looks as simple and clean as Python.</li>
-                </ul>
+<span class="nv-cmt"># Run it</span>
+.\hello.exe</code></pre>
+            <div class="callout callout-info">
+                <strong>No toolchain needed</strong>
+                The Nova compiler contains its own lexer, parser, assembler, and linker. Unlike C/Rust, you don't need to install separate tools to compile code.
+            </div>
 
-                <h2 id="doc-basics">The Basics (For Beginners)</h2>
-                <p>Nova is designed to be easy to read and write. Here are the absolute basics of the language.</p>
-                
-                <h3>Hello World</h3>
-                <p>To print text to the screen, use the <code>print</code> keyword. This invokes highly optimized native C-level printf equivalents under the hood.</p>
-                <pre><code>print("Hello, World!")</code></pre>
+            <!-- ========== PHILOSOPHY ========== -->
+            <h2 id="philosophy">Why Nova? (The Philosophy)</h2>
+            <p>Developers today face an impossible trade-off: high-level languages (Python, JS) let you iterate fast but run 10-50x slower than C, while low-level languages (C, C++, Rust) give you raw speed but force you through setup hell and manual memory management.</p>
+            <p><strong>Nova eliminates this compromise.</strong></p>
+            <ul>
+                <li><strong>14x Faster than Python</strong> — direct x86 compilation, no interpreter overhead</li>
+                <li><strong>Near-C Performance</strong> — competes with GCC <code>-O3</code> on tight integer loops</li>
+                <li><strong>Zero Dependencies</strong> — a single 200 KB binary is the entire toolchain</li>
+                <li><strong>Pythonic Syntax</strong> — reads like Python, runs like C</li>
+                <li><strong>Self-Hosted</strong> — the compiler can compile itself</li>
+                <li><strong>Tree-Shaking</strong> — dead code elimination shrinks binaries by up to 70%</li>
+            </ul>
 
-                <h3>Variables & Data Types</h3>
-                <p>Variables hold data. Nova uses static type inference, meaning it automatically figures out what kind of data you are using, but you can also explicitly declare them.</p>
-                <ul>
-                    <li><strong><code>int</code></strong>: Whole numbers (e.g., <code>42</code>, <code>-10</code>)</li>
-                    <li><strong><code>float</code></strong>: Decimal numbers (e.g., <code>3.14</code>). Processed using the hardware x87 FPU.</li>
-                    <li><strong><code>string</code></strong>: Text (e.g., <code>"Nova is fast"</code>)</li>
-                    <li><strong><code>bool</code></strong>: True or False values.</li>
-                    <li><strong><code>list[T]</code></strong>: Dynamic arrays. e.g., a list of numbers. Nova automatically protects you from crashing by checking list boundaries safely.</li>
-                </ul>
+            <!-- ========== BASICS ========== -->
+            <h2 id="basics">Language Basics</h2>
 
-                <h3>Making Decisions (If / Else)</h3>
-                <p>You can tell your program to take different paths using <code>if</code> statements.</p>
-                <pre><code>age: int = 18
+            <h3>Hello World</h3>
+            <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello, World!"</span>)</code></pre>
 
-if age >= 18 {
-    print("You are an adult.")
-} else {
-    print("You are a minor.")
-}</code></pre>
+            <h3>Comments</h3>
+            <pre><code><span class="nv-cmt"># This is a single-line comment</span>
+<span class="nv-cmt"># Nova uses the hash symbol, just like Python</span></code></pre>
 
-                <h3>Repeating Actions (Loops)</h3>
-                <p>Instead of copying and pasting code, use a <code>for</code> loop to repeat actions.</p>
-                <pre><code># Prints numbers 1 through 5
-for i = 1 to 5 step 1 {
-    print(i)
+            <h3>Variables</h3>
+            <p>Variables are declared with <code>name: type = value</code>. Type inference is automatic if you omit the annotation.</p>
+            <pre><code><span class="nv-cmt"># Explicit type annotation</span>
+name: <span class="nv-type">string</span> = <span class="nv-str">"Nova"</span>
+age: <span class="nv-type">int</span> = 42
+
+<span class="nv-cmt"># Type inference — Nova figures it out</span>
+pi = <span class="nv-num">3.14</span>          <span class="nv-cmt"># inferred as float</span>
+is_ready = <span class="nv-kw">true</span>    <span class="nv-cmt"># inferred as bool</span>
+count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred as int</span>
+
+<span class="nv-cmt"># Constants (must be initialized at declaration)</span>
+<span class="nv-kw">const</span> MAX_SIZE = <span class="nv-num">4096</span></code></pre>
+
+            <h3>Basic I/O</h3>
+            <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello"</span>)               <span class="nv-cmt"># Print string (with newline)</span>
+<span class="nv-fn">print</span>(<span class="nv-num">42</span>)                    <span class="nv-cmt"># Print integer</span>
+<span class="nv-fn">print</span>(<span class="nv-num">3.14</span>)                  <span class="nv-cmt"># Print float</span>
+<span class="nv-fn">print</span>(<span class="nv-str">"Value: "</span> + <span class="nv-num">42</span>)        <span class="nv-cmt"># Concatenated output</span></code></pre>
+
+            <!-- ========== TYPE SYSTEM ========== -->
+            <h2 id="types">Type System</h2>
+            <p>Nova is statically typed with type inference. All types are resolved at compile time.</p>
+
+            <table class="doc-table">
+                <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+                <tr><td><code>int</code></td><td>32-bit signed integer</td><td><code>42, -7, 0</code></td></tr>
+                <tr><td><code>float</code></td><td>64-bit IEEE-754 (via x87 FPU)</td><td><code>3.14, -0.5, 2.0</code></td></tr>
+                <tr><td><code>string</code></td><td>Immutable UTF-8 text (heap-allocated)</td><td><code>"hello"</code></td></tr>
+                <tr><td><code>bool</code></td><td>Boolean true/false</td><td><code>true, false</code></td></tr>
+                <tr><td><code>list[T]</code></td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
+                <tr><td><code>any</code></td><td>Duck-typed generic</td><td><code>let x: any = 42</code></td></tr>
+            </table>
+
+            <h3>Lists</h3>
+            <pre><code><span class="nv-cmt"># Declare and initialize</span>
+numbers: <span class="nv-type">list</span> = [<span class="nv-num">1</span>, <span class="nv-num">2</span>, <span class="nv-num">3</span>, <span class="nv-num">4</span>, <span class="nv-num">5</span>]
+
+<span class="nv-cmt"># Access elements (bounds-checked at runtime)</span>
+first = numbers[<span class="nv-num">0</span>]      <span class="nv-cmt"># -> 1</span>
+
+<span class="nv-cmt"># Iterate</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> numbers.length <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-fn">print</span>(numbers[i])
 }
 
-# Loops can also go backwards
-for x = 10 downto 1 step 1 {
-    print(x)
+<span class="nv-cmt"># Nested lists</span>
+matrix = [[<span class="nv-num">1</span>, <span class="nv-num">2</span>], [<span class="nv-num">3</span>, <span class="nv-num">4</span>], [<span class="nv-num">5</span>, <span class="nv-num">6</span>]]
+<span class="nv-fn">print</span>(matrix[<span class="nv-num">1</span>][<span class="nv-num">0</span>])  <span class="nv-cmt"># -> 3</span></code></pre>
+
+            <div class="callout callout-warn">
+                <strong>Bounds checking</strong>
+                All list accesses are bounds-checked at runtime. An out-of-bounds access triggers a runtime assertion and terminates the program. There is zero overhead for bounds checks in release builds that pass static analysis.
+            </div>
+
+            <!-- ========== OPERATORS ========== -->
+            <h2 id="operators">Operators</h2>
+
+            <h3>Arithmetic</h3>
+            <table class="doc-table">
+                <tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
+                <tr><td><code>+</code></td><td>Addition</td><td><code>5 + 3</code></td><td><code>8</code></td></tr>
+                <tr><td><code>-</code></td><td>Subtraction</td><td><code>5 - 3</code></td><td><code>2</code></td></tr>
+                <tr><td><code>*</code></td><td>Multiplication</td><td><code>5 * 3</code></td><td><code>15</code></td></tr>
+                <tr><td><code>/</code></td><td>Integer division</td><td><code>7 / 3</code></td><td><code>2</code></td></tr>
+                <tr><td><code>%</code></td><td>Modulo (remainder)</td><td><code>7 % 3</code></td><td><code>1</code></td></tr>
+            </table>
+
+            <h3>Comparison</h3>
+            <table class="doc-table">
+                <tr><th>Operator</th><th>Meaning</th></tr>
+                <tr><td><code>==</code></td><td>Equal to</td></tr>
+                <tr><td><code>!=</code></td><td>Not equal to</td></tr>
+                <tr><td><code>&lt;</code></td><td>Less than</td></tr>
+                <tr><td><code>&gt;</code></td><td>Greater than</td></tr>
+                <tr><td><code>&lt;=</code></td><td>Less than or equal</td></tr>
+                <tr><td><code>&gt;=</code></td><td>Greater than or equal</td></tr>
+            </table>
+
+            <h3>Bitwise</h3>
+            <table class="doc-table">
+                <tr><th>Operator</th><th>Meaning</th><th>Example</th></tr>
+                <tr><td><code>&amp;</code></td><td>AND</td><td><code>0b1010 &amp; 0b1100 = 0b1000</code></td></tr>
+                <tr><td><code>|</code></td><td>OR</td><td><code>0b1010 | 0b1100 = 0b1110</code></td></tr>
+                <tr><td><code>^</code></td><td>XOR</td><td><code>0b1010 ^ 0b1100 = 0b0110</code></td></tr>
+                <tr><td><code>~</code></td><td>NOT (one's complement)</td><td><code>~42 = -43</code></td></tr>
+                <tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>1 &lt;&lt; 3 = 8</code></td></tr>
+                <tr><td><code>&gt;&gt;</code></td><td>Right shift (arithmetic)</td><td><code>16 &gt;&gt; 2 = 4</code></td></tr>
+            </table>
+
+            <h3>Logical</h3>
+            <table class="doc-table">
+                <tr><th>Operator</th><th>Meaning</th></tr>
+                <tr><td><code>and</code></td><td>Logical AND (short-circuit)</td></tr>
+                <tr><td><code>or</code></td><td>Logical OR (short-circuit)</td></tr>
+                <tr><td><code>not</code></td><td>Logical NOT</td></tr>
+            </table>
+            <p>Nova uses <code>and</code>, <code>or</code>, <code>not</code> keywords rather than C-style <code>&amp;&amp;</code>, <code>||</code>, <code>!</code>.</p>
+
+            <!-- ========== CONTROL FLOW ========== -->
+            <h2 id="control-flow">Control Flow</h2>
+
+            <h3>If / Else</h3>
+            <pre><code><span class="nv-kw">if</span> score &gt;= <span class="nv-num">90</span> {
+    <span class="nv-fn">print</span>(<span class="nv-str">"Grade A"</span>)
+} <span class="nv-kw">else</span> <span class="nv-kw">if</span> score &gt;= <span class="nv-num">80</span> {
+    <span class="nv-fn">print</span>(<span class="nv-str">"Grade B"</span>)
+} <span class="nv-kw">else</span> {
+    <span class="nv-fn">print</span>(<span class="nv-str">"Grade C"</span>)
 }</code></pre>
 
-                <h2 id="doc-intermediate">Functions & Classes</h2>
-                <p>As your programs grow, you'll need to organize your code into reusable blocks.</p>
+            <h3>While Loops</h3>
+            <pre><code>i = <span class="nv-num">0</span>
+<span class="nv-kw">while</span> i &lt; <span class="nv-num">10</span> {
+    <span class="nv-fn">print</span>(i)
+    i = i + <span class="nv-num">1</span>
+}</code></pre>
 
-                <h3>Functions</h3>
-                <p>Use the <code>def</code> keyword to create a reusable block of code. Functions compile down to standard x86 <code>call</code> and <code>ret</code> routines.</p>
-                <pre><code>def add_numbers(a: int, b: int) -> int {
-    return a + b
+            <h3>For Loops</h3>
+            <pre><code><span class="nv-cmt"># Ascending</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">1</span> <span class="nv-kw">to</span> <span class="nv-num">10</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-fn">print</span>(i)
 }
 
-result = add_numbers(10, 5)
-print(result) # Prints 15</code></pre>
+<span class="nv-cmt"># Descending</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">10</span> <span class="nv-kw">downto</span> <span class="nv-num">1</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-fn">print</span>(i)
+}
 
-                <h3>Object-Oriented Classes</h3>
-                <p>Nova supports defining objects with properties and methods. Method calls use "dynamic dispatch" (vtables) natively.</p>
-                <pre><code>class Player {
-    health: int
-    
-    # The __init__ method sets up the object when it's created
-    def __init__(starting_health: int) {
-        self.health = starting_health
-    }
-    
-    def take_damage(amount: int) {
-        self.health = self.health - amount
-    }
+<span class="nv-cmt"># Custom step</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">100</span> <span class="nv-kw">step</span> <span class="nv-num">10</span> {
+    <span class="nv-fn">print</span>(i)
 }</code></pre>
 
-                <h2 id="doc-unique">Unique & Advanced Features</h2>
-                <p>For advanced developers, Nova brings powerful, unique tools not commonly found in high-level languages.</p>
+            <!-- ========== FUNCTIONS ========== -->
+            <h2 id="functions">Functions</h2>
 
-                <h3>1. Unsafe <code>@raw</code> Blocks (Inline Assembly)</h3>
-                <p>Nova allows you to drop directly into inline x86 assembly anywhere in your code. This is uniquely powerful for system-level programming and manual optimization.</p>
-                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example: Fast inverse square root</strong>
-                    <pre style="margin: 0.5rem 0 0 0;"><code>def fast_inv_sqrt(number: float) -> float {
-    @raw {
-        mov eax, dword [ebp+8]  ; Load float bytes
-        shr eax, 1              ; Bitwise shift right
-        mov ecx, 0x5f3759df     ; Magic constant
+            <h3>Definition</h3>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">add</span>(a: <span class="nv-type">int</span>, b: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
+    <span class="nv-kw">return</span> a + b
+}
+
+<span class="nv-cmt"># Type inference on return type</span>
+<span class="nv-kw">def</span> <span class="nv-fn">greet</span>(name: <span class="nv-type">string</span>) {
+    <span class="nv-fn">print</span>(<span class="nv-str">"Hello, "</span> + name)
+}</code></pre>
+
+            <h3>Early Return</h3>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">factorial</span>(n: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
+    <span class="nv-kw">if</span> n &lt;= <span class="nv-num">1</span> {
+        <span class="nv-kw">return</span> <span class="nv-num">1</span>
+    }
+    <span class="nv-kw">return</span> n * <span class="nv-fn">factorial</span>(n - <span class="nv-num">1</span>)
+}</code></pre>
+
+            <h3>Imports</h3>
+            <pre><code><span class="nv-kw">import</span> math_utils
+<span class="nv-kw">import</span> io
+
+result = <span class="nv-fn">math_utils.square</span>(<span class="nv-num">5</span>)
+<span class="nv-fn">io.println</span>(result)</code></pre>
+
+            <!-- ========== CLASSES ========== -->
+            <h2 id="classes">Classes &amp; Objects</h2>
+            <p>Nova supports basic object-oriented programming with classes, fields, and methods. Method calls use vtable dynamic dispatch.</p>
+            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Player</span> {
+    health: <span class="nv-type">int</span>
+    name: <span class="nv-type">string</span>
+
+    <span class="nv-kw">def</span> <span class="nv-fn">__init__</span>(h: <span class="nv-type">int</span>, n: <span class="nv-type">string</span>) {
+        <span class="nv-kw">self</span>.health = h
+        <span class="nv-kw">self</span>.name = n
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">take_damage</span>(amount: <span class="nv-type">int</span>) {
+        <span class="nv-kw">self</span>.health = <span class="nv-kw">self</span>.health - amount
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">is_alive</span>() -&gt; <span class="nv-type">bool</span> {
+        <span class="nv-kw">return</span> <span class="nv-kw">self</span>.health &gt; <span class="nv-num">0</span>
+    }
+}
+
+<span class="nv-cmt"># Usage</span>
+p = <span class="nv-fn">Player</span>(<span class="nv-num">100</span>, <span class="nv-str">"Hero"</span>)
+p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
+<span class="nv-fn">print</span>(p.<span class="nv-fn">is_alive</span>())   <span class="nv-cmt"># true</span></code></pre>
+
+            <!-- ========== STANDARD LIBRARY ========== -->
+            <h2 id="stdlib">Standard Library</h2>
+            <p>Nova ships with a built-in standard library covering file I/O, OS interaction, math, and cryptography. All functions compile to efficient x86 machine code.</p>
+
+            <h3>File I/O</h3>
+            <table class="doc-table">
+                <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
+                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -&gt; int</code></td><td>Open file. Returns file descriptor. Mode: <code>"r"</code>, <code>"w"</code>, <code>"a"</code></td></tr>
+                <tr><td><code>read</code></td><td><code>(fd: int) -&gt; string</code></td><td>Read entire file into a string</td></tr>
+                <tr><td><code>write</code></td><td><code>(fd: int, content: string) -&gt; int</code></td><td>Write string to file</td></tr>
+                <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
+            </table>
+
+            <h3>OS Interface</h3>
+            <table class="doc-table">
+                <tr><th>Function</th><th>Description</th></tr>
+                <tr><td><code>sys_get_args() -&gt; list[string]</code></td><td>Command-line arguments (auto-unquoted)</td></tr>
+                <tr><td><code>sys_system(cmd) -&gt; int</code></td><td>Execute shell command, returns exit code</td></tr>
+                <tr><td><code>sys_exit(code)</code></td><td>Terminate process immediately</td></tr>
+                <tr><td><code>sys_get_tick_count() -&gt; int</code></td><td>System uptime in milliseconds</td></tr>
+                <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns <code>"win32"</code> or <code>"linux"</code></td></tr>
+            </table>
+
+            <h3>Math &amp; Cryptography</h3>
+            <table class="doc-table">
+                <tr><th>Function</th><th>Description</th></tr>
+                <tr><td><code>random() -&gt; int</code></td><td>CSPRNG value via ChaCha20 (auto-seeded)</td></tr>
+                <tr><td><code>square(x) -&gt; int</code></td><td>x * x</td></tr>
+                <tr><td><code>cube(x) -&gt; int</code></td><td>x * x * x</td></tr>
+                <tr><td><code>abs_val(x) -&gt; int</code></td><td>Absolute value</td></tr>
+                <tr><td><code>max_of(a, b) -&gt; int</code></td><td>Maximum of two values</td></tr>
+                <tr><td><code>min_of(a, b) -&gt; int</code></td><td>Minimum of two values</td></tr>
+                <tr><td><code>factorial(n) -&gt; int</code></td><td>n! (recursive)</td></tr>
+                <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 state</td></tr>
+                <tr><td><code>chacha20_block(state)</code></td><td>Generate next 64-byte block</td></tr>
+            </table>
+
+            <h3>Debug</h3>
+            <table class="doc-table">
+                <tr><th>Function</th><th>Description</th></tr>
+                <tr><td><code>printd(value)</code></td><td>Conditional debug print (zero-cost in release builds)</td></tr>
+                <tr><td><code>sys_flush()</code></td><td>Flush stdout buffer</td></tr>
+            </table>
+
+            <p>Usage example:</p>
+            <pre><code><span class="nv-cmt"># Read a file</span>
+fd = <span class="nv-fn">open</span>(<span class="nv-str">"data.txt"</span>, <span class="nv-str">"r"</span>)
+content = <span class="nv-fn">read</span>(fd)
+<span class="nv-fn">close</span>(fd)
+
+<span class="nv-cmt"># Get CLI args</span>
+args = <span class="nv-fn">sys_get_args</span>()
+<span class="nv-fn">print</span>(args[<span class="nv-num">0</span>])
+
+<span class="nv-cmt"># Random number</span>
+salt = <span class="nv-fn">random</span>()</code></pre>
+
+            <!-- ========== GALAXY ========== -->
+            <h2 id="galaxy">Galaxy Package Manager</h2>
+            <p>Galaxy is the official package manager for Nova. It is fully Git-backed — there is no central database. Packages are registered via pull requests to the <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry</a> repository.</p>
+
+            <h3>Installing a Package</h3>
+            <pre><code>nova <span class="nv-kw">galaxy</span> install nova-http
+nova <span class="nv-kw">galaxy</span> install nova-math</code></pre>
+            <p>The package source code is downloaded to a local cache and linked at compile time. After installation, you can import it:</p>
+            <pre><code><span class="nv-kw">import</span> nova_http
+
+response = <span class="nv-fn">nova_http.get</span>(<span class="nv-str">"https://api.example.com"</span>)
+<span class="nv-fn">print</span>(response)</code></pre>
+
+            <h3>Listing Available Packages</h3>
+            <pre><code>nova galaxy list</code></pre>
+            <p>Or browse them on the <a href="index.html?view=view-libraries">Galaxy Registry website</a>.</p>
+
+            <h3>Publishing a Package</h3>
+            <ol>
+                <li>Host your Nova library publicly on GitHub</li>
+                <li>Fork <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">nova-programming/galaxy-registry</a></li>
+                <li>Create a JSON file in <code>packages/</code> (e.g., <code>my-lib.json</code>)</li>
+                <li>Open a Pull Request</li>
+            </ol>
+            <p>Package metadata format:</p>
+            <pre><code>{
+    <span class="nv-str">"package"</span>: <span class="nv-str">"my-lib"</span>,
+    <span class="nv-str">"github_repo"</span>: <span class="nv-str">"yourusername/my-lib"</span>,
+    <span class="nv-str">"version"</span>: <span class="nv-str">"1.0.0"</span>,
+    <span class="nv-str">"author"</span>: <span class="nv-str">"Your Name"</span>,
+    <span class="nv-str">"description"</span>: <span class="nv-str">"Does something awesome."</span>,
+    <span class="nv-str">"tags"</span>: [<span class="nv-str">"utility"</span>, <span class="nv-str">"cli"</span>],
+    <span class="nv-str">"download_url"</span>: <span class="nv-str">"https://github.com/yourusername/my-lib/archive/refs/heads/main.zip"</span>
+}</code></pre>
+            <p>Once merged, your package is instantly available worldwide via <code>nova galaxy install</code>.</p>
+
+            <!-- ========== IMPORTS ========== -->
+            <h2 id="imports">Import System</h2>
+            <p>Nova uses a simple module system. The <code>import</code> keyword loads another <code>.nv</code> file and makes its public functions available.</p>
+            <pre><code><span class="nv-cmt">// file: math_utils.nv</span>
+<span class="nv-kw">def</span> <span class="nv-fn">double</span>(x: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
+    <span class="nv-kw">return</span> x * <span class="nv-num">2</span>
+}
+
+<span class="nv-cmt">// file: main.nv</span>
+<span class="nv-kw">import</span> math_utils
+
+result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</span>)   <span class="nv-cmt">// -> 42</span></code></pre>
+            <p>The import system uses module prefixing — you call imported functions as <code>module_name.function_name()</code>.</p>
+
+            <!-- ========== COMPILER CLI ========== -->
+            <h2 id="compiler-cli">Compiler Command-Line Reference</h2>
+            <p>The <code>nova_main.exe</code> binary is the entire compiler and CLI frontend.</p>
+
+            <table class="doc-table">
+                <tr><th>Command</th><th>Description</th></tr>
+                <tr><td><code>nova_main build &lt;file.nv&gt;</code></td><td>Compile a Nova source file to a Windows PE executable</td></tr>
+                <tr><td><code>nova_main build --debug &lt;file.nv&gt;</code></td><td>Compile with debug output (<code>printd</code> enabled)</td></tr>
+                <tr><td><code>nova_main build --output &lt;name&gt; &lt;file.nv&gt;</code></td><td>Specify output executable name</td></tr>
+                <tr><td><code>nova_main galaxy install &lt;pkg&gt;</code></td><td>Install a package from the Galaxy registry</td></tr>
+                <tr><td><code>nova_main galaxy list</code></td><td>List all available packages</td></tr>
+                <tr><td><code>nova_main</code> (no args)</td><td>Print help and usage information</td></tr>
+            </table>
+
+            <h3>Build Modes</h3>
+            <ul>
+                <li><strong>Release (default)</strong>: Full optimizations (peephole, leaf-to-reg, setcc). Debug prints are zero-cost.</li>
+                <li><strong>Debug (<code>--debug</code>)</strong>: Enables <code>printd</code> statements for tracing. Produces slightly larger binaries.</li>
+            </ul>
+
+            <div class="callout callout-info">
+                <strong>File naming</strong>
+                Nova source files use the <code>.nv</code> extension. The compiler outputs an <code>.exe</code> with the same base name as the input file by default.
+            </div>
+
+            <!-- ========== ADVANCED ========== -->
+            <h2 id="advanced">Advanced Features</h2>
+
+            <h3>1. Inline Assembly (<code>@raw</code> Blocks)</h3>
+            <p>Drop directly into x86 assembly anywhere in your code. This is Nova's escape hatch for low-level optimization and hardware access.</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">fast_inv_sqrt</span>(number: <span class="nv-type">float</span>) -&gt; <span class="nv-type">float</span> {
+    <span class="nv-kw">@raw</span> {
+        mov eax, dword [ebp+8]
+        shr eax, 1
+        mov ecx, 0x5f3759df
         sub ecx, eax
-        mov dword [ebp-4], ecx  ; Store result
+        mov dword [ebp-4], ecx
     }
 }</code></pre>
-                </div>
 
-                <h3>2. Zero-Cost Debug Printing</h3>
-                <p>The <code>printd</code> keyword acts as a native debug assertion. It only compiles to assembly when the <code>--debug</code> flag is passed to the compiler. In production, it costs zero CPU cycles.</p>
-                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example: Logging high-frequency loops</strong>
-                    <pre style="margin: 0.5rem 0 0 0;"><code>for i = 0 to 1000000 step 1 {
-    # In production, this emits ZERO assembly instructions.
-    # In --debug mode, it prints: "debug - [line 42]: 500"
-    printd(i)
+            <h3>2. Zero-Cost Debug Printing (<code>printd</code>)</h3>
+            <p>The <code>printd</code> keyword acts as a native debug assertion. In release builds, it emits zero assembly instructions. In <code>--debug</code> mode, it prints the line and value.</p>
+            <pre><code><span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">1000000</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-cmt"># Zero cost in release builds</span>
+    <span class="nv-fn">printd</span>(i)
 }</code></pre>
-                </div>
 
-                <h3>3. Static Duck Typing (The <code>has</code> Keyword)</h3>
-                <p>Nova features the <code>has</code> keyword to statically verify if a data structure possesses a specific field at compile time.</p>
-                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example: Safe generic serialization</strong>
-                    <pre style="margin: 0.5rem 0 0 0;"><code>def serialize(entity: any) {
-    if entity has score {
-        print("Entity score is:")
-        print(entity.score)
+            <h3>3. Static Duck Typing (<code>has</code> Keyword)</h3>
+            <p>Statically check if a structure has a field at compile time.</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">serialize</span>(entity: <span class="nv-type">any</span>) {
+    <span class="nv-kw">if</span> entity <span class="nv-kw">has</span> score {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Score: "</span> + entity.score)
     }
 }</code></pre>
-                </div>
 
-                <h3>4. Built-in CSPRNG (ChaCha20)</h3>
-                <p>Nova natively embeds a Cryptographically Secure Pseudorandom Number Generator (ChaCha20) into the runtime. You don't need external libraries to generate secure keys or randomness.</p>
-                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example: Generating a secure salt</strong>
-                    <pre style="margin: 0.5rem 0 0 0;"><code># random() is auto-seeded securely at startup via OS tick count
-const secure_salt = random()</code></pre>
-                </div>
+            <h3>4. CSPRNG (ChaCha20)</h3>
+            <p>Nova embeds a cryptographically secure random number generator. Auto-seeded at startup from the OS tick count.</p>
+            <pre><code><span class="nv-cmt"># Generate a secure random value</span>
+salt = <span class="nv-fn">random</span>()
 
-                <h3>5. Pointer Suffix Directives</h3>
-                <p>Unlike C which uses confusing asterisks, Nova uses explicit suffix properties to read and write arbitrary memory sizes from raw pointer addresses.</p>
-                <div style="background: var(--code-bg); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
-                    <strong>Example: Custom memory allocator tracking</strong>
-                    <pre style="margin: 0.5rem 0 0 0;"><code>def write_header(memory_ptr: int, size: int) {
-    # Write a 4-byte dword at the exact memory address
-    memory_ptr.value_dword = size
-    
-    # Write a 1-byte flag directly after it
-    flag_ptr = memory_ptr + 4
-    flag_ptr.value_byte = 1
+<span class="nv-cmt"># Full ChaCha20 control</span>
+state = <span class="nv-fn">chacha20_init</span>(key, nonce)
+block = <span class="nv-fn">chacha20_block</span>(state)</code></pre>
+
+            <h3>5. Pointer Suffix Directives</h3>
+            <p>Read and write arbitrary memory sizes from raw pointer addresses using explicit suffix properties.</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">write_header</span>(ptr: <span class="nv-type">int</span>, size: <span class="nv-type">int</span>) {
+    ptr.<span class="nv-kw">value_dword</span> = size     <span class="nv-cmt"># Write 4 bytes</span>
+    flag = ptr + <span class="nv-num">4</span>
+    flag.<span class="nv-kw">value_byte</span> = <span class="nv-num">1</span>      <span class="nv-cmt"># Write 1 byte</span>
 }</code></pre>
-                </div>
+            <p>Suffix directives: <code>.value_byte</code> (8-bit), <code>.value_word</code> (16-bit), <code>.value_dword</code> (32-bit).</p>
 
-                <h2 id="doc-os">Native OS Integration</h2>
-                <p>Nova talks directly to the host Operating System (Windows/Linux) via built-in standard library wrappers.</p>
-                <ul>
-                    <li><strong><code>sys_get_args()</code></strong>: Extracts CLI arguments (strips quotes automatically).</li>
-                    <li><strong><code>sys_system(cmd)</code></strong>: Executes shell sub-processes.</li>
-                    <li><strong><code>sys_exit(code)</code></strong>: Terminates the process immediately.</li>
-                    <li><strong><code>sys_get_tick_count()</code></strong>: Returns system uptime in milliseconds.</li>
-                    <li><strong>File I/O</strong>: <code>open(path, mode)</code>, <code>read(fd)</code>, <code>write(fd, content)</code>, <code>close(fd)</code>.</li>
-                </ul>
+            <!-- ========== OS INTEGRATION ========== -->
+            <h2 id="os-integration">Native OS Integration</h2>
+            <p>Nova communicates with the host operating system through built-in wrappers. These compile to direct syscall wrappers or C runtime calls.</p>
+            <pre><code><span class="nv-cmt"># Get command-line arguments</span>
+args = <span class="nv-fn">sys_get_args</span>()
+<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> args.length <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-fn">print</span>(args[i])
+}
 
-                <h2 id="doc-architecture">Compiler Architecture</h2>
-                <p>When running <code>nova_main.exe build</code>, the self-hosted compiler executes in a single pipeline without invoking GCC:</p>
-                <ol>
-                    <li><strong><code>lexer.nv</code></strong>: Tokenizes source characters into a stream of structured <code>Token</code> structs.</li>
-                    <li><strong><code>parser.nv</code></strong>: Constructs a syntax tree (AST) via recursive-descent parsing and performs aggressive constant folding.</li>
-                    <li><strong><code>type_checker.nv</code></strong>: Infers and validates static types.</li>
-                    <li><strong><code>codegen.nv</code></strong>: Generates Intel-syntax x86-32 assembly lines. Injects list/array bounds checking and maps variables to <code>esi/edi</code> registers (Variable-to-Register Promotion).</li>
-                    <li><strong><code>assembler.nv</code></strong>: Encodes assembly to native machine code bytes (in-process).</li>
-                    <li><strong><code>linker.nv</code></strong>: Packages machine code into a valid Windows PE binary natively.</li>
-                </ol>
-                <p><strong>Tree-Shaking Dead Code Elimination:</strong> The compiler builds a dependency graph of function calls and dynamically slices out unused standard library routines, which reduces final binary sizes by up to 70%.</p>
+<span class="nv-cmt"># Execute a shell command</span>
+code = <span class="nv-fn">sys_system</span>(<span class="nv-str">"dir"</span>)
 
-</div>
-</div>
-</section>
+<span class="nv-cmt"># Exit with status code</span>
+<span class="nv-fn">sys_exit</span>(<span class="nv-num">0</span>)
+
+<span class="nv-cmt"># Timing</span>
+start = <span class="nv-fn">sys_get_tick_count</span>()
+<span class="nv-cmt"># ... do work ...</span>
+elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
+<span class="nv-fn">print</span>(<span class="nv-str">"Took "</span> + elapsed + <span class="nv-str">" ms"</span>)</code></pre>
+
+            <!-- ========== ARCHITECTURE ========== -->
+            <h2 id="architecture">Compiler Architecture</h2>
+            <p>When you run <code>nova_main build hello.nv</code>, the compiler processes your source through a single in-process pipeline:</p>
+            <ol>
+                <li><strong>Lexer</strong> — tokenizes source into structured <code>Token</code> objects</li>
+                <li><strong>Parser</strong> — recursive-descent parser that builds an AST with constant folding</li>
+                <li><strong>Type Checker</strong> — static type inference and validation</li>
+                <li><strong>Code Generator</strong> — emits Intel-syntax x86-32 assembly with bounds-checking and variable-to-register promotion</li>
+                <li><strong>Tree Shaker</strong> — builds a call-graph dependency map and removes unused stdlib functions (up to 70% binary size reduction)</li>
+                <li><strong>Assembler</strong> — encodes assembly mnemonics to native x86 machine code in-process</li>
+                <li><strong>Linker</strong> — packages machine code into a valid Windows PE binary</li>
+            </ol>
+            <p>The entire pipeline runs in a single process. No external tools are invoked.</p>
+
+            <h3>Self-Hosting</h3>
+            <p>The Nova compiler is self-hosted — the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself.</p>
+
+            <!-- ========== PERFORMANCE ========== -->
+            <h2 id="performance">Performance Tips</h2>
+            <p>Nova is already fast out of the box, but here are ways to get the most out of it:</p>
+            <ul>
+                <li><strong>Prefer local variables</strong> — Nova maps locals to CPU registers (esi/edi). The fewer memory accesses, the faster your code.</li>
+                <li><strong>Use <code>for</code> loops</strong> — they compile to tight <code>cmp/jl</code> sequences. Avoid unnecessary function calls inside hot loops.</li>
+                <li><strong>Avoid recursion for deep iterations</strong> — Nova's function calls have standard call/ret overhead. Use iterative loops for performance-critical paths.</li>
+                <li><strong>Use <code>@raw</code> blocks for hot paths</strong> — if you know the exact assembly sequence, inline it directly to skip the compiler's generic codegen.</li>
+                <li><strong>Release builds only</strong> — never ship a debug binary (<code>--debug</code> enables <code>printd</code> which adds overhead).</li>
+            </ul>
+
+            <div class="callout callout-tip">
+                <strong>Benchmarking note</strong>
+                In heavy computation benchmarks, Nova runs 14x faster than Python and within 2x of GCC <code>-O3</code>. Integer-heavy loops are the strongest use case.
+            </div>
+
+        </div>
+    </div>
 
     <script>
-        // Scrollspy for documentation sidebar
         window.addEventListener('DOMContentLoaded', () => {
             const sections = document.querySelectorAll('.doc-content h2, .doc-content h3');
             const navLinks = document.querySelectorAll('.doc-sidebar a');
-            
+
             window.addEventListener('scroll', () => {
                 let current = '';
                 sections.forEach(section => {
-                    const sectionTop = section.offsetTop;
-                    // Adjust for sticky header
-                    if (scrollY >= (sectionTop - 150)) {
+                    const top = section.offsetTop;
+                    if (scrollY >= (top - 140)) {
                         current = section.getAttribute('id');
                     }
                 });
-
                 navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === '#' + current) {
-                        link.classList.add('active');
-                    }
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
                 });
             });
         });

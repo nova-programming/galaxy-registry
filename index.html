@@ -3,606 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy Registry</title>
-    <!-- Fonts -->
+    <title>Galaxy Registry — Nova Package Manager</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Markdown Parsers -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-primary: #171717;
-            --text-secondary: #666666;
-            --border-color: #eaeaea;
-            --accent-color: #0070f3; /* Vercel Blue */
-            --accent-hover: #0051a8;
-            --code-bg: #f5f5f5;
-            --header-bg: rgba(255, 255, 255, 0.8);
+            --bg: #ffffff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #888;
+            --border: #e8e8ea; --accent: #0070f3;
+            --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
+            --code-bg: #0a0a0f; --nav-bg: rgba(255,255,255,0.85);
+            --sidebar-bg: #f7f7f8; --header-bg: rgba(255,255,255,0.8);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+            min-height: 100vh; display: flex; flex-direction: column;
         }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Navigation */
         nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background-color: var(--header-bg);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-            height: 64px;
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
         }
-
         .nav-brand {
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: -0.02em;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 700; font-size: 1.2rem; letter-spacing: -0.03em;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none; color: inherit;
         }
-
-        .nav-brand svg {
-            width: 24px;
-            height: 24px;
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.875rem; font-weight: 500; transition: color .2s;
         }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .container { max-width: 1000px; margin: 0 auto; padding: 4rem 2rem; flex: 1; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn .35s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            color: var(--text-primary);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-
-        /* Views */
-        .view-section {
-            display: none;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .view-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Hero (Home) */
-        .hero {
-            text-align: center;
-            padding: 4rem 0 6rem 0;
-        }
-
+        /* -- Hero -- */
+        .hero { text-align: center; padding: 3rem 0 5rem 0; }
         .hero h1 {
-            font-size: 4rem;
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
+            font-size: 3.75rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1.1;
+            margin-bottom: 1.25rem;
         }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 3rem auto;
-        }
-
+        .hero h1 .accent { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); max-width: 560px; margin: 0 auto 2.5rem auto; }
         .hero-terminal {
-            background-color: #000;
-            color: #fff;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            display: inline-flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 0.875rem;
-            box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1);
+            display: inline-flex; align-items: center; gap: 1rem;
+            background: var(--code-bg); color: #e4e4e7;
+            padding: 0.85rem 1.5rem; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
         }
-        
         .hero-terminal .copy-btn {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            display: flex;
+            background: none; border: none; color: #666; cursor: pointer;
+            display: flex; transition: color .2s;
         }
-        
-        .hero-terminal .copy-btn:hover {
-            color: #fff;
-        }
+        .hero-terminal .copy-btn:hover { color: #fff; }
 
-        /* Typography / Markdown */
-        .prose h1, .prose h2, .prose h3 {
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            overflow-wrap: break-word;
-        }
-        
+        /* -- Typography -- */
+        .prose h1, .prose h2, .prose h3 { font-weight: 600; letter-spacing: -0.02em; margin-top: 2rem; margin-bottom: 1rem; overflow-wrap: break-word; }
         .prose h1 { font-size: 2.25rem; }
-        .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .prose p, .prose li { 
-            margin-bottom: 1rem; 
-            color: #333; 
-            overflow-wrap: break-word; 
-        }
-        
+        .prose h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .prose p, .prose li { margin-bottom: 1rem; color: var(--text-secondary); overflow-wrap: break-word; }
         .prose code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875em;
-            background-color: var(--code-bg);
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-            word-break: break-all;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.875em;
+            background: #f0f0f2; padding: 0.2em 0.4em; border-radius: 4px; word-break: break-all;
         }
-        
         .prose pre {
-            background-color: #000;
-            color: #fff;
-            padding: 1.25rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            max-width: 100%;
+            background: var(--code-bg); color: #e4e4e7;
+            padding: 1.25rem; border-radius: 8px; overflow-x: auto;
+            margin: 1.5rem 0; max-width: 100%;
         }
-        
-        .prose pre code {
-            background-color: transparent;
-            padding: 0;
-            color: inherit;
-            word-break: normal;
-        }
-        
-        .prose a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-        .prose a:hover {
-            text-decoration: underline;
-        }
+        .prose pre code { background: transparent; padding: 0; color: inherit; word-break: normal; }
+        .prose a { color: var(--accent); text-decoration: none; }
+        .prose a:hover { text-decoration: underline; }
 
-        /* Search Bar */
-        .search-container {
-            position: relative;
-            margin-bottom: 2rem;
-        }
-
+        /* -- Search -- */
+        .search-container { position: relative; margin-bottom: 2rem; }
         .search-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            font-size: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%; padding: 1rem 1rem 1rem 3rem; font-size: 1rem;
+            border: 1px solid var(--border); border-radius: 8px; outline: none;
+            transition: border-color .2s, box-shadow .2s;
         }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,112,243,0.1); }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
 
-        .search-input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-        }
-
-        /* Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
+        /* -- Grid -- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
         .card {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
+            border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;
+            cursor: pointer; transition: border-color .2s, box-shadow .2s;
+            display: flex; flex-direction: column;
         }
-
-        .card:hover {
-            border-color: #ccc;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .card p {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-        
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-        
+        .card:hover { border-color: #bbb; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        .card h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .card p { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem; flex-grow: 1; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-tertiary); }
         .badge {
-            background-color: var(--code-bg);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 500;
-            border: 1px solid var(--border-color);
+            background: #f0f0f2; padding: 0.15rem 0.5rem; border-radius: 4px;
+            font-weight: 500; border: 1px solid var(--border); font-size: 0.75rem;
         }
 
-        /* Package Details View */
+        /* -- Package Detail -- */
         .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 2rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: none; border: none; color: var(--text-secondary);
+            font-size: 0.875rem; font-weight: 500; cursor: pointer; margin-bottom: 2rem;
         }
-        
-        .back-btn:hover {
-            color: var(--text-primary);
-        }
-
-        .details-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 4rem;
-            align-items: start;
-        }
-        
-        .main-column {
-            min-width: 0; /* Prevents grid blowout on long text */
-        }
-
+        .back-btn:hover { color: var(--text); }
+        .details-layout { display: grid; grid-template-columns: 1fr 280px; gap: 4rem; align-items: start; }
+        .main-column { min-width: 0; }
         @media (max-width: 768px) {
-            .details-layout {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
+            .details-layout { grid-template-columns: 1fr; gap: 2rem; }
         }
-
-        .sidebar {
-            border-left: 1px solid var(--border-color);
-            padding-left: 2rem;
-        }
-
+        .sidebar { border-left: 1px solid var(--border); padding-left: 2rem; }
         @media (max-width: 768px) {
-            .sidebar {
-                border-left: none;
-                padding-left: 0;
-                border-top: 1px solid var(--border-color);
-                padding-top: 2rem;
-            }
+            .sidebar { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 2rem; }
         }
-
         .sidebar h4 {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
+            color: var(--text-tertiary); margin-bottom: 1rem;
         }
-        
-        .sidebar-section {
-            margin-bottom: 2.5rem;
-        }
-
+        .sidebar-section { margin-bottom: 2rem; }
         .install-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: border-color 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid var(--border); border-radius: 6px;
+            padding: 0.7rem 1rem; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; cursor: pointer; transition: border-color .2s;
         }
-
-        .install-box:hover {
-            border-color: #ccc;
-        }
-        
-        .install-box .prefix { color: var(--text-secondary); margin-right: 0.5rem; }
-
-        .meta-list {
-            list-style: none;
-        }
-        
-        .meta-list li {
-            margin-bottom: 0.75rem;
-            font-size: 0.875rem;
-        }
-        
-        .meta-list a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
+        .install-box:hover { border-color: #bbb; }
+        .install-box .prefix { color: var(--text-tertiary); margin-right: 0.5rem; }
+        .meta-list { list-style: none; }
+        .meta-list li { margin-bottom: 0.75rem; font-size: 0.875rem; }
+        .meta-list a { color: var(--accent); text-decoration: none; }
         .meta-list a:hover { text-decoration: underline; }
-        
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .doc-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            min-height: calc(100vh - 64px);
-        }
-        
-        @media (max-width: 768px) {
-            .doc-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .doc-sidebar {
-            position: sticky;
-            top: 64px;
-            align-self: start;
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 1.5rem;
-            height: calc(100vh - 64px);
-            overflow-y: auto;
-            background-color: #fafafa;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-        
-        .doc-sidebar ul {
-            list-style: none;
-        }
-        
-        .doc-sidebar li {
-            margin-bottom: 0.75rem;
-        }
-        
-        .doc-sidebar a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-        
-        .doc-sidebar a:hover, .doc-sidebar a.active {
-            color: var(--accent-color);
-            font-weight: 500;
-        }
-        
-        .doc-content {
-            padding: 3rem 4rem;
-            max-width: 1000px;
-            min-width: 0; /* Prevents grid blowout on long text/code */
-        }
-        
-        @media (max-width: 768px) {
-            .doc-content {
-                padding: 2rem 1.5rem;
-            }
-            .doc-sidebar {
-                position: relative;
-                top: 0;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding: 1.5rem;
-            }
-        }
-
-        /* Buttons */
+        .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .loading { text-align: center; color: var(--text-tertiary); padding: 4rem 0; }
+        .error-text { color: #dc2626; }
         .btn-primary {
-            background-color: var(--text-primary);
-            color: #fff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-decoration: none;
-            display: inline-block;
+            background: var(--text); color: #fff; padding: 0.7rem 1.5rem;
+            border-radius: 6px; border: none; font-weight: 500; font-size: 0.875rem;
+            cursor: pointer; transition: background .2s; text-decoration: none; display: inline-block;
         }
-        
-        .btn-primary:hover {
-            background-color: #333;
-        }
-
+        .btn-primary:hover { background: #222; }
         .btn-secondary {
-            background-color: #fff;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
+            background: #fff; color: var(--text); border: 1px solid var(--border);
+            padding: 0.7rem 1.5rem; border-radius: 6px; font-weight: 500;
+            font-size: 0.875rem; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block;
         }
-        
-        .btn-secondary:hover {
-            border-color: #999;
+        .btn-secondary:hover { border-color: #999; }
+        .btn-group { display: flex; gap: 1rem; justify-content: center; }
+
+        /* -- Footer -- */
+        footer {
+            border-top: 1px solid var(--border); padding: 2rem 2rem;
+            background: var(--sidebar-bg); margin-top: auto;
         }
-        
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
+        .footer-inner {
+            max-width: 1000px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; color: var(--text-tertiary);
         }
-        
-        .loading {
-            text-align: center;
-            color: var(--text-secondary);
-            padding: 4rem 0;
+        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links a { color: var(--text-tertiary); text-decoration: none; }
+        .footer-links a:hover { color: var(--text); }
+        @media (max-width: 600px) {
+            .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+            .hero h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
-
-    <!-- Navigation -->
     <nav>
-        <div class="nav-brand" onclick="switchNav('view-home')">
+        <a class="nav-brand" href="#" onclick="switchNav('view-home');return false;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                 <polyline points="2 17 12 22 22 17"></polyline>
                 <polyline points="2 12 12 17 22 12"></polyline>
             </svg>
             Galaxy
-        </div>
+        </a>
         <div class="nav-links">
-            <a class="nav-link active" onclick="switchNav('view-home')">Home</a>
-            <a class="nav-link" onclick="switchNav('view-libraries')">Libraries</a>
+            <a class="nav-link active" href="#" onclick="switchNav('view-home');return false;">Home</a>
+            <a class="nav-link" href="#" onclick="switchNav('view-libraries');return false;">Libraries</a>
             <a class="nav-link" href="documentation.html">Documentation</a>
-            <a class="nav-link" onclick="switchNav('view-contribute')">Contribute</a>
-            <a class="nav-link" onclick="switchNav('view-contact')">Contact</a>
+            <a class="nav-link" href="#" onclick="switchNav('view-contribute');return false;">Contribute</a>
+            <a class="nav-link" href="#" onclick="switchNav('view-contact');return false;">Contact</a>
         </div>
     </nav>
 
     <div class="container">
-        
-        <!-- HOME VIEW -->
+        <!-- HOME -->
         <section id="view-home" class="view-section active">
             <div class="hero">
-                <h1>The native package manager for Nova.</h1>
+                <h1>The native package manager<br>for <span class="accent">Nova</span>.</h1>
                 <p>Fast, minimal, and fully Git-backed. Discover and publish libraries instantly without ever leaving the terminal.</p>
-                
                 <div class="hero-terminal">
                     <span>$ nova galaxy install nova-http</span>
                     <button class="copy-btn" onclick="copyText('nova galaxy install nova-http', this)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
                 </div>
-                
-                <div class="btn-group" style="margin-top: 3rem;">
+                <div class="btn-group" style="margin-top: 2.5rem;">
                     <button class="btn-primary" onclick="switchNav('view-libraries')">Explore Libraries</button>
-                    <button class="btn-secondary" onclick="window.location.href='documentation.html'">Read the Docs</button>
+                    <a class="btn-secondary" href="documentation.html">Read the Docs</a>
                 </div>
             </div>
         </section>
 
-        <!-- LIBRARIES VIEW (Registry Index) -->
+        <!-- LIBRARIES -->
         <section id="view-libraries" class="view-section">
             <div class="prose" style="margin-bottom: 2rem;">
                 <h1>Libraries</h1>
-                <p>Browse packages created by the Nova community.</p>
+                <p>Browse packages created by the Nova community. Each package is open-source and hosted on GitHub.</p>
             </div>
-            
             <div class="search-container">
                 <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="pkg-search" class="search-input" placeholder="Search for packages..." onkeyup="filterPackages()">
+                <input type="text" id="pkg-search" class="search-input" placeholder="Search packages..." onkeyup="filterPackages()">
             </div>
-            
             <div id="package-grid" class="grid">
                 <div class="loading">Loading packages...</div>
             </div>
         </section>
-        
-        <!-- PACKAGE DETAILS VIEW -->
+
+        <!-- PACKAGE DETAILS -->
         <section id="view-package-details" class="view-section">
             <button class="back-btn" onclick="switchNav('view-libraries')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 Back to Libraries
             </button>
-            
             <div id="pkg-detail-loader" class="loading">Loading documentation...</div>
-            
             <div id="pkg-detail-content" class="details-layout" style="display:none;">
                 <div class="main-column prose">
-                    <!-- Title gets injected if fallback needed -->
                     <div id="detail-readme"></div>
                 </div>
-                
                 <div class="sidebar">
                     <div class="sidebar-section">
                         <h4>Install</h4>
                         <div class="install-box" onclick="copyText(document.getElementById('detail-install').innerText, this)">
-                            <div style="overflow:hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                 <span class="prefix">$</span><span id="detail-install"></span>
                             </div>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </div>
                     </div>
-                    
                     <div class="sidebar-section">
                         <h4>Information</h4>
                         <ul class="meta-list">
                             <li><strong>Version:</strong> <span id="detail-version"></span></li>
                             <li><strong>Author:</strong> <span id="detail-author"></span></li>
                             <li><strong>License:</strong> MIT</li>
-                            <li><a href="#" id="detail-repo" target="_blank">GitHub Repository ↗</a></li>
+                            <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
                         </ul>
                     </div>
-                    
                     <div class="sidebar-section">
                         <h4>Tags</h4>
                         <div class="tag-list" id="detail-tags"></div>
@@ -611,12 +274,11 @@
             </div>
         </section>
 
-        <!-- CONTRIBUTE VIEW -->
+        <!-- CONTRIBUTE -->
         <section id="view-contribute" class="view-section">
             <div class="prose">
                 <h1>Contribute</h1>
                 <p>Galaxy is a fully static, Git-backed registry. There is no central database or authentication. To publish your package, you simply open a Pull Request to our GitHub repository.</p>
-                
                 <h2>How to Publish a Package</h2>
                 <ol>
                     <li>Host your Nova library publicly on GitHub.</li>
@@ -624,9 +286,7 @@
                     <li>Fork the <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">nova-programming/galaxy-registry</a> repository.</li>
                     <li>Create a new JSON file in the <code>packages/</code> folder named after your package (e.g. <code>my-package.json</code>).</li>
                 </ol>
-                
                 <h2>JSON Schema</h2>
-                <p>Your JSON file must follow this structure:</p>
                 <pre><code>{
   "package": "my-package",
   "github_repo": "yourusername/my-package",
@@ -636,176 +296,128 @@
   "tags": ["cli", "utility"],
   "download_url": "https://github.com/yourusername/my-package/archive/refs/heads/main.zip"
 }</code></pre>
-                
                 <p>Submit your Pull Request, and upon approval, your package will instantly be available globally via <code>nova galaxy install</code>.</p>
             </div>
         </section>
 
-        <!-- CONTACT VIEW -->
+        <!-- CONTACT -->
         <section id="view-contact" class="view-section">
             <div class="prose">
-                <h1>Contact & Community</h1>
+                <h1>Contact &amp; Community</h1>
                 <p>Nova is an open-source systems programming language. We'd love for you to get involved.</p>
-                
-                <ul class="meta-list" style="margin-top: 2rem;">
-                    <li><strong>GitHub Organization:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming ↗</a></li>
-                    <li><strong>Report Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker ↗</a></li>
+                <ul class="meta-list" style="margin-top:2rem;">
+                    <li><strong>GitHub Organization:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming &nearr;</a></li>
+                    <li><strong>Report Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker &nearr;</a></li>
+                    <li><strong>Registry Repository:</strong> <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry &nearr;</a></li>
                     <li><strong>Discord:</strong> Coming Soon</li>
                 </ul>
             </div>
         </section>
-
     </div>
 
-    <!-- Application Logic -->
+    <footer>
+        <div class="footer-inner">
+            <span>&copy; 2026 Nova Programming Language</span>
+            <div class="footer-links">
+                <a href="https://github.com/nova-programming" target="_blank">GitHub</a>
+                <a href="documentation.html">Docs</a>
+                <a href="index.html?view=view-libraries">Libraries</a>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Icons
         const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 
-        // Router
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const view = params.get('view');
-            if(view) {
-                switchNav(view);
-                // Clean up URL without refreshing
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            if (view) { switchNav(view); window.history.replaceState({}, document.title, window.location.pathname); }
         });
-        
+
         function switchNav(viewId) {
-            // Update Active Nav Link
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-            if(event && event.target.classList.contains('nav-link')) {
+            if (event && event.target.classList.contains('nav-link')) {
                 event.target.classList.add('active');
             } else {
-                // Fallback for button clicks routing to another tab
-                const mapping = {
-                    'view-home': 0,
-                    'view-libraries': 1,
-                    'view-docs': 2,
-                    'view-contribute': 3,
-                    'view-contact': 4,
-                    'view-package-details': 1 // Highlight libraries when in details
-                };
-                if(mapping[viewId] !== undefined) {
-                    document.querySelectorAll('.nav-link')[mapping[viewId]].classList.add('active');
-                }
+                const mapping = { 'view-home': 0, 'view-libraries': 1, 'view-contribute': 3, 'view-contact': 4, 'view-package-details': 1 };
+                const idx = mapping[viewId];
+                if (idx !== undefined) document.querySelectorAll('.nav-link')[idx].classList.add('active');
             }
-
-            // Hide all sections, show target
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+            const el = document.getElementById(viewId);
+            if (el) el.classList.add('active');
             window.scrollTo(0, 0);
         }
 
-        // Copy Utility
-        function copyText(text, btnElement) {
+        function copyText(text, btn) {
             navigator.clipboard.writeText(text);
-            const originalHTML = btnElement.innerHTML;
-            
-            // Attempt to replace just the SVG if it's the box, or the whole content
-            if (btnElement.querySelector('svg')) {
-                const svg = btnElement.querySelector('svg');
-                svg.outerHTML = checkIcon;
-                setTimeout(() => {
-                    btnElement.innerHTML = originalHTML;
-                }, 2000);
-            }
-            
-            if(event) event.stopPropagation();
+            const svg = btn.querySelector('svg');
+            if (svg) { svg.outerHTML = checkIcon; setTimeout(() => { svg.outerHTML = copyIcon; }, 2000); }
         }
 
-        // Search Filter
         function filterPackages() {
-            const search = document.getElementById('pkg-search').value.toLowerCase();
-            const cards = document.querySelectorAll('.pkg-card');
-            cards.forEach(card => {
+            const q = document.getElementById('pkg-search').value.toLowerCase();
+            document.querySelectorAll('.pkg-card').forEach(card => {
                 const title = card.querySelector('h3').innerText.toLowerCase();
                 const desc = card.querySelector('p').innerText.toLowerCase();
-                if (title.includes(search) || desc.includes(search)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+                card.style.display = (title.includes(q) || desc.includes(q)) ? 'flex' : 'none';
             });
         }
 
-        // Package Detail Loader
-        function showPackageDetails(pkgName) {
+        function showPackageDetails(name) {
             switchNav('view-package-details');
             document.getElementById('pkg-detail-content').style.display = 'none';
             document.getElementById('pkg-detail-loader').style.display = 'block';
-            
-            fetch(`/packages/${pkgName}.json`)
-                .then(res => res.json())
+            document.getElementById('pkg-detail-loader').innerText = 'Loading documentation...';
+
+            fetch(`/packages/${name}.json`)
+                .then(r => r.json())
                 .then(data => {
                     document.getElementById('pkg-detail-loader').style.display = 'none';
-                    document.getElementById('pkg-detail-content').style.display = 'grid'; // Grid layout
-                    
+                    document.getElementById('pkg-detail-content').style.display = 'grid';
                     document.getElementById('detail-install').innerText = `nova galaxy install ${data.package}`;
                     document.getElementById('detail-version').innerText = data.version;
                     document.getElementById('detail-author').innerText = data.author;
                     document.getElementById('detail-repo').href = `https://github.com/${data.github_repo}`;
-                    
-                    // Render tags
-                    const tagContainer = document.getElementById('detail-tags');
-                    tagContainer.innerHTML = '';
-                    data.tags.forEach(tag => {
-                        tagContainer.innerHTML += `<span class="badge">${tag}</span>`;
-                    });
-                    
-                    // Fetch live Markdown
+                    const tc = document.getElementById('detail-tags');
+                    tc.innerHTML = '';
+                    (data.tags || []).forEach(t => { tc.innerHTML += `<span class="badge">${t}</span>`; });
                     fetch(`https://raw.githubusercontent.com/${data.github_repo}/main/README.md`)
-                        .then(readmeRes => {
-                            if (!readmeRes.ok) throw new Error("No README");
-                            return readmeRes.text();
-                        })
-                        .then(markdownText => {
-                            const rawHtml = marked.parse(markdownText);
-                            document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(rawHtml);
-                        })
+                        .then(r => { if (!r.ok) throw Error(); return r.text(); })
+                        .then(md => { document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(md)); })
                         .catch(() => {
-                            // Fallback mockup
-                            const fallbackMarkdown = `
-# ${data.package}
-${data.description}
-
-## Installation
-\`\`\`bash
-nova galaxy install ${data.package}
-\`\`\`
-
-> **Note**: This is a mock readme generated by the registry because the GitHub repository does not have a README.md yet.
-                            `;
-                            document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(fallbackMarkdown));
+                            document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(
+                                `# ${data.package}\n${data.description}\n\n## Installation\n\`\`\`bash\nnova galaxy install ${data.package}\n\`\`\`\n\n*This package description is auto-generated. The GitHub repository does not have a README.md yet.*`
+                            ));
                         });
                 })
                 .catch(e => {
-                    document.getElementById('pkg-detail-loader').innerText = "Failed to load package details.";
+                    document.getElementById('pkg-detail-loader').innerHTML = '<span class="error-text">Failed to load package details. The package may not exist.</span>';
                 });
         }
 
-        // Bootstrapping: Load Package Grid
         fetch('/packages/index.json')
-            .then(res => res.json())
+            .then(r => r.json())
             .then(data => {
                 const grid = document.getElementById('package-grid');
                 grid.innerHTML = '';
-                data.packages.forEach(pkg => {
+                (data.packages || []).forEach(pkg => {
                     grid.innerHTML += `
                         <div class="card pkg-card" onclick="showPackageDetails('${pkg.name}')">
                             <h3>${pkg.name}</h3>
                             <p>${pkg.description}</p>
                             <div class="card-footer">
+                                <span>${(pkg.tags || []).slice(0,3).map(t => `<span class="badge">${t}</span>`).join(' ')}</span>
                                 <span class="badge">v${pkg.version}</span>
                             </div>
                         </div>
                     `;
                 });
-            }).catch(e => {
-                document.getElementById('package-grid').innerHTML = '<div class="loading" style="color:red">Failed to connect to Registry.</div>';
+            })
+            .catch(e => {
+                document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to the registry. Is the server running?</div>';
             });
     </script>
 </body>
