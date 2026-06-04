@@ -198,8 +198,8 @@
             <a href="index.html">Home</a>
             <a href="index.html?view=view-libraries">Libraries</a>
             <a href="#" class="active">Documentation</a>
+            <a href="templates.html">Templates</a>
             <a href="index.html?view=view-contribute">Contribute</a>
-            <a href="index.html?view=view-contact">Contact</a>
         </div>
     </nav>
 
@@ -216,9 +216,14 @@
                 <li><a href="#control-flow">Control Flow</a></li>
                 <li><a href="#functions">Functions</a></li>
                 <li><a href="#classes">Classes &amp; Objects</a></li>
-                <li class="section-gap"><a href="#stdlib">Standard Library</a></li>
-                <li><a href="#galaxy">Galaxy Package Manager</a></li>
-                <li><a href="#imports">Import System</a></li>
+                <li><a href="#stdlib">Standard Library</a></li>
+                <li class="section-gap"><a href="#imports">Import System</a></li>
+                <li class="section-gap"><a href="#galaxy">Galaxy Package Manager</a></li>
+                <li><a href="#galaxy-install">&#8627; Install</a></li>
+                <li><a href="#galaxy-commands">&#8627; CLI Commands</a></li>
+                <li><a href="templates.html">&#8627; Templates &nearr;</a></li>
+                <li><a href="#galaxy-manifest">&#8627; galaxy.json</a></li>
+                <li><a href="#galaxy-publish">&#8627; Publishing</a></li>
                 <li class="section-gap"><a href="#compiler-cli">Compiler CLI</a></li>
                 <li><a href="#advanced">Advanced Features</a></li>
                 <li><a href="#os-integration">OS Integration</a></li>
@@ -521,39 +526,174 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <!-- ========== GALAXY ========== -->
             <h2 id="galaxy">Galaxy Package Manager</h2>
-            <p>Galaxy is the official package manager for Nova. It is fully Git-backed — there is no central database. Packages are registered via pull requests to the <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry</a> repository.</p>
+            <p>Galaxy is the official package manager for Nova. It is a fully static, Git-backed registry — no database, no backend server. The CLI is a single-file Python script (<code>_galaxy.py</code>) that you install once.</p>
 
-            <h3>Installing a Package</h3>
-            <pre><code>nova <span class="nv-kw">galaxy</span> install nova-http
-nova <span class="nv-kw">galaxy</span> install nova-math</code></pre>
-            <p>The package source code is downloaded to a local cache and linked at compile time. After installation, you can import it:</p>
-            <pre><code><span class="nv-kw">import</span> nova_http
+            <div class="callout callout-tip">
+                <strong>Try it now</strong>
+                Install galaxy and be up and running in under 30 seconds.
+            </div>
 
-response = <span class="nv-fn">nova_http.get</span>(<span class="nv-str">"https://api.example.com"</span>)
-<span class="nv-fn">print</span>(response)</code></pre>
+            <!-- ===== INSTALL ===== -->
+            <h3 id="galaxy-install">Installing Galaxy CLI</h3>
+            <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command — no <code>python -m</code> prefix needed after installation.</p>
 
-            <h3>Listing Available Packages</h3>
-            <pre><code>nova galaxy list</code></pre>
-            <p>Or browse them on the <a href="index.html?view=view-libraries">Galaxy Registry website</a>.</p>
+            <h4>Method 1: Installer (Recommended)</h4>
+            <pre><code><span class="nv-cmt"># Clone the Nova repository</span>
+git clone https://github.com/nova-programming/Nova.git
+cd Nova
 
-            <h3>Publishing a Package</h3>
-            <ol>
-                <li>Host your Nova library publicly on GitHub</li>
-                <li>Fork <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">nova-programming/galaxy-registry</a></li>
-                <li>Create a JSON file in <code>packages/</code> (e.g., <code>my-lib.json</code>)</li>
-                <li>Open a Pull Request</li>
-            </ol>
-            <p>Package metadata format:</p>
+<span class="nv-cmt"># Run the installer</span>
+python install.py</code></pre>
+            <p>The installer does three things:</p>
+            <ul>
+                <li>Copies <code>_galaxy.py</code> to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix)</li>
+                <li>Creates a <code>galaxy.bat</code> (Windows) or <code>galaxy</code> (Unix) launcher</li>
+                <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
+            </ul>
+            <p>Restart your terminal, then:</p>
+            <pre><code><span class="nv-cmt"># Verify installation</span>
+galaxy --help</code></pre>
+
+            <h4>Method 2: pip install (if you have pip)</h4>
+            <pre><code>pip install galaxy-nova</code></pre>
+
+            <h4>Method 3: Direct (no install)</h4>
+            <pre><code>python _galaxy.py --help
+<span class="nv-cmt"># or</span>
+python -m galaxy --help</code></pre>
+
+            <h4>Uninstalling</h4>
+            <pre><code>python install.py --uninstall</code></pre>
+
+            <!-- ===== COMMANDS ===== -->
+            <h3 id="galaxy-commands">CLI Commands</h3>
+
+            <table class="doc-table">
+                <tr><th>Command</th><th>Description</th></tr>
+                <tr><td><code>galaxy init [template] [name]</code></td><td>Scaffold a new package from a template</td></tr>
+                <tr><td><code>galaxy install &lt;pkg&gt;</code></td><td>Install a package from the registry or GitHub</td></tr>
+                <tr><td><code>galaxy list</code></td><td>List locally installed packages</td></tr>
+                <tr><td><code>galaxy search &lt;query&gt;</code></td><td>Search the registry by name, keyword, or author</td></tr>
+                <tr><td><code>galaxy info &lt;pkg&gt;</code></td><td>Show detailed package information</td></tr>
+                <tr><td><code>galaxy publish</code></td><td>Submit your package to the registry</td></tr>
+                <tr><td><code>galaxy update [pkg]</code></td><td>Check for and apply version updates</td></tr>
+                <tr><td><code>galaxy remove &lt;pkg&gt;</code></td><td>Uninstall a package</td></tr>
+            </table>
+
+            <h4>galaxy install</h4>
+            <p>Install from the registry by name:</p>
+            <pre><code><span class="nv-cmt"># Install from registry</span>
+galaxy install nova-math
+galaxy install nova-http</code></pre>
+            <p>Install directly from GitHub (owner/repo shorthand):</p>
+            <pre><code><span class="nv-cmt"># Install from GitHub (no registry entry needed)</span>
+galaxy install owner/repo</code></pre>
+            <p>Packages are downloaded to <code>galaxy_modules/</code> in the current directory. After installation, import them in Nova code:</p>
+            <pre><code><span class="nv-kw">import</span> nova_math
+
+result = <span class="nv-fn">nova_math.square</span>(<span class="nv-num">5</span>)
+<span class="nv-fn">print</span>(result)</code></pre>
+
+            <h4>galaxy search</h4>
+            <pre><code><span class="nv-cmt"># Search by keyword</span>
+galaxy search http
+
+<span class="nv-cmt"># Search by author</span>
+galaxy search nova-team
+
+<span class="nv-cmt"># Results show: name, tier, version, description, upvotes</span></code></pre>
+
+            <h4>galaxy info</h4>
+            <pre><code>galaxy info nova-http</code></pre>
+            <p>Displays full metadata: description, version, author, license, keywords, tier, upvotes, flags, version history with SHA-256 hashes, and links to the GitHub repository and issue tracker.</p>
+
+            <h4>galaxy update</h4>
+            <pre><code><span class="nv-cmt"># Update all installed packages</span>
+galaxy update
+
+<span class="nv-cmt"># Update a specific package</span>
+galaxy update nova-math</code></pre>
+            <p>Compares installed version against the registry's newest version. Prompts before reinstalling.</p>
+
+            <h4>galaxy remove</h4>
+            <pre><code>galaxy remove nova-math</code></pre>
+            <p>Deletes the package from <code>galaxy_modules/</code> and removes it from the local manifest.</p>
+
+            <!-- ===== TEMPLATES ===== -->
+            <h3 id="galaxy-templates">Templates (galaxy init)</h3>
+            <p>The <code>galaxy init</code> command scaffolds a complete project structure from one of three templates. A quick summary:</p>
+            <table class="doc-table">
+                <tr><th>Template</th><th>Command</th><th>Files Created</th></tr>
+                <tr><td><code>library</code></td><td><code>galaxy init library my-lib</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td></tr>
+                <tr><td><code>app</code></td><td><code>galaxy init app my-app</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td></tr>
+                <tr><td><code>cli</code></td><td><code>galaxy init cli my-tool</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td></tr>
+            </table>
+            <p>For full template documentation — generated file contents, customization guide, galaxy.json manifest reference, and extending the template system — see the <a href="templates.html"><strong>Templates reference page</strong></a>.</p>
+
+            <!-- ===== MANIFEST ===== -->
+            <h3 id="galaxy-manifest">galaxy.json Manifest Reference</h3>
+            <p>Every Galaxy package requires a <code>galaxy.json</code> manifest at its root. Auto-generated by <code>galaxy init</code>.</p>
             <pre><code>{
-    <span class="nv-str">"package"</span>: <span class="nv-str">"my-lib"</span>,
-    <span class="nv-str">"github_repo"</span>: <span class="nv-str">"yourusername/my-lib"</span>,
-    <span class="nv-str">"version"</span>: <span class="nv-str">"1.0.0"</span>,
-    <span class="nv-str">"author"</span>: <span class="nv-str">"Your Name"</span>,
-    <span class="nv-str">"description"</span>: <span class="nv-str">"Does something awesome."</span>,
-    <span class="nv-str">"tags"</span>: [<span class="nv-str">"utility"</span>, <span class="nv-str">"cli"</span>],
-    <span class="nv-str">"download_url"</span>: <span class="nv-str">"https://github.com/yourusername/my-lib/archive/refs/heads/main.zip"</span>
+    <span class="nv-str">"name"</span>: <span class="nv-str">"my-lib"</span>,               <span class="nv-cmt"># Required: package name (globally unique)</span>
+    <span class="nv-str">"version"</span>: <span class="nv-str">"1.0.0"</span>,             <span class="nv-cmt"># Required: semver</span>
+    <span class="nv-str">"description"</span>: <span class="nv-str">"..."</span>,          <span class="nv-cmt"># Required: short description</span>
+    <span class="nv-str">"author"</span>: <span class="nv-str">"Your Name"</span>,          <span class="nv-cmt"># Required</span>
+    <span class="nv-str">"license"</span>: <span class="nv-str">"MIT"</span>,               <span class="nv-cmt"># Required: SPDX identifier</span>
+    <span class="nv-str">"repository"</span>: <span class="nv-str">"..."</span>,            <span class="nv-cmt"># Required: GitHub URL (owner/repo)</span>
+    <span class="nv-str">"main"</span>: <span class="nv-str">"src/main.nv"</span>,         <span class="nv-cmt"># Optional: entry point (default: src/main.nv)</span>
+    <span class="nv-str">"keywords"</span>: [<span class="nv-str">"utility"</span>],         <span class="nv-cmt"># Optional: search terms</span>
+    <span class="nv-str">"dependencies"</span>: {}                <span class="nv-cmt"># Optional: package name -> version</span>
 }</code></pre>
-            <p>Once merged, your package is instantly available worldwide via <code>nova galaxy install</code>.</p>
+
+            <table class="doc-table">
+                <tr><th>Field</th><th>Required</th><th>Description</th></tr>
+                <tr><td><code>name</code></td><td>Yes</td><td>Global unique identifier. Lowercase, hyphens allowed.</td></tr>
+                <tr><td><code>version</code></td><td>Yes</td><td>Semantic version. Must increase monotonically.</td></tr>
+                <tr><td><code>description</code></td><td>Yes</td><td>One-line summary shown in search results.</td></tr>
+                <tr><td><code>author</code></td><td>Yes</td><td>Your name or GitHub handle.</td></tr>
+                <tr><td><code>license</code></td><td>Yes</td><td>SPDX license identifier (e.g., MIT, Apache-2.0).</td></tr>
+                <tr><td><code>repository</code></td><td>Yes</td><td>GitHub URL in <code>owner/repo</code> format.</td></tr>
+                <tr><td><code>main</code></td><td>No</td><td>Entry point file. Defaults to <code>src/main.nv</code>.</td></tr>
+                <tr><td><code>keywords</code></td><td>No</td><td>Array of search tags.</td></tr>
+                <tr><td><code>dependencies</code></td><td>No</td><td>Map of package name to version constraint.</td></tr>
+            </table>
+
+            <!-- ===== PUBLISHING ===== -->
+            <h3 id="galaxy-publish">Publishing a Package</h3>
+            <p>All publishing goes through a <strong>GitHub Issue</strong> workflow — there is no direct write access to the registry. This ensures every submission is reviewed.</p>
+
+            <h4>Using galaxy publish (Recommended)</h4>
+            <ol>
+                <li>Write your Nova library and host it on <strong>GitHub</strong></li>
+                <li>Run <code>galaxy init library my-lib</code> to scaffold the project</li>
+                <li>Edit <code>galaxy.json</code> — set <code>author</code>, <code>repository</code>, <code>license</code>, <code>keywords</code></li>
+                <li>Run <code>galaxy publish</code> from the project root</li>
+            </ol>
+            <p><code>galaxy publish</code> does the following:</p>
+            <ul>
+                <li>Validates <code>galaxy.json</code> completeness and correctness</li>
+                <li>Computes SHA-256 hashes of every source file</li>
+                <li>Opens your browser to a pre-filled <strong>GitHub Issue</strong> on the galaxy-registry repo</li>
+            </ul>
+
+            <h4>What happens after publishing</h4>
+            <ol>
+                <li>Your package starts in the <strong>Community</strong> tier</li>
+                <li>A human reviewer checks the submission via the GitHub Issue</li>
+                <li>Once approved, the maintainer creates a PR to add your <code>packages/&lt;name&gt;.json</code> file</li>
+                <li>Merged = instantly available worldwide via <code>galaxy install &lt;name&gt;</code></li>
+            </ol>
+
+            <h4>Promotion to Verified</h4>
+            <p>Community packages with <strong>50+ upvotes</strong> are automatically queued for promotion review (via GitHub Actions). A maintainer reviews the source code for quality and security. If approved, the package moves to the Verified tier.</p>
+
+            <h4>Manual submission</h4>
+            <p>You can also submit directly by opening a Pull Request to the <a href="https://github.com/nova-programming/galaxy-registry">galaxy-registry</a> repo with a new package JSON in <code>packages/</code>.</p>
+
+            <div class="callout callout-warn">
+                <strong>Naming rules</strong>
+                Package names are globally unique across all three tiers. Once a name is taken, it cannot be reused. Versions must increase monotonically — no downgrades, no repeats.
+            </div>
 
             <!-- ========== IMPORTS ========== -->
             <h2 id="imports">Import System</h2>
@@ -578,10 +718,14 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
                 <tr><td><code>nova_main build &lt;file.nv&gt;</code></td><td>Compile a Nova source file to a Windows PE executable</td></tr>
                 <tr><td><code>nova_main build --debug &lt;file.nv&gt;</code></td><td>Compile with debug output (<code>printd</code> enabled)</td></tr>
                 <tr><td><code>nova_main build --output &lt;name&gt; &lt;file.nv&gt;</code></td><td>Specify output executable name</td></tr>
-                <tr><td><code>nova_main galaxy install &lt;pkg&gt;</code></td><td>Install a package from the Galaxy registry</td></tr>
-                <tr><td><code>nova_main galaxy list</code></td><td>List all available packages</td></tr>
                 <tr><td><code>nova_main</code> (no args)</td><td>Print help and usage information</td></tr>
             </table>
+            <p>Package management is handled by the standalone <strong><code>galaxy</code></strong> CLI. See the <a href="#galaxy">Galaxy Package Manager</a> section above. You can also invoke galaxy through Nova:</p>
+            <pre><code><span class="nv-cmt"># Via Nova (if installed in the same repo)</span>
+python main.py galaxy &lt;command&gt;
+
+<span class="nv-cmt"># Or as a Python module</span>
+python -m galaxy &lt;command&gt;</code></pre>
 
             <h3>Build Modes</h3>
             <ul>
@@ -725,6 +869,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 <a href="https://github.com/nova-programming" target="_blank" style="color:var(--text-tertiary);text-decoration:none;">GitHub</a>
                 <a href="documentation.html" style="color:var(--text-tertiary);text-decoration:none;">Docs</a>
                 <a href="index.html?view=view-libraries" style="color:var(--text-tertiary);text-decoration:none;">Libraries</a>
+                <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
                 <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
             </div>
         </div>

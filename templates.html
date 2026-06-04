@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Templates — Scaffolding Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #888;
+            --border: #e8e8ea; --accent: #0070f3;
+            --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
+            --code-bg: #0a0a0f; --code-text: #e4e4e7;
+            --nav-bg: rgba(255,255,255,0.85); --sidebar-bg: #f7f7f8;
+            --callout-info-bg: #eef4ff; --callout-info-border: #0070f3;
+            --callout-tip-bg: #ecfdf5; --callout-tip-border: #10b981;
+            --callout-warn-bg: #fffbeb; --callout-warn-border: #f59e0b;
+            --keyword: #ff79c6; --string: #50fa7b; --cmt: #6272a4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.7; -webkit-font-smoothing: antialiased;
+        }
+        nav.top-nav {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
+        }
+        .nav-brand {
+            font-weight: 700; font-size: 1.2rem; letter-spacing: -0.03em;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none; color: inherit;
+        }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.875rem; font-weight: 500; transition: color .2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .doc-layout {
+            display: grid; grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+        @media (max-width:860px) { .doc-layout { grid-template-columns: 1fr; } }
+        .doc-sidebar {
+            position: sticky; top: 60px; align-self: start;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem;
+            height: calc(100vh - 60px); overflow-y: auto;
+            background: var(--sidebar-bg);
+        }
+        .doc-sidebar h4 {
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em;
+            color: var(--text-tertiary); margin-bottom: 1rem;
+        }
+        .doc-sidebar ul { list-style: none; }
+        .doc-sidebar li { margin-bottom: 0.4rem; }
+        .doc-sidebar a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.8rem; transition: color .15s;
+            display: block; padding: 0.2rem 0;
+        }
+        .doc-sidebar a:hover, .doc-sidebar a.active { color: var(--accent); font-weight: 500; }
+        .doc-sidebar .section-gap { margin-top: 1rem; }
+        @media (max-width:860px) {
+            .doc-sidebar { position: relative; top: 0; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 1.25rem; }
+        }
+        .doc-content {
+            padding: 3rem 3.5rem; max-width: 880px; min-width: 0;
+        }
+        @media (max-width:860px) { .doc-content { padding: 2rem 1.25rem; } }
+        .doc-content h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+        .doc-content h2 {
+            font-size: 1.35rem; font-weight: 600; letter-spacing: -0.02em;
+            margin-top: 2.5rem; margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+        }
+        .doc-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: #1a1a2e; }
+        .doc-content h4 { font-size: 0.95rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.4rem; color: #1a1a2e; }
+        .doc-content p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .doc-content ul, .doc-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        .doc-content li { margin-bottom: 0.4rem; color: var(--text-secondary); }
+        .doc-content strong { color: var(--text); }
+        .doc-content a { color: var(--accent); text-decoration: none; }
+        .doc-content a:hover { text-decoration: underline; }
+        .doc-content code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82em; background: #f0f0f2;
+            padding: 0.15em 0.4em; border-radius: 4px;
+            color: #e03e8a;
+        }
+        .doc-content pre {
+            background: var(--code-bg); color: var(--code-text);
+            padding: 1.25rem 1.5rem; border-radius: 8px;
+            overflow-x: auto; margin: 1.25rem 0;
+            font-size: 0.82rem; line-height: 1.6;
+            border: 1px solid #1a1a2e;
+        }
+        .doc-content pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; border-radius: 0; }
+        .cmt { color: var(--cmt); font-style: italic; }
+        .doc-table {
+            width: 100%; border-collapse: collapse;
+            margin: 1.25rem 0; font-size: 0.88rem;
+        }
+        .doc-table th {
+            background: var(--sidebar-bg); text-align: left;
+            padding: 0.5rem 0.75rem; font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        .doc-table td {
+            padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .callout {
+            padding: 1rem 1.25rem; border-radius: 6px;
+            margin: 1.25rem 0; border-left: 4px solid;
+            font-size: 0.9rem;
+        }
+        .callout strong { display: block; margin-bottom: 0.25rem; }
+        .callout-info { background: var(--callout-info-bg); border-color: var(--callout-info-border); }
+        .callout-tip { background: var(--callout-tip-bg); border-color: var(--callout-tip-border); }
+        .callout-warn { background: var(--callout-warn-bg); border-color: var(--callout-warn-border); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .doc-content { animation: fadeIn .35s ease-out; }
+        .tree-line { padding-left: 1.5rem; border-left: 1px dashed #333; margin: 0.5rem 0; }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="nav-brand" href="index.html" style="text-decoration:none;color:inherit;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Galaxy
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html?view=view-libraries">Libraries</a>
+            <a href="documentation.html">Documentation</a>
+            <a href="#" class="active">Templates</a>
+            <a href="index.html?view=view-contribute">Contribute</a>
+        </div>
+    </nav>
+
+    <div class="doc-layout">
+        <nav class="doc-sidebar">
+            <h4>Template Reference</h4>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#quick-ref">Quick Reference</a></li>
+                <li class="section-gap"><a href="#library">library</a></li>
+                <li><a href="#app">app</a></li>
+                <li><a href="#cli">cli</a></li>
+                <li class="section-gap"><a href="#customizing">Customizing</a></li>
+                <li><a href="#manifest">galaxy.json Reference</a></li>
+                <li><a href="#extending">Extending Templates</a></li>
+            </ul>
+        </nav>
+
+        <div class="doc-content">
+
+            <h1 id="overview">Galaxy Project Templates</h1>
+            <p>The <code>galaxy init</code> command scaffolds complete project structures from templates. Templates provide a consistent layout for your Nova packages — standardized directory structure, manifest, and boilerplate code.</p>
+
+            <div class="callout callout-tip">
+                <strong>Always start with a template</strong>
+                Even if you plan to customize heavily, <code>galaxy init</code> gives you the correct <code>galaxy.json</code> format, <code>.gitignore</code>, and directory conventions. It saves minutes per project and prevents manifest errors when publishing.
+            </div>
+
+            <h2 id="usage">Usage</h2>
+            <pre><code><span class="cmt"># Template as first argument, name as second</span>
+galaxy init &lt;template&gt; &lt;name&gt;
+
+<span class="cmt"># Examples</span>
+galaxy init library my-lib
+galaxy init app my-app
+galaxy init cli my-tool
+
+<span class="cmt"># Defaults to 'library' if no template specified</span>
+galaxy init my-lib         <span class="cmt"># same as 'galaxy init library my-lib'</span>
+
+<span class="cmt"># 'lib' is an alias for 'library'</span>
+galaxy init lib my-lib     <span class="cmt"># same as above</span></code></pre>
+
+            <h2 id="quick-ref">Quick Reference</h2>
+            <table class="doc-table">
+                <tr><th>Template</th><th>Command</th><th>For</th><th>Files Created</th></tr>
+                <tr>
+                    <td><code>library</code></td>
+                    <td><code>galaxy init library my-lib</code></td>
+                    <td>Reusable modules</td>
+                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td>
+                </tr>
+                <tr>
+                    <td><code>app</code></td>
+                    <td><code>galaxy init app my-app</code></td>
+                    <td>Standalone applications</td>
+                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
+                </tr>
+                <tr>
+                    <td><code>cli</code></td>
+                    <td><code>galaxy init cli my-tool</code></td>
+                    <td>CLI tools with args</td>
+                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
+                </tr>
+            </table>
+
+            <!-- ===== LIBRARY ===== -->
+            <h2 id="library">library Template</h2>
+            <p>The default template. Creates a reusable Nova module with a standard library layout. Use this for packages you intend to publish to the registry.</p>
+
+            <pre><code>galaxy init library my-lib
+<span class="cmt"># or simply:</span>
+galaxy init my-lib</code></pre>
+
+            <h3>Generated Structure</h3>
+            <pre><code>my-lib/
+  galaxy.json              <span class="cmt"># Package manifest (required for all templates)</span>
+  src/
+    main.nv                <span class="cmt"># Public API entry point</span>
+  tests/
+    test_main.nv           <span class="cmt"># Test scaffold</span>
+  README.md                <span class="cmt"># Documentation placeholder</span></code></pre>
+
+            <h3>File Descriptions</h3>
+            <table class="doc-table">
+                <tr><th>File</th><th>Purpose</th></tr>
+                <tr><td><code>galaxy.json</code></td><td>Package manifest with name, version, author, license, repository, keywords, dependencies. Auto-filled with sensible defaults.</td></tr>
+                <tr><td><code>src/main.nv</code></td><td>Public entry point. Importers will access functions via <code>my_lib.function_name()</code>. Contains an empty <code>hello()</code> function as a starting point.</td></tr>
+                <tr><td><code>tests/test_main.nv</code></td><td>Basic test scaffold with a single test function. Run manually via the compiler.</td></tr>
+                <tr><td><code>README.md</code></td><td>Documentation template. Fill in what your package does, how to install, and usage examples.</td></tr>
+            </table>
+
+            <h3>Example galaxy.json (auto-generated)</h3>
+            <pre><code>{
+    "name": "my-lib",
+    "version": "1.0.0",
+    "description": "A Nova library",
+    "author": "Your Name",
+    "license": "MIT",
+    "repository": "yourusername/my-lib",
+    "keywords": ["nova", "library"],
+    "main": "src/main.nv",
+    "dependencies": {}
+}</code></pre>
+
+            <h3>Example src/main.nv output</h3>
+            <pre><code><span class="cmt"># my-lib - A Nova library</span>
+
+def hello() -&gt; string {
+    return "Hello from my-lib!"
+}</code></pre>
+
+            <!-- ===== APP ===== -->
+            <h2 id="app">app Template</h2>
+            <p>Creates a standalone application with a <code>__main__</code> entry point. Use this when you're building an executable program rather than a reusable library.</p>
+
+            <pre><code>galaxy init app my-app</code></pre>
+
+            <h3>Generated Structure</h3>
+            <pre><code>my-app/
+  galaxy.json              <span class="cmt"># Package manifest</span>
+  src/
+    main.nv                <span class="cmt"># Application entry point</span>
+                              <span class="cmt">#   Contains __main__ block</span>
+  README.md                <span class="cmt"># Documentation</span></code></pre>
+
+            <h3>Key Differences from library</h3>
+            <ul>
+                <li>No <code>tests/</code> directory — apps are not typically consumed as dependencies</li>
+                <li><code>src/main.nv</code> contains a <code>__main__</code> block for the program entry point</li>
+                <li>The manifest <code>"main"</code> field points to <code>src/main.nv</code></li>
+            </ul>
+
+            <h3>Example src/main.nv output</h3>
+            <pre><code><span class="cmt"># my-app - A Nova application</span>
+
+def __main__() {
+    print("Hello from my-app!")
+}</code></pre>
+
+            <!-- ===== CLI ===== -->
+            <h2 id="cli">cli Template</h2>
+            <p>Creates a command-line tool with argument parsing scaffold. Use this when you want to build a CLI utility in Nova.</p>
+
+            <pre><code>galaxy init cli my-tool</code></pre>
+
+            <h3>Generated Structure</h3>
+            <pre><code>my-tool/
+  galaxy.json              <span class="cmt"># Package manifest</span>
+  src/
+    main.nv                <span class="cmt"># CLI entry with argument handling</span>
+                              <span class="cmt">#   Uses sys_get_args() for argument parsing</span>
+                              <span class="cmt">#   Includes help/usage output pattern</span>
+  README.md                <span class="cmt"># Documentation</span></code></pre>
+
+            <h3>What You Get</h3>
+            <p>The CLI template includes a practical argument parsing pattern that demonstrates:</p>
+            <ul>
+                <li>Reading command-line arguments via <code>sys_get_args()</code></li>
+                <li>Checking argument count and showing usage</li>
+                <li>Named argument handling (e.g., <code>--name</code> flags)</li>
+                <li>Exit codes via <code>sys_exit()</code></li>
+            </ul>
+
+            <h3>Example src/main.nv output</h3>
+            <pre><code><span class="cmt"># my-tool - A Nova CLI tool</span>
+
+def __main__() {
+    args = sys_get_args()
+    if args.length &lt; 2 {
+        print("Usage: my-tool &lt;command&gt; [options]")
+        sys_exit(1)
+    }
+    print("Hello from my-tool!")
+}</code></pre>
+
+            <!-- ===== CUSTOMIZING ===== -->
+            <h2 id="customizing">Customizing Generated Projects</h2>
+            <p>After running <code>galaxy init</code>, you should always:</p>
+
+            <ol>
+                <li><strong>Edit <code>galaxy.json</code></strong> — update <code>author</code>, <code>license</code>, <code>repository</code> (required before publishing)</li>
+                <li><strong>Update <code>src/main.nv</code></strong> — replace the placeholder functions with your actual API</li>
+                <li><strong>Update <code>README.md</code></strong> — describe your package, usage, and API</li>
+                <li><strong>Set up <code>.gitignore</code></strong> — add <code>galaxy_modules/</code> and any build artifacts</li>
+            </ol>
+
+            <div class="callout callout-warn">
+                <strong>Before publishing</strong>
+                The <code>galaxy publish</code> command validates <code>galaxy.json</code> against a strict schema. Missing or incorrect fields will be rejected. Always test with <code>galaxy publish --dry-run</code> if available.
+            </div>
+
+            <h3>Adding Files</h3>
+            <p>You can add any number of <code>.nv</code> files in <code>src/</code>. The <code>"main"</code> field in <code>galaxy.json</code> specifies the entry point — additional files are imported from there:</p>
+            <pre><code><span class="cmt"># src/main.nv</span>
+import utils
+import math_extras
+
+<span class="cmt"># Now available as utils.function() and math_extras.function()</span></code></pre>
+
+            <!-- ===== MANIFEST ===== -->
+            <h2 id="manifest">galaxy.json Manifest Reference</h2>
+            <p>Every Galaxy package — regardless of template — requires a <code>galaxy.json</code> manifest at the project root. This file is auto-generated by <code>galaxy init</code>.</p>
+
+            <table class="doc-table">
+                <tr><th>Field</th><th>Required</th><th>Type</th><th>Description</th></tr>
+                <tr><td><code>name</code></td><td>Yes</td><td>string</td><td>Globally unique package name. Lowercase, hyphens allowed.</td></tr>
+                <tr><td><code>version</code></td><td>Yes</td><td>string</td><td>Semantic version (e.g., <code>"1.0.0"</code>). Must increase monotonically.</td></tr>
+                <tr><td><code>description</code></td><td>Yes</td><td>string</td><td>One-line summary shown in search results.</td></tr>
+                <tr><td><code>author</code></td><td>Yes</td><td>string</td><td>Your name or GitHub handle.</td></tr>
+                <tr><td><code>license</code></td><td>Yes</td><td>string</td><td>SPDX identifier (e.g., <code>"MIT"</code>, <code>"Apache-2.0"</code>).</td></tr>
+                <tr><td><code>repository</code></td><td>Yes</td><td>string</td><td>GitHub URL in <code>"owner/repo"</code> format.</td></tr>
+                <tr><td><code>main</code></td><td>No</td><td>string</td><td>Entry point file. Defaults to <code>"src/main.nv"</code>.</td></tr>
+                <tr><td><code>keywords</code></td><td>No</td><td>array</td><td>Search tags (e.g., <code>["http", "networking"]</code>).</td></tr>
+                <tr><td><code>dependencies</code></td><td>No</td><td>object</td><td>Package name to version constraint map.</td></tr>
+            </table>
+
+            <h3>Full Example</h3>
+            <pre><code>{
+    "name": "nova-http",
+    "version": "1.0.0",
+    "description": "HTTP client library for Nova",
+    "author": "Nova Team",
+    "license": "MIT",
+    "repository": "nova-programming/nova-http",
+    "keywords": ["http", "networking", "client"],
+    "main": "src/main.nv",
+    "dependencies": {}
+}</code></pre>
+
+            <!-- ===== EXTENDING ===== -->
+            <h2 id="extending">Extending the Template System</h2>
+            <p>The template system lives in the <code>TEMPLATES</code> dictionary inside <code>_galaxy.py</code>. Each template defines a list of files, their contents, and an optional entry point pattern.</p>
+
+            <h3>Adding a New Template</h3>
+            <p>To add your own template, edit the <code>TEMPLATES</code> dict in <code>_galaxy.py</code>:</p>
+            <pre><code>TEMPLATES = {
+    "library": {
+        "description": "Reusable Nova library",
+        "files": {
+            "galaxy.json": ...,
+            "src/main.nv": ...,
+            "tests/test_main.nv": ...,
+            "README.md": ...,
+        }
+    },
+    <span class="cmt"># Add your own:</span>
+    "web": {
+        "description": "Web application scaffold",
+        "files": {
+            "galaxy.json": ...
+        }
+    },
+    ...
+}</code></pre>
+
+            <p>Each file entry uses Python's <code>string.Template</code> for variable substitution. Available variables:</p>
+            <ul>
+                <li><code>$name</code> — package name</li>
+                <li><code>$author</code> — author name</li>
+                <li><code>$license</code> — license identifier</li>
+            </ul>
+
+            <div class="callout callout-info">
+                <strong>Template contributions welcome</strong>
+                If you create a useful template, open a PR to <code>nova-programming/Nova</code> with your addition to <code>TEMPLATES</code> in <code>_galaxy.py</code>.
+            </div>
+
+        </div>
+    </div>
+
+    <footer style="border-top:1px solid var(--border);padding:1.75rem 2rem;background:var(--sidebar-bg);">
+        <div style="max-width:1040px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;color:var(--text-tertiary);">
+            <span>&copy; 2026 Nova Programming Language</span>
+            <div style="display:flex;gap:1.5rem;">
+                <a href="https://github.com/nova-programming" target="_blank" style="color:var(--text-tertiary);text-decoration:none;">GitHub</a>
+                <a href="documentation.html" style="color:var(--text-tertiary);text-decoration:none;">Docs</a>
+                <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
+                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
