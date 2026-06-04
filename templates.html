@@ -159,9 +159,8 @@
                 <li><a href="#overview">Overview</a></li>
                 <li><a href="#usage">Usage</a></li>
                 <li><a href="#quick-ref">Quick Reference</a></li>
-                <li class="section-gap"><a href="#library">library</a></li>
-                <li><a href="#app">app</a></li>
-                <li><a href="#cli">cli</a></li>
+                <li><a href="#library">library (complete)</a></li>
+                <li><a href="#other-templates">app / cli</a></li>
                 <li class="section-gap"><a href="#customizing">Customizing</a></li>
                 <li><a href="#manifest">galaxy.json Reference</a></li>
                 <li><a href="#extending">Extending Templates</a></li>
@@ -262,69 +261,30 @@ def hello() -&gt; string {
     return "Hello from my-lib!"
 }</code></pre>
 
-            <!-- ===== APP ===== -->
-            <h2 id="app">app Template</h2>
-            <p>Creates a standalone application with a <code>__main__</code> entry point. Use this when you're building an executable program rather than a reusable library.</p>
+            <!-- ===== OTHER TEMPLATES ===== -->
+            <h2 id="other-templates">Other Templates</h2>
+            <p>Two additional templates are available but share the same structure as <code>library</code> with different entry point conventions:</p>
 
-            <pre><code>galaxy init app my-app</code></pre>
+            <table class="doc-table">
+                <tr><th>Template</th><th>Command</th><th>Entry Point</th><th>Files</th></tr>
+                <tr>
+                    <td><code>app</code></td>
+                    <td><code>galaxy init app my-app</code></td>
+                    <td><code>src/main.nv</code> with <code>__main__</code> block</td>
+                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
+                </tr>
+                <tr>
+                    <td><code>cli</code></td>
+                    <td><code>galaxy init cli my-tool</code></td>
+                    <td><code>src/main.nv</code> with <code>sys_get_args()</code> scaffold</td>
+                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
+                </tr>
+            </table>
 
-            <h3>Generated Structure</h3>
-            <pre><code>my-app/
-  galaxy.json              <span class="cmt"># Package manifest</span>
-  src/
-    main.nv                <span class="cmt"># Application entry point</span>
-                              <span class="cmt">#   Contains __main__ block</span>
-  README.md                <span class="cmt"># Documentation</span></code></pre>
-
-            <h3>Key Differences from library</h3>
-            <ul>
-                <li>No <code>tests/</code> directory — apps are not typically consumed as dependencies</li>
-                <li><code>src/main.nv</code> contains a <code>__main__</code> block for the program entry point</li>
-                <li>The manifest <code>"main"</code> field points to <code>src/main.nv</code></li>
-            </ul>
-
-            <h3>Example src/main.nv output</h3>
-            <pre><code><span class="cmt"># my-app - A Nova application</span>
-
-def __main__() {
-    print("Hello from my-app!")
-}</code></pre>
-
-            <!-- ===== CLI ===== -->
-            <h2 id="cli">cli Template</h2>
-            <p>Creates a command-line tool with argument parsing scaffold. Use this when you want to build a CLI utility in Nova.</p>
-
-            <pre><code>galaxy init cli my-tool</code></pre>
-
-            <h3>Generated Structure</h3>
-            <pre><code>my-tool/
-  galaxy.json              <span class="cmt"># Package manifest</span>
-  src/
-    main.nv                <span class="cmt"># CLI entry with argument handling</span>
-                              <span class="cmt">#   Uses sys_get_args() for argument parsing</span>
-                              <span class="cmt">#   Includes help/usage output pattern</span>
-  README.md                <span class="cmt"># Documentation</span></code></pre>
-
-            <h3>What You Get</h3>
-            <p>The CLI template includes a practical argument parsing pattern that demonstrates:</p>
-            <ul>
-                <li>Reading command-line arguments via <code>sys_get_args()</code></li>
-                <li>Checking argument count and showing usage</li>
-                <li>Named argument handling (e.g., <code>--name</code> flags)</li>
-                <li>Exit codes via <code>sys_exit()</code></li>
-            </ul>
-
-            <h3>Example src/main.nv output</h3>
-            <pre><code><span class="cmt"># my-tool - A Nova CLI tool</span>
-
-def __main__() {
-    args = sys_get_args()
-    if args.length &lt; 2 {
-        print("Usage: my-tool &lt;command&gt; [options]")
-        sys_exit(1)
-    }
-    print("Hello from my-tool!")
-}</code></pre>
+            <div class="callout callout-info">
+                <strong>Template documentation is incremental</strong>
+                Only the <code>library</code> template above has a complete reference. As other templates gain unique features, their documentation will be expanded here.
+            </div>
 
             <!-- ===== CUSTOMIZING ===== -->
             <h2 id="customizing">Customizing Generated Projects</h2>
