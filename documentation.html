@@ -544,13 +544,14 @@ salt = <span class="nv-fn">random</span>()</code></pre>
             <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.py -OutFile install.py; python install.py</code></pre>
             <p>The installer does three things:</p>
             <ul>
-                <li>Downloads <code>_galaxy.py</code> from GitHub and installs it to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
-                <li>Creates a <code>galaxy.bat</code> (Windows) or <code>galaxy</code> (Unix) launcher</li>
+                <li>Downloads the Nova compiler (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>) and Galaxy CLI (<code>_galaxy.py</code>, <code>galaxy/</code>) to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
+                <li>Creates <code>nova.bat</code> and <code>galaxy.bat</code> (Windows) or shell scripts (Unix) launchers</li>
                 <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
             </ul>
             <p>Restart your terminal, then:</p>
             <pre><code><span class="nv-cmt"># Verify installation</span>
-galaxy --help</code></pre>
+galaxy --version
+nova --version</code></pre>
 
             <h4>Method 2: From Source (if you already cloned the repo)</h4>
             <pre><code>git clone https://github.com/nova-programming/Nova.git
@@ -570,13 +571,15 @@ python -m galaxy --help</code></pre>
 
             <table class="doc-table">
                 <tr><th>Command</th><th>Description</th></tr>
+                <tr><td><code>galaxy --version</code></td><td>Show the Galaxy CLI version</td></tr>
                 <tr><td><code>galaxy init [template] [name]</code></td><td>Scaffold a new package from a template</td></tr>
                 <tr><td><code>galaxy install &lt;pkg&gt;</code></td><td>Install a package from the registry or GitHub</td></tr>
                 <tr><td><code>galaxy list</code></td><td>List locally installed packages</td></tr>
                 <tr><td><code>galaxy search &lt;query&gt;</code></td><td>Search the registry by name, keyword, or author</td></tr>
                 <tr><td><code>galaxy info &lt;pkg&gt;</code></td><td>Show detailed package information</td></tr>
                 <tr><td><code>galaxy publish</code></td><td>Submit your package to the registry</td></tr>
-                <tr><td><code>galaxy update [pkg]</code></td><td>Check for and apply version updates</td></tr>
+                <tr><td><code>galaxy update</code></td><td>Update Galaxy CLI itself to the latest version</td></tr>
+                <tr><td><code>galaxy upgrade [pkg]</code></td><td>Check for and apply version updates to installed packages</td></tr>
                 <tr><td><code>galaxy remove &lt;pkg&gt;</code></td><td>Uninstall a package</td></tr>
             </table>
 
@@ -607,13 +610,30 @@ galaxy search nova-team
             <pre><code>galaxy info nova-http</code></pre>
             <p>Displays full metadata: description, version, author, license, keywords, tier, upvotes, flags, version history with SHA-256 hashes, and links to the GitHub repository and issue tracker.</p>
 
-            <h4>galaxy update</h4>
-            <pre><code><span class="nv-cmt"># Update all installed packages</span>
-galaxy update
+            <h4>galaxy --version</h4>
+            <pre><code>galaxy --version
+<span class="nv-cmt"># Galaxy v0.2.0</span></code></pre>
+            <p>Displays the current Galaxy CLI version.</p>
 
-<span class="nv-cmt"># Update a specific package</span>
-galaxy update nova-math</code></pre>
-            <p>Compares installed version against the registry's newest version. Prompts before reinstalling.</p>
+            <h4>galaxy update</h4>
+            <p><strong>Self-update — updates Galaxy CLI itself.</strong> Checks the registry for a newer version of Galaxy, prompts before downloading, and replaces the installed files. Works the same way as <code>nova update</code>.</p>
+            <pre><code><span class="nv-cmt"># Update Galaxy CLI to the latest version</span>
+galaxy update
+<span class="nv-cmt"># Galaxy v0.2.0
+# Latest version: v0.3.0  (current: v0.2.0)
+# Update to v0.3.0? (Y/n): y
+# Updated 12 files.
+# Galaxy has been updated to v0.3.0.</span></code></pre>
+            <p>Uses the same installation directory detected during <code>install.py</code> setup. Only Galaxy-related files are replaced (<code>_galaxy.py</code> and <code>galaxy/</code>).</p>
+
+            <h4>galaxy upgrade</h4>
+            <p><strong>Updates installed packages.</strong> Checks the registry for newer versions of your dependencies and prompts before reinstalling.</p>
+            <pre><code><span class="nv-cmt"># Upgrade all installed packages</span>
+galaxy upgrade
+
+<span class="nv-cmt"># Upgrade a specific package</span>
+galaxy upgrade nova-math</code></pre>
+            <p>Compares the installed version against the registry's latest. Prompts before reinstalling each outdated package.</p>
 
             <h4>galaxy remove</h4>
             <pre><code>galaxy remove nova-math</code></pre>
@@ -709,21 +729,40 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
 
             <!-- ========== COMPILER CLI ========== -->
             <h2 id="compiler-cli">Compiler Command-Line Reference</h2>
-            <p>The <code>nova_main.exe</code> binary is the entire compiler and CLI frontend.</p>
+            <p>The Nova compiler is available as both a native executable (<code>nova_main.exe</code>) and a Python CLI (<code>nova</code> / <code>python main.py</code>).</p>
 
             <table class="doc-table">
                 <tr><th>Command</th><th>Description</th></tr>
-                <tr><td><code>nova_main build &lt;file.nv&gt;</code></td><td>Compile a Nova source file to a Windows PE executable</td></tr>
-                <tr><td><code>nova_main build --debug &lt;file.nv&gt;</code></td><td>Compile with debug output (<code>printd</code> enabled)</td></tr>
-                <tr><td><code>nova_main build --output &lt;name&gt; &lt;file.nv&gt;</code></td><td>Specify output executable name</td></tr>
-                <tr><td><code>nova_main</code> (no args)</td><td>Print help and usage information</td></tr>
+                <tr><td><code>nova --version</code></td><td>Show the Nova compiler version</td></tr>
+                <tr><td><code>nova dev &lt;file.nv&gt;</code></td><td>Run a Nova program in the VM (fast, for development)</td></tr>
+                <tr><td><code>nova build &lt;file.nv&gt;</code></td><td>Compile to a native executable</td></tr>
+                <tr><td><code>nova run &lt;file.nv&gt;</code></td><td>Alias for <code>dev</code> (backward compatible)</td></tr>
+                <tr><td><code>nova update</code></td><td>Update the Nova compiler itself to the latest version</td></tr>
+                <tr><td><code>nova galaxy &lt;cmd&gt;</code></td><td>Run Galaxy Package Manager commands through Nova</td></tr>
             </table>
+
+            <h4>nova --version</h4>
+            <pre><code>nova --version
+<span class="nv-cmt"># Nova v0.5.0</span></code></pre>
+            <p>Displays the current Nova compiler version.</p>
+
+            <h4>nova update</h4>
+            <p><strong>Self-update — updates the Nova compiler itself.</strong> Checks the version endpoint on the registry, prompts before downloading, and replaces only the compiler files.</p>
+            <pre><code><span class="nv-cmt"># Update Nova to the latest version</span>
+nova update
+<span class="nv-cmt"># Nova v0.5.0
+# Latest version: v0.6.0  (current: v0.5.0)
+# Update to v0.6.0? (Y/n): y
+# Updated 47 files.
+# Nova has been updated to v0.6.0.</span></code></pre>
+            <p>Uses the installation directory detected from the script location or standard paths (<code>%LOCALAPPDATA%\nova\</code> on Windows, <code>~/.nova/</code> on Unix). Only compiler-related files are replaced (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>).</p>
+
             <p>Package management is handled by the standalone <strong><code>galaxy</code></strong> CLI. See the <a href="#galaxy">Galaxy Package Manager</a> section above. You can also invoke galaxy through Nova:</p>
             <pre><code><span class="nv-cmt"># Via Nova (if installed in the same repo)</span>
-python main.py galaxy &lt;command&gt;
+nova galaxy install pkg
 
-<span class="nv-cmt"># Or as a Python module</span>
-python -m galaxy &lt;command&gt;</code></pre>
+<span class="nv-cmt"># Or as a standalone command</span>
+galaxy install pkg</code></pre>
 
             <h3>Build Modes</h3>
             <ul>

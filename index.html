@@ -399,12 +399,14 @@ galaxy install nova-http</code></pre>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy publish</code></pre>
                 <p>This validates your <code>galaxy.json</code>, computes SHA-256 hashes of your source files, and opens a pre-filled <strong>GitHub Issue</strong> on the <a href="https://github.com/nova-programming/galaxy-registry">galaxy-registry</a> repository. The registry maintainers will review and merge your submission.</p>
 
-                <h2 style="font-size:1.25rem;">6. Manage packages</h2>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy list              # See what's installed
-galaxy search http       # Find packages by keyword
-galaxy info nova-http    # Package details
-galaxy update nova-http  # Check for newer version
-galaxy remove nova-http  # Uninstall</code></pre>
+                <h2 style="font-size:1.25rem;">6. Stay updated</h2>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova --version            # Check Nova version
+nova update               # Update Nova compiler
+galaxy --version          # Check Galaxy version
+galaxy update             # Update Galaxy CLI
+galaxy upgrade [pkg]      # Update installed packages
+galaxy info nova-http     # Package details
+galaxy remove nova-math   # Uninstall</code></pre>
 
                 <div class="btn-group" style="margin-top:2rem;">
                     <button class="btn-primary" onclick="switchNav('view-libraries')">Browse Libraries</button>
