@@ -389,6 +389,18 @@
         .term-body .typed-line {
             display: block; white-space: nowrap; overflow: hidden;
         }
+        .term-line {
+            display: flex; align-items: center; gap: 0.5rem;
+            opacity: 0; transition: opacity 0.4s ease-out;
+        }
+        .term-line.visible { opacity: 1; }
+        .term-line-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .term-copy {
+            background: none; border: none; color: #555; cursor: pointer;
+            padding: 2px; display: flex; flex-shrink: 0;
+            transition: color 0.2s; opacity: 0.5;
+        }
+        .term-copy:hover { color: #fff; opacity: 1; }
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -493,9 +505,18 @@
                             <span class="term-title-text">install.sh</span>
                         </div>
                         <div class="term-body" id="term-body">
-                            <span class="typed-line" id="line1" data-text="<span class=prompt>$</span> <span class=cmd>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</span>"></span>
-                            <span class="typed-line" id="line2" data-text="<span class=prompt>$</span> <span class=cmd>galaxy --version</span>  <span class=comment># v0.2.0</span>"></span>
-                            <span class="typed-line" id="line3" data-text="<span class=prompt>$</span> <span class=cmd>galaxy install nova-http</span>"></span>
+                            <div class="term-line" id="line1">
+                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</span>"></span>
+                                <button class="term-copy" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            </div>
+                            <div class="term-line" id="line2">
+                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy --version</span>  <span class=comment># v0.2.0</span>"></span>
+                                <button class="term-copy" onclick="copyText('galaxy --version', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            </div>
+                            <div class="term-line" id="line3">
+                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy install nova-http</span>"></span>
+                                <button class="term-copy" onclick="copyText('galaxy install nova-http', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            </div>
                         </div>
                     </div>
                     <div class="cta-group">
@@ -1030,10 +1051,9 @@ galaxy remove nova-math   # Uninstall</code></pre>
             function next() {
                 if (i < lines.length) {
                     const el = document.getElementById(lines[i]);
-                    el.innerHTML = el.dataset.text || '';
-                    el.style.opacity = '0';
-                    el.style.display = 'block';
-                    requestAnimationFrame(() => { el.style.transition = 'opacity 0.4s ease-out'; el.style.opacity = '1'; });
+                    const textSpan = el.querySelector('.term-line-text');
+                    if (textSpan) textSpan.innerHTML = textSpan.dataset.text || '';
+                    el.classList.add('visible');
                     i++;
                     setTimeout(next, 500);
                 } else if (cb) { setTimeout(cb, 300); }
