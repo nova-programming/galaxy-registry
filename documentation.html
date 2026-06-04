@@ -537,21 +537,26 @@ salt = <span class="nv-fn">random</span>()</code></pre>
             <h3 id="galaxy-install">Installing Galaxy CLI</h3>
             <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command — no <code>python -m</code> prefix needed after installation.</p>
 
-            <h4>One-Line Install (Recommended)</h4>
-            <p>No repo clone needed. The bootstrapper downloads everything it needs:</p>
+            <h4>One-Click Install (No Python Required)</h4>
+            <p><strong>Windows (PowerShell, pre-installed):</strong></p>
+            <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -File install.ps1</code></pre>
+            <p><strong>macOS / Linux (bash):</strong></p>
+            <pre><code>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</code></pre>
+            <p><strong>Any platform (requires Python):</strong></p>
             <pre><code>curl -O https://galaxy-registry.vercel.app/install.py && python install.py</code></pre>
-            <p>On Windows without curl, use PowerShell:</p>
+            <p>On Windows without curl:</p>
             <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.py -OutFile install.py; python install.py</code></pre>
-            <p>The installer does three things:</p>
+            <p>The installer does four things:</p>
             <ul>
                 <li>Downloads the Nova compiler (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>) and Galaxy CLI (<code>_galaxy.py</code>, <code>galaxy/</code>) to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
                 <li>Creates <code>nova.bat</code> and <code>galaxy.bat</code> (Windows) or shell scripts (Unix) launchers</li>
                 <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
+                <li>Verifies SHA-256 integrity of the downloaded archive</li>
             </ul>
             <p>Restart your terminal, then:</p>
             <pre><code><span class="nv-cmt"># Verify installation</span>
-galaxy --version
-nova --version</code></pre>
+nova --version
+galaxy --version</code></pre>
 
             <h4>Method 2: From Source (if you already cloned the repo)</h4>
             <pre><code>git clone https://github.com/nova-programming/Nova.git
