@@ -5,16 +5,23 @@
   "version": "0.3.1",
   "author": "Jane Doe",
   "description": "Build CLI apps with argument parsing, colors, and interactive prompts.",
-  "tags": ["cli", "terminal", "utility"],
+  "keywords": ["cli", "terminal", "utility", "argument-parser", "colors"],
   "license": "MIT",
   "upvotes": 12,
   "flags": 1,
   "quarantined": false,
   "issue_number": 15,
   "versions": [
-    {"version": "0.1.0", "sha256": "abc123..."},
-    {"version": "0.2.0", "sha256": "def456..."},
-    {"version": "0.3.1", "sha256": "ghi789..."}
+    {"version": "0.1.0", "sha256": "abc123def456abc123def456abc123de"},
+    {"version": "0.2.0", "sha256": "def456abc123def456abc123def456ab"},
+    {"version": "0.3.1", "sha256": "ghi789abc123def456ghi789abc123de"}
   ],
-  "download_url": "https://github.com/jane-doe/nova-cli/archive/refs/tags/v0.3.1.zip"
+  "docs": {
+    "examples": "EXAMPLES.md"
+  },
+  "examples": [
+    {"title": "Parse CLI arguments", "code": "import cli\n\nargs = cli.parse(\"app --name Nova --verbose\")\nprint(args.name)     # \"Nova\"\nprint(args.verbose)  # true"},
+    {"title": "Colored output", "code": "import cli\n\ncli.print_green(\"Success!\")\ncli.print_red(\"Error occurred\")"}
+  ],
+  "download_url": "https://github.com/jane-doe/nova-cli/archive/refs/heads/main.zip"
 }

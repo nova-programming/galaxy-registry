@@ -5,45 +5,50 @@
       "description": "Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.",
       "version": "0.9.5",
       "tier": "core",
-      "tags": ["crypto", "math", "random"],
+      "keywords": ["crypto", "math", "random", "chacha20", "linear-algebra"],
       "upvotes": 83,
-      "flags": 0
+      "flags": 0,
+      "author": "Nova Core Team"
     },
     {
       "name": "nova-http",
       "description": "High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.",
       "version": "1.0.2",
       "tier": "verified",
-      "tags": ["network", "http", "api"],
+      "keywords": ["network", "http", "api", "rest", "client"],
       "upvotes": 47,
-      "flags": 0
+      "flags": 0,
+      "author": "Nova Core Team"
     },
     {
       "name": "nova-cli",
       "description": "Build CLI apps with argument parsing, colors, and interactive prompts.",
       "version": "0.3.1",
       "tier": "community",
-      "tags": ["cli", "terminal", "utility"],
+      "keywords": ["cli", "terminal", "utility", "argument-parser"],
       "upvotes": 12,
-      "flags": 1
+      "flags": 1,
+      "author": "Jane Doe"
     },
     {
       "name": "nova-db",
       "description": "Minimal SQLite binding with prepared statements and connection pooling.",
       "version": "0.1.0",
       "tier": "community",
-      "tags": ["database", "sql", "storage"],
+      "keywords": ["database", "sql", "storage", "sqlite"],
       "upvotes": 5,
-      "flags": 0
+      "flags": 0,
+      "author": "Bob Smith"
     },
     {
       "name": "nova-img",
       "description": "PNG/JPEG decoding and pixel manipulation. Pure Nova implementation.",
       "version": "0.0.4",
       "tier": "community",
-      "tags": ["image", "graphics"],
+      "keywords": ["image", "graphics", "png", "jpeg"],
       "upvotes": 8,
-      "flags": 2
+      "flags": 2,
+      "author": "Alice Chen"
     }
   ]
 }

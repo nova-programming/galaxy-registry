@@ -5,15 +5,23 @@
   "version": "0.9.5",
   "author": "Nova Core Team",
   "description": "Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.",
-  "tags": ["crypto", "math", "random"],
+  "keywords": ["crypto", "math", "random", "chacha20", "linear-algebra"],
   "license": "MIT",
   "upvotes": 83,
   "flags": 0,
   "quarantined": false,
   "issue_number": 8,
   "versions": [
-    {"version": "0.9.0", "sha256": "aa11bb22cc..."},
-    {"version": "0.9.5", "sha256": "dd33ee44ff..."}
+    {"version": "0.9.0", "sha256": "aa11bb22cc33dd44ee55ff66aa77bb88"},
+    {"version": "0.9.5", "sha256": "bb22cc33dd44ee55ff66aa77bb88cc99"}
+  ],
+  "docs": {
+    "api": "docs/api.md",
+    "examples": "EXAMPLES.md"
+  },
+  "examples": [
+    {"title": "Generate secure random number", "code": "salt = random()\nprint(salt)  # 2049917523"},
+    {"title": "ChaCha20 encryption", "code": "key = 0x12345678\ncounter = 0x9abcdef0\nstate = chacha20_init(key, counter)\nblock = chacha20_block(state)\nprint(block)"}
   ],
   "download_url": "https://github.com/nova-programming/nova-math/archive/refs/heads/main.zip"
 }

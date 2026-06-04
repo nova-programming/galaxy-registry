@@ -6,12 +6,12 @@
     <title>Galaxy Registry — Nova Package Manager</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <style>
         :root {
-            --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #888;
+            --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #787878;
             --border: #e8e8ea; --accent: #0070f3;
             --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
             --code-bg: #0a0a0f; --nav-bg: rgba(255,255,255,0.85);
@@ -73,7 +73,7 @@
         /* Tier Badge */
         .tier-badge {
             display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.15rem 0.5rem; border-radius: 4px;
+            padding: 0.15rem 0.55rem; border-radius: 4px;
             font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
         }
         .tier-badge.core { background: var(--core-bg); color: var(--core); }
@@ -81,11 +81,8 @@
         .tier-badge.community { background: var(--community-bg); color: var(--community); }
         .tier-badge.quarantined { background: #fef2f2; color: var(--flag); }
 
-        /* Tier Filter Tabs */
-        .tier-tabs {
-            display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
+        /* Tier Tabs */
+        .tier-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .tier-tab {
             padding: 0.4rem 1rem; border-radius: 6px;
             background: var(--sidebar-bg); border: 1px solid var(--border);
@@ -94,8 +91,6 @@
         }
         .tier-tab:hover { border-color: #bbb; }
         .tier-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
-
-        /* Search */
         .search-container { position: relative; margin-bottom: 1.5rem; }
         .search-input {
             width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; font-size: 0.9rem;
@@ -123,35 +118,109 @@
         .card-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
         .card-stats { display: flex; gap: 0.75rem; align-items: center; }
         .stat { display: flex; align-items: center; gap: 0.25rem; }
-
         .badge {
             background: #f0f0f2; padding: 0.1rem 0.4rem; border-radius: 3px;
             font-size: 0.7rem; border: 1px solid var(--border);
         }
-        .solo-badge {
-            background: #f0f0f2; padding: 0.15rem 0.5rem; border-radius: 4px;
-            font-weight: 500; border: 1px solid var(--border); font-size: 0.75rem;
-        }
 
-        /* Package Detail */
+        /* ===== DETAIL PAGE ===== */
         .back-btn {
             display: inline-flex; align-items: center; gap: 0.4rem;
             background: none; border: none; color: var(--text-secondary);
             font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-bottom: 1.5rem;
         }
         .back-btn:hover { color: var(--text); }
-        .detail-top { margin-bottom: 2rem; }
-        .detail-top h1 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .detail-top .subtitle { color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.5rem; }
-        .details-layout { display: grid; grid-template-columns: 1fr 280px; gap: 3rem; align-items: start; }
-        .main-column { min-width: 0; }
-        @media (max-width: 768px) { .details-layout { grid-template-columns: 1fr; gap: 2rem; } }
-        .sidebar { border-left: 1px solid var(--border); padding-left: 2rem; }
-        @media (max-width: 768px) {
-            .sidebar { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 2rem; }
+
+        /* Package Header */
+        .pkg-header {
+            border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2rem;
         }
-        .sidebar h4 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-tertiary); margin-bottom: 0.75rem; }
-        .sidebar-section { margin-bottom: 1.75rem; }
+        .pkg-header h1 { font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .pkg-header .pkg-subtitle { color: var(--text-secondary); font-size: 1rem; margin-top: 0.5rem; max-width: 650px; }
+
+        .pkg-header .pkg-meta-row {
+            display: flex; gap: 1.5rem; margin-top: 0.75rem; flex-wrap: wrap;
+            font-size: 0.8rem; color: var(--text-tertiary);
+        }
+        .pkg-header .pkg-meta-row span { display: flex; align-items: center; gap: 0.3rem; }
+
+        /* Keywords */
+        .keyword-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.75rem 0; }
+        .keyword {
+            background: #f0f0f2; padding: 0.2rem 0.55rem; border-radius: 12px;
+            font-size: 0.7rem; border: 1px solid var(--border); color: var(--text-secondary);
+        }
+
+        /* Detail Layout */
+        .details-body {
+            display: grid; grid-template-columns: 1fr 280px; gap: 3rem; align-items: start;
+        }
+        @media (max-width: 800px) { .details-body { grid-template-columns: 1fr; gap: 2rem; } }
+        .main-col { min-width: 0; }
+
+        /* Doc Tabs */
+        .doc-tabs {
+            display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+        }
+        .doc-tab {
+            padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; border-bottom: 2px solid transparent;
+            color: var(--text-tertiary); transition: all .15s;
+            background: none; border-top: none; border-left: none; border-right: none;
+        }
+        .doc-tab:hover { color: var(--text); }
+        .doc-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .doc-section { display: none; }
+        .doc-section.active { display: block; animation: fadeIn .2s ease-out; }
+
+        /* Prose (for rendered markdown) */
+        .prose { line-height: 1.7; }
+        .prose h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .prose p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        .prose li { margin-bottom: 0.3rem; color: var(--text-secondary); }
+        .prose code {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
+            background: #f0f0f2; padding: 0.15em 0.4em; border-radius: 4px;
+        }
+        .prose pre {
+            background: var(--code-bg); color: #e4e4e7;
+            padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto;
+            margin: 1rem 0; font-size: 0.8rem; line-height: 1.5;
+        }
+        .prose pre code { background: transparent; padding: 0; color: inherit; }
+        .prose a { color: var(--accent); text-decoration: none; }
+        .prose a:hover { text-decoration: underline; }
+
+        /* Examples */
+        .example-card {
+            border: 1px solid var(--border); border-radius: 8px;
+            margin-bottom: 1rem; overflow: hidden;
+        }
+        .example-title {
+            padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600;
+            background: var(--sidebar-bg); border-bottom: 1px solid var(--border);
+        }
+        .example-card pre {
+            margin: 0; border-radius: 0;
+            background: var(--code-bg); color: #e4e4e7;
+            padding: 1rem 1.25rem; overflow-x: auto;
+            font-size: 0.8rem; line-height: 1.5;
+        }
+        .example-card pre code { background: none; padding: 0; color: inherit; }
+
+        /* Sidebar */
+        .side-col { border-left: 1px solid var(--border); padding-left: 2rem; }
+        @media (max-width:800px) {
+            .side-col { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 2rem; }
+        }
+        .side-section { margin-bottom: 1.75rem; }
+        .side-section h4 {
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em;
+            color: var(--text-tertiary); margin-bottom: 0.6rem;
+        }
         .install-box {
             display: flex; align-items: center; justify-content: space-between;
             border: 1px solid var(--border); border-radius: 6px;
@@ -161,37 +230,35 @@
         .install-box:hover { border-color: #bbb; }
         .install-box .prefix { color: var(--text-tertiary); margin-right: 0.4rem; }
         .meta-list { list-style: none; }
-        .meta-list li { margin-bottom: 0.6rem; font-size: 0.85rem; }
+        .meta-list li { margin-bottom: 0.5rem; font-size: 0.85rem; }
         .meta-list a { color: var(--accent); text-decoration: none; }
         .meta-list a:hover { text-decoration: underline; }
         .tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
         /* Version Table */
-        .version-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+        .version-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .version-table th { text-align: left; padding: 0.4rem 0.6rem; font-weight: 600; border-bottom: 2px solid var(--border); color: var(--text-tertiary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .version-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+        .version-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
         .version-table tr:hover td { background: var(--sidebar-bg); }
 
-        /* Action Buttons */
         .action-btn {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            padding: 0.5rem 1rem; border-radius: 6px;
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.45rem 0.9rem; border-radius: 6px;
             font-size: 0.8rem; font-weight: 500; cursor: pointer;
             border: 1px solid var(--border); background: #fff; transition: all .15s;
         }
         .action-btn:hover { border-color: #bbb; }
         .action-btn.upvote:hover { color: var(--upvote); border-color: var(--upvote); }
         .action-btn.flag:hover { color: var(--flag); border-color: var(--flag); }
-        .action-bar { display: flex; gap: 0.75rem; margin: 1.5rem 0; flex-wrap: wrap; }
+        .action-bar { display: flex; gap: 0.75rem; margin: 1rem 0; flex-wrap: wrap; }
 
-        /* Community Warning */
         .community-warning {
             background: #fffbeb; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b;
             padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0;
             font-size: 0.85rem;
         }
         .community-warning strong { color: #92400e; display: block; margin-bottom: 0.25rem; }
-        .community-warning p { color: #92400e; margin: 0; }
+        .community-warning p { color: #78350f; margin: 0; }
 
         .quarantine-banner {
             background: #fef2f2; border: 1px solid var(--flag); border-left: 4px solid var(--flag);
@@ -218,7 +285,6 @@
         .btn-secondary:hover { border-color: #999; }
         .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
-        /* Footer */
         footer {
             border-top: 1px solid var(--border); padding: 1.75rem 2rem;
             background: var(--sidebar-bg); margin-top: auto;
@@ -231,10 +297,10 @@
         .footer-links { display: flex; gap: 1.5rem; }
         .footer-links a { color: var(--text-tertiary); text-decoration: none; }
         .footer-links a:hover { color: var(--text); }
-        @media (max-width: 600px) {
+        @media (max-width:600px) {
             .footer-inner { flex-direction: column; gap: 0.75rem; text-align: center; }
-            .hero h1 { font-size: 2.2rem; }
-            .card-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2rem; }
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -258,22 +324,21 @@
     </nav>
 
     <div class="container">
-        <!-- HOME -->
         <section id="view-home" class="view-section active">
             <div class="hero">
                 <h1>The native package manager<br>for <span class="accent">Nova</span>.</h1>
-                <p>Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries from the terminal.</p>
+                <p>Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries.</p>
                 <div class="hero-terminal">
                     <span>$ galaxy install nova-http</span>
                     <button class="copy-btn" onclick="copyText('galaxy install nova-http', this)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
                 </div>
-                <div class="btn-group" style="margin-top: 2rem;">
+                <div class="btn-group" style="margin-top:2rem;">
                     <button class="btn-primary" onclick="switchNav('view-libraries')">Explore Libraries</button>
                     <a class="btn-secondary" href="documentation.html">Read the Docs</a>
                 </div>
-                <div style="margin-top: 2.5rem; display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+                <div style="margin-top:2.5rem;display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;">
                     <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge core">Core</span> Inbuilt runtime</span>
                     <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge verified">Verified</span> Human-reviewed</span>
                     <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge community">Community</span> User-submitted</span>
@@ -281,81 +346,92 @@
             </div>
         </section>
 
-        <!-- LIBRARIES -->
         <section id="view-libraries" class="view-section">
             <div style="margin-bottom:1.5rem;">
                 <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Libraries</h1>
                 <p style="color:var(--text-secondary);font-size:0.9rem;">Browse packages across all trust tiers.</p>
             </div>
-
             <div class="tier-tabs" id="tier-tabs">
                 <span class="tier-tab active" data-tier="all">All</span>
                 <span class="tier-tab" data-tier="core">Core</span>
                 <span class="tier-tab" data-tier="verified">Verified</span>
                 <span class="tier-tab" data-tier="community">Community</span>
             </div>
-
             <div class="search-container">
-                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="pkg-search" class="search-input" placeholder="Search packages..." onkeyup="filterPackages()">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="pkg-search" class="search-input" placeholder="Search by name, description, or keywords..." onkeyup="filterPackages()">
             </div>
-
-            <div id="package-grid" class="grid">
-                <div class="loading">Loading packages...</div>
-            </div>
+            <div id="package-grid" class="grid"><div class="loading">Loading packages...</div></div>
         </section>
 
-        <!-- PACKAGE DETAILS -->
         <section id="view-package-details" class="view-section">
             <button class="back-btn" onclick="switchNav('view-libraries')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 Back to Libraries
             </button>
             <div id="pkg-detail-loader" class="loading">Loading package...</div>
             <div id="pkg-detail-content" style="display:none;">
-                <div class="detail-top">
-                    <h1><span id="detail-name"></span> <span id="detail-tier-badge" class="tier-badge"></span></h1>
-                    <div class="subtitle" id="detail-description"></div>
-                </div>
-
                 <div id="quarantine-banner" class="quarantine-banner" style="display:none;">
-                    <strong>Package Quarantined</strong>
+                    <strong>&#9888; Package Quarantined</strong>
                     <p>This package has been flagged by the community and is under review. Installation is blocked.</p>
                 </div>
-
                 <div id="community-warning" class="community-warning" style="display:none;">
-                    <strong>Community Package — Not Verified</strong>
-                    <p>This package was submitted by a community member and has not been reviewed by the Nova team. Review the source code before using it in production.</p>
+                    <strong>&#9888; Community Package — Not Verified</strong>
+                    <p>This package was submitted by a community member and has not been reviewed. Review the source before using in production.</p>
                 </div>
 
-                <div class="details-layout">
-                    <div class="main-column">
-                        <div class="action-bar" id="detail-actions">
-                            <button class="action-btn upvote" onclick="mockUpvote(this)">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                                Upvote <span id="detail-upvotes"></span>
-                            </button>
-                            <button class="action-btn flag" onclick="mockFlag()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path></svg>
-                                Flag
-                            </button>
-                            <a class="action-btn" id="detail-comments-link" href="#" target="_blank" style="text-decoration:none;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                Comments
-                            </a>
+                <div class="pkg-header">
+                    <h1><span id="detail-name"></span> <span id="detail-tier-badge" class="tier-badge"></span></h1>
+                    <div class="pkg-subtitle" id="detail-description"></div>
+                    <div class="keyword-list" id="detail-keywords"></div>
+                    <div class="pkg-meta-row">
+                        <span id="detail-version-display"></span>
+                        <span id="detail-author-display"></span>
+                        <span id="detail-license-display"></span>
+                        <span id="detail-upvotes-display"></span>
+                    </div>
+                </div>
+
+                <div class="action-bar" id="detail-actions">
+                    <button class="action-btn upvote" onclick="mockUpvote(this)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                        Upvote <span id="detail-upvotes"></span>
+                    </button>
+                    <button class="action-btn flag" onclick="mockFlag()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path></svg>
+                        Flag
+                    </button>
+                    <a class="action-btn" id="detail-comments-link" href="#" target="_blank" style="text-decoration:none;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Comments
+                    </a>
+                </div>
+
+                <div class="details-body">
+                    <div class="main-col">
+                        <div class="doc-tabs" id="doc-tabs"></div>
+                        <div id="doc-overview" class="doc-section active">
+                            <div class="prose" id="detail-readme"></div>
+                        </div>
+                        <div id="doc-api" class="doc-section">
+                            <div class="prose" id="detail-api"></div>
+                        </div>
+                        <div id="doc-examples" class="doc-section">
+                            <div id="detail-examples"></div>
+                        </div>
+                        <div id="doc-changelog" class="doc-section">
+                            <div class="prose" id="detail-changelog"></div>
                         </div>
 
-                        <div id="detail-readme" class="prose" style="margin-top:1rem;"></div>
-
                         <h3 style="font-size:1rem;font-weight:600;margin-top:2rem;margin-bottom:0.5rem;">Version History</h3>
-                        <table class="version-table" id="version-table">
+                        <table class="version-table">
                             <thead><tr><th>Version</th><th>SHA-256</th></tr></thead>
                             <tbody id="version-table-body"></tbody>
                         </table>
                     </div>
 
-                    <div class="sidebar">
-                        <div class="sidebar-section">
+                    <div class="side-col">
+                        <div class="side-section">
                             <h4>Install</h4>
                             <div class="install-box" onclick="copyText(document.getElementById('detail-install').innerText, this)">
                                 <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -364,17 +440,26 @@
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </div>
                         </div>
-                        <div class="sidebar-section">
-                            <h4>Information</h4>
+
+                        <div class="side-section">
+                            <h4>Metadata</h4>
                             <ul class="meta-list">
                                 <li><strong>Version:</strong> <span id="detail-version"></span></li>
                                 <li><strong>Tier:</strong> <span id="detail-tier"></span></li>
                                 <li><strong>Author:</strong> <span id="detail-author"></span></li>
                                 <li><strong>License:</strong> <span id="detail-license"></span></li>
-                                <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
                             </ul>
                         </div>
-                        <div class="sidebar-section">
+
+                        <div class="side-section" id="detail-links-section">
+                            <h4>Links</h4>
+                            <ul class="meta-list">
+                                <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
+                                <li><a href="#" id="detail-github-issues" target="_blank">Issue Tracker &nearr;</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="side-section">
                             <h4>Tags</h4>
                             <div class="tag-list" id="detail-tags"></div>
                         </div>
@@ -383,48 +468,34 @@
             </div>
         </section>
 
-        <!-- CONTRIBUTE -->
         <section id="view-contribute" class="view-section">
             <div class="prose">
                 <h1>Contribute</h1>
                 <p>Galaxy is a fully static, Git-backed registry organized into three trust tiers.</p>
                 <h2>Tiers</h2>
                 <ul>
-                    <li><strong>Core</strong> — maintained by the Nova core team. Ships with the runtime.</li>
-                    <li><strong>Verified</strong> — human-reviewed for code quality and security. Promoted from Community.</li>
+                    <li><strong>Core</strong> — maintained by the Nova team. Ships with the compiler.</li>
+                    <li><strong>Verified</strong> — human-reviewed for code quality. Promoted from Community.</li>
                     <li><strong>Community</strong> — auto-published via PR. Anyone can contribute.</li>
                 </ul>
                 <h2>How to Publish</h2>
-                <p>All new submissions go to the <strong>Community</strong> tier. Verified status is earned through upvotes and human review.</p>
+                <p>All new submissions go to the Community tier. Verified status is earned through upvotes and human review.</p>
                 <ol>
-                    <li>Host your Nova library on GitHub.</li>
-                    <li>Run <code>galaxy init library my-lib</code> to generate metadata.</li>
+                    <li>Host your Nova library on GitHub with a README.md.</li>
+                    <li>Run <code>galaxy init library my-lib</code> to generate galaxy.json.</li>
                     <li>Run <code>galaxy publish</code> to open a PR to the registry.</li>
                 </ol>
-                <p>Your package JSON must follow this schema:</p>
-                <pre><code>{
-  "package": "my-lib",
-  "tier": "community",
-  "github_repo": "yourusername/my-lib",
-  "version": "1.0.0",
-  "author": "Your Name",
-  "description": "A brief description.",
-  "tags": ["utility"],
-  "download_url": "https://github.com/yourusername/my-lib/archive/refs/tags/v1.0.0.zip"
-}</code></pre>
             </div>
         </section>
 
-        <!-- CONTACT -->
         <section id="view-contact" class="view-section">
             <div class="prose">
                 <h1>Contact &amp; Community</h1>
-                <p>Nova is open-source. We'd love your involvement.</p>
+                <p>Get involved with Nova development.</p>
                 <ul class="meta-list" style="margin-top:2rem;">
-                    <li><strong>GitHub Organization:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming &nearr;</a></li>
-                    <li><strong>Report Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker &nearr;</a></li>
+                    <li><strong>GitHub:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming &nearr;</a></li>
+                    <li><strong>Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker &nearr;</a></li>
                     <li><strong>Registry:</strong> <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry &nearr;</a></li>
-                    <li><strong>Discord:</strong> Coming Soon</li>
                 </ul>
             </div>
         </section>
@@ -443,7 +514,7 @@
 
     <script>
         const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-        const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
         let allPackages = [];
         let activeTier = 'all';
 
@@ -463,13 +534,13 @@
 
         function switchNav(viewId) {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const mapping = { 'view-home': 0, 'view-libraries': 1, 'view-contribute': 3, 'view-contact': 4, 'view-package-details': 1 };
-            const idx = mapping[viewId];
+            const map = { 'view-home':0, 'view-libraries':1, 'view-contribute':3, 'view-contact':4, 'view-package-details':1 };
+            const idx = map[viewId];
             if (idx !== undefined) document.querySelectorAll('.nav-link')[idx].classList.add('active');
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             const el = document.getElementById(viewId);
             if (el) el.classList.add('active');
-            window.scrollTo(0, 0);
+            window.scrollTo(0,0);
         }
 
         function copyText(text, btn) {
@@ -480,9 +551,9 @@
 
         function filterPackages() { renderGrid(); }
 
-        function makeTierBadge(tier) {
-            const labels = { core: 'Core', verified: 'Verified', community: 'Community' };
-            return `<span class="tier-badge ${tier}">${labels[tier] || tier}</span>`;
+        function makeTierBadge(tier, label) {
+            const l = label || (tier.charAt(0).toUpperCase() + tier.slice(1));
+            return `<span class="tier-badge ${tier}">${l}</span>`;
         }
 
         function renderGrid() {
@@ -490,24 +561,24 @@
             const grid = document.getElementById('package-grid');
             const filtered = allPackages.filter(p => {
                 if (activeTier !== 'all' && p.tier !== activeTier) return false;
-                if (q && !p.name.toLowerCase().includes(q) && !p.description.toLowerCase().includes(q)) return false;
+                if (q) {
+                    const searchText = (p.name + ' ' + p.description + ' ' + (p.keywords||[]).join(' ')).toLowerCase();
+                    if (!searchText.includes(q)) return false;
+                }
                 return true;
             });
             if (filtered.length === 0) {
-                grid.innerHTML = '<div class="loading" style="color:var(--text-secondary);padding:2rem 0;">No packages match your filters.</div>';
+                grid.innerHTML = '<div class="loading" style="padding:2rem 0;">No packages match your filters.</div>';
                 return;
             }
             grid.innerHTML = filtered.map(p => `
                 <div class="card" onclick="showPackageDetails('${p.name}')">
-                    <div class="card-header">
-                        <h3>${p.name}</h3>
-                        ${makeTierBadge(p.tier)}
-                    </div>
+                    <div class="card-header"><h3>${p.name}</h3>${makeTierBadge(p.tier)}</div>
                     <p>${p.description}</p>
                     <div class="card-footer">
-                        <div class="card-tags">${(p.tags||[]).map(t => `<span class="badge">${t}</span>`).join('')}</div>
+                        <div class="card-tags">${(p.keywords||[]).slice(0,3).map(t => `<span class="badge">${t}</span>`).join('')}</div>
                         <div class="card-stats">
-                            ${p.tier === 'community' ? `<span class="stat"><span style="color:var(--upvote);">&#9650;</span> ${p.upvotes||0}</span>` : ''}
+                            ${p.tier === 'community' ? `<span class="stat"><span style="color:var(--upvote);">&#9650;</span>${p.upvotes||0}</span>` : ''}
                             <span class="stat">v${p.version}</span>
                         </div>
                     </div>
@@ -515,11 +586,17 @@
             `).join('');
         }
 
+        function switchDocTab(tabId) {
+            document.querySelectorAll('.doc-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.doc-section').forEach(s => s.classList.remove('active'));
+            document.querySelector(`.doc-tab[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
         function showPackageDetails(name) {
             switchNav('view-package-details');
             document.getElementById('pkg-detail-content').style.display = 'none';
             document.getElementById('pkg-detail-loader').style.display = 'block';
-            document.getElementById('pkg-detail-loader').innerText = 'Loading package...';
 
             fetch(`/packages/${name}.json`)
                 .then(r => r.json())
@@ -528,9 +605,9 @@
                     document.getElementById('pkg-detail-content').style.display = 'block';
 
                     document.getElementById('detail-name').innerText = data.package;
-                    const tierBadge = document.getElementById('detail-tier-badge');
-                    tierBadge.className = `tier-badge ${data.tier}`;
-                    tierBadge.innerText = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
+                    const tb = document.getElementById('detail-tier-badge');
+                    tb.className = `tier-badge ${data.tier}`;
+                    tb.innerText = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
                     document.getElementById('detail-description').innerText = data.description;
                     document.getElementById('detail-install').innerText = `galaxy install ${data.package}`;
                     document.getElementById('detail-version').innerText = data.version;
@@ -538,11 +615,22 @@
                     document.getElementById('detail-author').innerText = data.author;
                     document.getElementById('detail-license').innerText = data.license || 'MIT';
                     document.getElementById('detail-upvotes').innerText = data.upvotes || 0;
+
+                    document.getElementById('detail-version-display').innerHTML = '<strong>Version:</strong> ' + data.version;
+                    document.getElementById('detail-author-display').innerHTML = '<strong>Author:</strong> ' + data.author;
+                    document.getElementById('detail-license-display').innerHTML = '<strong>License:</strong> ' + (data.license || 'MIT');
+                    document.getElementById('detail-upvotes-display').innerHTML = '<strong>&#9650;</strong> ' + (data.upvotes || 0) + ' upvotes';
+
+                    const kw = document.getElementById('detail-keywords');
+                    kw.innerHTML = '';
+                    (data.keywords||[]).forEach(k => { kw.innerHTML += `<span class="keyword">${k}</span>`; });
+
                     document.getElementById('detail-repo').href = `https://github.com/${data.github_repo}`;
+                    document.getElementById('detail-github-issues').href = `https://github.com/${data.github_repo}/issues`;
 
                     const tc = document.getElementById('detail-tags');
                     tc.innerHTML = '';
-                    (data.tags||[]).forEach(t => { tc.innerHTML += `<span class="badge">${t}</span>`; });
+                    (data.keywords||[]).forEach(t => { tc.innerHTML += `<span class="badge">${t}</span>`; });
 
                     const vb = document.getElementById('version-table-body');
                     vb.innerHTML = '';
@@ -558,23 +646,67 @@
                         commentsLink.style.display = 'none';
                     }
 
-                    const communityWarn = document.getElementById('community-warning');
-                    communityWarn.style.display = data.tier === 'community' ? 'block' : 'none';
+                    document.getElementById('community-warning').style.display = data.tier === 'community' ? 'block' : 'none';
+                    document.getElementById('quarantine-banner').style.display = data.quarantined ? 'block' : 'none';
+                    document.getElementById('detail-actions').style.display = data.tier === 'community' ? 'flex' : 'none';
 
-                    const quarantineBanner = document.getElementById('quarantine-banner');
-                    quarantineBanner.style.display = data.quarantined ? 'block' : 'none';
+                    /* Build doc tabs */
+                    const tabs = document.getElementById('doc-tabs');
+                    const docs = data.docs || {};
+                    const hasApi = !!docs.api;
+                    const hasExamples = (data.examples && data.examples.length > 0) || !!docs.examples;
+                    const hasChangelog = !!docs.changelog;
 
-                    const actions = document.getElementById('detail-actions');
-                    actions.style.display = data.tier === 'community' ? 'flex' : 'none';
+                    tabs.innerHTML = '<button class="doc-tab active" data-tab="doc-overview" onclick="switchDocTab(\'doc-overview\')">Overview</button>';
+                    if (hasApi) tabs.innerHTML += '<button class="doc-tab" data-tab="doc-api" onclick="switchDocTab(\'doc-api\')">API Reference</button>';
+                    if (hasExamples) tabs.innerHTML += '<button class="doc-tab" data-tab="doc-examples" onclick="switchDocTab(\'doc-examples\')">Examples</button>';
+                    if (hasChangelog) tabs.innerHTML += '<button class="doc-tab" data-tab="doc-changelog" onclick="switchDocTab(\'doc-changelog\')">Changelog</button>';
 
+                    document.querySelectorAll('.doc-section').forEach(s => s.classList.remove('active'));
+                    document.getElementById('doc-overview').classList.add('active');
+
+                    /* Fetch README */
                     fetch(`https://raw.githubusercontent.com/${data.github_repo}/main/README.md`)
                         .then(r => { if (!r.ok) throw Error(); return r.text(); })
                         .then(md => { document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(md)); })
                         .catch(() => {
                             document.getElementById('detail-readme').innerHTML = DOMPurify.sanitize(marked.parse(
-                                `## ${data.package}\n${data.description}\n\n\`\`\`bash\ngalaxy install ${data.package}\n\`\`\``
+                                `## ${data.package}\n${data.description}\n\nSee the [GitHub repository](https://github.com/${data.github_repo}) for full documentation.`
                             ));
                         });
+
+                    /* Fetch API docs */
+                    if (hasApi) {
+                        fetch(`https://raw.githubusercontent.com/${data.github_repo}/main/${docs.api}`)
+                            .then(r => { if (!r.ok) throw Error(); return r.text(); })
+                            .then(md => { document.getElementById('detail-api').innerHTML = DOMPurify.sanitize(marked.parse(md)); })
+                            .catch(() => { document.getElementById('detail-api').innerHTML = '<p style="color:var(--text-tertiary);">No API reference available yet.</p>'; });
+                    } else {
+                        document.getElementById('detail-api').innerHTML = '';
+                    }
+
+                    /* Render examples */
+                    const exContainer = document.getElementById('detail-examples');
+                    if (data.examples && data.examples.length > 0) {
+                        exContainer.innerHTML = data.examples.map(ex => `
+                            <div class="example-card">
+                                <div class="example-title">${ex.title}</div>
+                                <pre><code>${DOMPurify.sanitize(ex.code)}</code></pre>
+                            </div>
+                        `).join('');
+                    } else {
+                        exContainer.innerHTML = '<p style="color:var(--text-tertiary);">No examples available yet.</p>';
+                    }
+
+                    /* Fetch changelog */
+                    if (hasChangelog) {
+                        fetch(`https://raw.githubusercontent.com/${data.github_repo}/main/${docs.changelog}`)
+                            .then(r => { if (!r.ok) throw Error(); return r.text(); })
+                            .then(md => { document.getElementById('detail-changelog').innerHTML = DOMPurify.sanitize(marked.parse(md)); })
+                            .catch(() => { document.getElementById('detail-changelog').innerHTML = '<p style="color:var(--text-tertiary);">No changelog available.</p>'; });
+                    } else {
+                        document.getElementById('detail-changelog').innerHTML = '';
+                    }
                 })
                 .catch(() => {
                     document.getElementById('pkg-detail-loader').innerHTML = '<span class="error-text">Failed to load package details.</span>';
@@ -590,20 +722,15 @@
         }
 
         function mockFlag() {
-            if (confirm('Flag this package as suspicious? This will notify the review team.')) {
-                alert('Package flagged. Thank you for helping keep the community safe.');
+            if (confirm('Flag this package as suspicious?')) {
+                alert('Package flagged. The review team has been notified.');
             }
         }
 
         fetch('/packages/index.json')
             .then(r => r.json())
-            .then(data => {
-                allPackages = data.packages || [];
-                renderGrid();
-            })
-            .catch(() => {
-                document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to the registry.</div>';
-            });
+            .then(data => { allPackages = data.packages || []; renderGrid(); })
+            .catch(() => { document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to registry.</div>'; });
     </script>
 </body>
 </html>
