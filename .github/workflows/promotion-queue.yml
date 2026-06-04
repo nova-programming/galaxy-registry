@@ -1,0 +1,64 @@
+name: Promotion Queue Check
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-promotions:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Identify promotable packages
+        id: promo-check
+        run: |
+          python3 << 'PYEOF'
+import json, os
+
+promotable = []
+with open("packages/index.json") as f:
+    idx = json.load(f)
+
+for pkg in idx.get("packages", []):
+    name = pkg["name"]
+    tier = pkg.get("tier", "")
+    upvotes = pkg.get("upvotes", 0)
+    flags = pkg.get("flags", 0)
+
+    if tier == "community" and upvotes >= 50 and flags == 0:
+        promotable.append(name)
+
+if not promotable:
+    print("No promotable packages found.")
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+        out.write("candidates=\n")
+else:
+    names = ",".join(promotable)
+    print(f"Candidates: {names}")
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+        out.write(f"candidates={names}\n")
+PYEOF
+
+      - name: Create promotion issues
+        if: steps.promo-check.outputs.candidates != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          IFS=',' read -ra PKGS <<< "${{ steps.promo-check.outputs.candidates }}"
+          for pkg in "${PKGS[@]}"; do
+            gh issue create \
+              --title "Promotion candidate: $pkg" \
+              --body "## Promotion Candidate
+
+**Package:** $pkg
+**Criteria:** ≥50 upvotes, 0 flags
+
+This community package has reached the promotion threshold. Review and consider moving it to \`verified\` tier.
+
+*Automated by promotion-queue workflow.*" \
+              --label "promotion"
+          done

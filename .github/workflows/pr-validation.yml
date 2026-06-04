@@ -1,0 +1,147 @@
+name: PR Validation
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**/*.json'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate package JSONs
+        run: |
+          errors=0
+          for f in packages/*.json; do
+            name=$(basename "$f")
+            echo "Validating: $name"
+
+            # 1. Must be valid JSON
+            if ! python3 -c "import json; json.load(open('$f'))" 2>/dev/null; then
+              echo "  ERROR: Invalid JSON in $name"
+              errors=$((errors+1))
+              continue
+            fi
+
+            # Skip index.json (aggregate listing)
+            [ "$name" = "index.json" ] && continue
+
+            # 2. Required fields
+            pkg=$(python3 -c "
+import json
+d = json.load(open('$f'))
+required = ['package', 'version', 'tier', 'github_repo', 'author', 'versions']
+for k in required:
+    if k not in d:
+        print(f'MISSING: {k}')
+" 2>/dev/null)
+            if [ -n "$pkg" ]; then
+              echo "  $pkg"
+              errors=$((errors+1))
+            fi
+
+            # 3. Tier must be valid
+            tier=$(python3 -c "import json; print(json.load(open('$f')).get('tier',''))")
+            case "$tier" in
+              core|verified|community) ;;
+              *)
+                echo "  ERROR: Invalid tier '$tier' in $name"
+                errors=$((errors+1))
+                ;;
+            esac
+
+            # 4. versions array must be non-empty with semver
+            python3 -c "
+import json
+d = json.load(open('$f'))
+vers = d.get('versions', [])
+if not vers:
+    print('  ERROR: Empty versions array')
+    exit(1)
+for v in vers:
+    if 'version' not in v or 'sha256' not in v:
+        print(f'  ERROR: Invalid version entry in {name}: {v}')
+        exit(1)
+" 2>/dev/null || errors=$((errors+1))
+
+            # 5. Version must be monotonic (append-only, no repeats)
+            python3 -c "
+import json
+d = json.load(open('$f'))
+vers = [v['version'] for v in d.get('versions', [])]
+if len(vers) != len(set(vers)):
+    print(f'  ERROR: Duplicate versions in {name}')
+    exit(1)
+" 2>/dev/null || errors=$((errors+1))
+
+            # 6. currentVersion and newestVersion must be valid
+            python3 -c "
+import json
+d = json.load(open('$f'))
+cv = d.get('currentVersion', d.get('version'))
+nv = d.get('newestVersion', cv)
+vers = [v['version'] for v in d.get('versions', [])]
+if cv and cv not in vers:
+    print(f'  WARNING: currentVersion {cv} not in versions list')
+if nv and nv not in vers:
+    print(f'  WARNING: newestVersion {nv} not in versions list')
+" 2>/dev/null
+          done
+
+          echo ""
+          if [ $errors -gt 0 ]; then
+            echo "Total errors: $errors"
+            exit 1
+          fi
+          echo "All package JSONs valid."
+
+      - name: Check name uniqueness
+        run: |
+          names=$(python3 -c "
+import json, glob, os
+names = {}
+for f in glob.glob('packages/*.json'):
+    if os.path.basename(f) == 'index.json':
+        continue
+    d = json.load(open(f))
+    n = d.get('package', '')
+    names.setdefault(n, []).append(f)
+dupes = {k:v for k,v in names.items() if len(v) > 1}
+if dupes:
+    for n, files in dupes.items():
+        print(f'Duplicate package name \"{n}\" in: {files}')
+    exit(1)
+print('All package names unique.')
+") 2>/dev/null
+          echo "$names"
+
+      - name: Verify index.json matches individual packages
+        run: |
+          python3 -c "
+import json
+idx = json.load(open('packages/index.json'))
+pkg_names = {p['name'] for p in idx.get('packages', [])}
+
+import glob, os
+file_names = set()
+for f in glob.glob('packages/*.json'):
+    base = os.path.basename(f)
+    if base == 'index.json':
+        continue
+    d = json.load(open(f))
+    file_names.add(d['package'])
+
+if pkg_names != file_names:
+    only_idx = pkg_names - file_names
+    only_file = file_names - pkg_names
+    if only_idx:
+        print(f'In index.json but no file: {only_idx}')
+    if only_file:
+        print(f'In files but not index.json: {only_file}')
+    exit(1)
+print('index.json matches individual packages.')
+"

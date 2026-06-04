@@ -1,0 +1,67 @@
+name: Auto-Quarantine Check
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-flags:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Identify flagged packages
+        id: flag-check
+        run: |
+          python3 << 'PYEOF'
+import json, os
+
+flagged = []
+with open("packages/index.json") as f:
+    idx = json.load(f)
+
+for pkg in idx.get("packages", []):
+    name = pkg["name"]
+    flags = pkg.get("flags", 0)
+    if flags >= 5:
+        pkg_file = f"packages/{name}.json"
+        if os.path.exists(pkg_file):
+            with open(pkg_file) as pf:
+                data = json.load(pf)
+            if not data.get("quarantined"):
+                flagged.append(name)
+
+if not flagged:
+    print("No packages exceed quarantine threshold.")
+    # Set empty output so next step is skipped
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+        out.write("candidates=\n")
+else:
+    names = ",".join(flagged)
+    print(f"Candidates: {names}")
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+        out.write(f"candidates={names}\n")
+PYEOF
+
+      - name: Create quarantine issues
+        if: steps.flag-check.outputs.candidates != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          IFS=',' read -ra PKGS <<< "${{ steps.flag-check.outputs.candidates }}"
+          for pkg in "${PKGS[@]}"; do
+            gh issue create \
+              --title "Auto-quarantine: $pkg" \
+              --body "## Auto-Quarantine Notice
+
+**Package:** $pkg
+**Threshold:** ≥5 flags
+
+This package has exceeded the flag threshold. Review and set \`quarantined: true\` in the package JSON if confirmed.
+
+*Automated by auto-quarantine workflow.*" \
+              --label "quarantine"
+          done
