@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Galaxy Registry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #787878;
+            --border: #e8e8ea; --accent: #0070f3; --flag: #ef4444; --upvote: #10b981;
+            --code-bg: #0a0a0f; --nav-bg: rgba(255,255,255,0.85);
+            --sidebar-bg: #f7f7f8;
+            --core: #7928ca; --verified: #10b981; --community: #888;
+            --core-bg: #f3e8ff; --verified-bg: #ecfdf5; --community-bg: #f5f5f5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+            line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh;
+        }
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
+        }
+        .nav-brand {
+            font-weight: 700; font-size: 1.2rem; letter-spacing: -0.03em;
+            display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit;
+        }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.875rem;
+            font-weight: 500; transition: color .2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+        /* Auth Banner */
+        .auth-banner {
+            background: #fffbeb; border: 1px solid #f59e0b;
+            border-radius: 8px; padding: 0.75rem 1.25rem; margin-bottom: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            font-size: 0.85rem;
+        }
+        .auth-banner p { color: #92400e; }
+        .auth-btn {
+            background: var(--accent); color: #fff; border: none;
+            padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.8rem;
+            font-weight: 500; cursor: pointer; white-space: nowrap;
+        }
+        .auth-btn:hover { opacity: 0.9; }
+
+        /* Stats */
+        .stat-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card {
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 1rem 1.25rem; background: var(--sidebar-bg);
+        }
+        .stat-card .stat-number { font-size: 1.75rem; font-weight: 700; }
+        .stat-card .stat-label { font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.15rem; }
+        .stat-card.warn { border-color: var(--flag); }
+        .stat-card.warn .stat-number { color: var(--flag); }
+        .stat-card.success .stat-number { color: var(--upvote); }
+
+        /* Section Header */
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; margin-top: 2rem; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .section-header h2 { font-size: 1.15rem; font-weight: 600; }
+        .section-header .count { color: var(--text-tertiary); font-weight: 400; }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th {
+            text-align: left; padding: 0.6rem 0.75rem; font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            background: var(--sidebar-bg); color: var(--text-tertiary);
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+        td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        tr:hover td { background: var(--sidebar-bg); }
+        tr.danger td { background: #fef2f2; }
+        .action-cell { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+        .tier-badge {
+            display: inline-block; padding: 0.1rem 0.45rem; border-radius: 4px;
+            font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+        }
+        .tier-badge.core { background: var(--core-bg); color: var(--core); }
+        .tier-badge.verified { background: var(--verified-bg); color: var(--verified); }
+        .tier-badge.community { background: var(--community-bg); color: var(--community); }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.35rem 0.7rem; border-radius: 5px; font-size: 0.75rem;
+            font-weight: 500; cursor: pointer; text-decoration: none;
+            border: 1px solid var(--border); background: #fff;
+            color: var(--text-secondary); transition: all .15s;
+            white-space: nowrap;
+        }
+        .btn:hover { border-color: #bbb; }
+        .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-danger { color: var(--flag); border-color: var(--flag); }
+        .btn-danger:hover { background: #fef2f2; }
+        .btn-success { color: var(--upvote); border-color: var(--upvote); }
+        .btn-success:hover { background: #ecfdf5; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .badge {
+            background: #f0f0f2; padding: 0.1rem 0.35rem; border-radius: 3px;
+            font-size: 0.7rem; border: 1px solid var(--border);
+        }
+
+        .empty-state { text-align: center; padding: 3rem 0; color: var(--text-tertiary); font-size: 0.9rem; }
+
+        .footer-note {
+            margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+            font-size: 0.8rem; color: var(--text-tertiary);
+        }
+        .footer-note a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 700px) {
+            .stat-row { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a class="nav-brand" href="index.html" style="text-decoration:none;color:inherit;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Galaxy Admin
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Registry</a>
+            <a href="documentation.html">Docs</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="margin-bottom:1.5rem;">
+            <h1 style="font-size:1.5rem;font-weight:700;">Admin Dashboard</h1>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">Package registry management — all actions go through GitHub for audit and security.</p>
+        </div>
+
+        <div class="auth-banner" id="auth-banner">
+            <p><strong>&#9888; Authentication required to take action.</strong> Login with GitHub to promote packages or manage flags. Only nova-programming org members can execute changes.</p>
+            <button class="auth-btn" id="auth-btn" onclick="loginWithGitHub()">Login with GitHub</button>
+        </div>
+
+        <div class="stat-row" id="stats-row">
+            <div class="stat-card"><div class="stat-number" id="stat-total">-</div><div class="stat-label">Total Packages</div></div>
+            <div class="stat-card"><div class="stat-number" id="stat-core">-</div><div class="stat-label">Core</div></div>
+            <div class="stat-card"><div class="stat-number" id="stat-verified">-</div><div class="stat-label">Verified</div></div>
+            <div class="stat-card"><div class="stat-number" id="stat-community">-</div><div class="stat-label">Community</div></div>
+            <div class="stat-card warn"><div class="stat-number" id="stat-flagged">-</div><div class="stat-label">Flagged (&ge;1)</div></div>
+            <div class="stat-card success"><div class="stat-number" id="stat-promotable">-</div><div class="stat-label">Promotion Candidates</div></div>
+        </div>
+
+        <div class="section-header">
+            <h2>Flagged Packages <span class="count" id="flagged-count"></span></h2>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr>
+                    <th>Package</th><th>Tier</th><th>Flags</th><th>Upvotes</th><th>Author</th><th>Status</th><th>Actions</th>
+                </tr></thead>
+                <tbody id="flagged-rows"></tbody>
+            </table>
+        </div>
+        <div id="flagged-empty" class="empty-state" style="display:none;">No flagged packages. Everything looks clean.</div>
+
+        <div class="section-header">
+            <h2>Promotion Candidates <span class="count" id="promo-count"></span></h2>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr>
+                    <th>Package</th><th>Upvotes</th><th>Flags</th><th>Author</th><th>Version</th><th>Actions</th>
+                </tr></thead>
+                <tbody id="promo-rows"></tbody>
+            </table>
+        </div>
+        <div id="promo-empty" class="empty-state" style="display:none;">No promotion candidates yet. Community packages with &ge;50 upvotes and 0 flags appear here.</div>
+
+        <div class="section-header">
+            <h2>All Packages <span class="count" id="all-count"></span></h2>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr>
+                    <th>Package</th><th>Tier</th><th>Version</th><th>Author</th><th>Upvotes</th><th>Flags</th><th>Quarantined</th><th>Actions</th>
+                </tr></thead>
+                <tbody id="all-rows"></tbody>
+            </table>
+        </div>
+
+        <div class="footer-note">
+            <strong>How security works:</strong> This dashboard is read-only view of public data. All write actions (promote, quarantine, delete) go through
+            <a href="#" onclick="showSecurityInfo();return false;">GitHub PRs or Issues</a> where org membership is enforced.
+            Read the <a href="docs/security.md">full security model</a>.
+        </div>
+    </div>
+
+    <script>
+        let allPackages = [];
+        let fullData = {};
+        let isAuthenticated = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if we have an auth token stored
+            const token = sessionStorage.getItem('galaxy_admin_token');
+            if (token) {
+                verifyToken(token);
+            }
+            loadPackages();
+        });
+
+        function loadPackages() {
+            fetch('/packages/index.json')
+                .then(r => r.json())
+                .then(data => {
+                    allPackages = data.packages || [];
+                    // Fetch full metadata for each package
+                    const fetches = allPackages.map(p =>
+                        fetch(`/packages/${p.name}.json`).then(r => r.json()).catch(() => null)
+                    );
+                    return Promise.all(fetches).then(results => {
+                        results.forEach((d, i) => {
+                            if (d) fullData[d.package] = d;
+                        });
+                        renderDashboard();
+                    });
+                })
+                .catch(() => {
+                    document.querySelector('.container').innerHTML = '<div class="empty-state error-text">Failed to load registry data.</div>';
+                });
+        }
+
+        function renderDashboard() {
+            const all = allPackages;
+            const core = all.filter(p => p.tier === 'core');
+            const verified = all.filter(p => p.tier === 'verified');
+            const community = all.filter(p => p.tier === 'community');
+            const flagged = all.filter(p => (p.flags || 0) >= 1);
+            const promotable = all.filter(p => p.tier === 'community' && (p.upvotes || 0) >= 50 && (p.flags || 0) === 0);
+
+            document.getElementById('stat-total').innerText = all.length;
+            document.getElementById('stat-core').innerText = core.length;
+            document.getElementById('stat-verified').innerText = verified.length;
+            document.getElementById('stat-community').innerText = community.length;
+            document.getElementById('stat-flagged').innerText = flagged.length;
+            document.getElementById('stat-promotable').innerText = promotable.length;
+
+            /* Flagged table */
+            const flaggedBody = document.getElementById('flagged-rows');
+            const flaggedEmpty = document.getElementById('flagged-empty');
+            if (flagged.length === 0) {
+                flaggedBody.innerHTML = '';
+                flaggedEmpty.style.display = 'block';
+            } else {
+                flaggedEmpty.style.display = 'none';
+                flagged.sort((a, b) => (b.flags||0) - (a.flags||0));
+                flaggedBody.innerHTML = flagged.map(p => {
+                    const d = fullData[p.name] || {};
+                    const isQ = d.quarantined;
+                    return `<tr class="${isQ ? 'danger' : ''}">
+                        <td><strong><a href="index.html?view=view-package-details" onclick="sessionStorage.setItem('galaxy_pkg','${p.name}');return true;">${p.name}</a></strong></td>
+                        <td><span class="tier-badge ${p.tier}">${p.tier}</span></td>
+                        <td><span style="color:var(--flag);font-weight:600;">${p.flags||0}</span></td>
+                        <td>${p.upvotes||0}</td>
+                        <td>${p.author || '-'}</td>
+                        <td>${isQ ? '<span style="color:var(--flag);font-weight:600;">Quarantined</span>' : '<span style="color:var(--upvote);">Active</span>'}</td>
+                        <td class="action-cell">
+                            ${renderActionButtons(p, d, isQ)}
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            /* Promotion table */
+            const promoBody = document.getElementById('promo-rows');
+            const promoEmpty = document.getElementById('promo-empty');
+            if (promotable.length === 0) {
+                promoBody.innerHTML = '';
+                promoEmpty.style.display = 'block';
+            } else {
+                promoEmpty.style.display = 'none';
+                promotable.sort((a, b) => (b.upvotes||0) - (a.upvotes||0));
+                promoBody.innerHTML = promotable.map(p => {
+                    const d = fullData[p.name] || {};
+                    return `<tr>
+                        <td><strong><a href="index.html?view=view-package-details" onclick="sessionStorage.setItem('galaxy_pkg','${p.name}');return true;">${p.name}</a></strong></td>
+                        <td><span style="color:var(--upvote);font-weight:600;">${p.upvotes||0}</span></td>
+                        <td>${p.flags||0}</td>
+                        <td>${p.author || '-'}</td>
+                        <td>v${p.version}</td>
+                        <td class="action-cell">
+                            <a class="btn btn-success" href="${promoteUrl(p.name)}" target="_blank">Promote to Verified</a>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            /* All packages table */
+            const allBody = document.getElementById('all-rows');
+            allBody.innerHTML = all.map(p => {
+                const d = fullData[p.name] || {};
+                const isQ = d.quarantined;
+                return `<tr class="${isQ ? 'danger' : ''}">
+                    <td><strong><a href="index.html?view=view-package-details" onclick="sessionStorage.setItem('galaxy_pkg','${p.name}');return true;">${p.name}</a></strong></td>
+                    <td><span class="tier-badge ${p.tier}">${p.tier}</span></td>
+                    <td>v${p.version}</td>
+                    <td>${p.author || '-'}</td>
+                    <td>${p.upvotes||0}</td>
+                    <td>${p.flags||0}</td>
+                    <td>${isQ ? '<span style="color:var(--flag);">Yes</span>' : 'No'}</td>
+                    <td class="action-cell">
+                        <a class="btn" href="https://github.com/${d.github_repo || 'nova-programming/'+p.name}" target="_blank">GitHub</a>
+                        ${!isQ && p.tier === 'community' ? `<a class="btn btn-danger" href="${quarantineUrl(p.name)}" target="_blank">Quarantine</a>` : ''}
+                        ${isQ ? `<a class="btn btn-success" href="${unquarantineUrl(p.name)}" target="_blank">Unquarantine</a>` : ''}
+                        ${p.tier === 'community' && !isQ ? `<a class="btn btn-success" href="${promoteUrl(p.name)}" target="_blank">Promote</a>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('flagged-count').innerText = `(${flagged.length})`;
+            document.getElementById('promo-count').innerText = `(${promotable.length})`;
+            document.getElementById('all-count').innerText = `(${all.length})`;
+        }
+
+        function renderActionButtons(pkg, detail, isQuarantined) {
+            const name = pkg.name;
+            if (isQuarantined) {
+                return `
+                    <a class="btn btn-success" href="${unquarantineUrl(name)}" target="_blank">Unquarantine</a>
+                    <a class="btn btn-danger" href="${deleteUrl(name)}" target="_blank">Delete</a>
+                `;
+            }
+            return `
+                <a class="btn btn-danger" href="${quarantineUrl(name)}" target="_blank">Quarantine</a>
+            `;
+        }
+
+        function promoteUrl(name) {
+            const issueTitle = encodeURIComponent(`Promote ${name} to verified`);
+            const issueBody = encodeURIComponent(
+                `## Promotion Request\n\n**Package:** ${name}\n\n**Action:** Change tier from \`community\` to \`verified\`\n\n**Trigger:** ≥50 upvotes and 0 flags\n\n---\n*This issue was created automatically by the Galaxy Admin Dashboard.*`
+            );
+            return `https://github.com/nova-programming/galaxy-registry/issues/new?title=${issueTitle}&body=${issueBody}&labels=promotion`;
+        }
+
+        function quarantineUrl(name) {
+            const issueTitle = encodeURIComponent(`Quarantine ${name}`);
+            const issueBody = encodeURIComponent(
+                `## Quarantine Request\n\n**Package:** ${name}\n\n**Action:** Set \`quarantined: true\`\n\n**Trigger:** Flag threshold reached\n\n---\n*This issue was created automatically by the Galaxy Admin Dashboard.*`
+            );
+            return `https://github.com/nova-programming/galaxy-registry/issues/new?title=${issueTitle}&body=${issueBody}&labels=quarantine`;
+        }
+
+        function unquarantineUrl(name) {
+            const issueTitle = encodeURIComponent(`Unquarantine ${name}`);
+            const issueBody = encodeURIComponent(
+                `## Unquarantine Request\n\n**Package:** ${name}\n\n**Action:** Set \`quarantined: false\`\n\n---\n*This issue was created automatically by the Galaxy Admin Dashboard.*`
+            );
+            return `https://github.com/nova-programming/galaxy-registry/issues/new?title=${issueTitle}&body=${issueBody}&labels=unquarantine`;
+        }
+
+        function deleteUrl(name) {
+            const issueTitle = encodeURIComponent(`Delete ${name}`);
+            const issueBody = encodeURIComponent(
+                `## Delete Request\n\n**Package:** ${name}\n\n**Action:** Remove package from registry\n\n---\n*This issue was created automatically by the Galaxy Admin Dashboard.*`
+            );
+            return `https://github.com/nova-programming/galaxy-registry/issues/new?title=${issueTitle}&body=${issueBody}&labels=deletion`;
+        }
+
+        function loginWithGitHub() {
+            // Phase 2: GitHub OAuth via Vercel edge function
+            // For now, redirect to GitHub Issues to show the user where actions happen
+            alert(
+                'Phase 2: GitHub OAuth login will be implemented via a Vercel Edge Function.\n\n' +
+                'For now, all admin actions open a GitHub Issue where org membership is verified.\n' +
+                'Click any action button to test the workflow.'
+            );
+        }
+
+        function verifyToken(token) {
+            // Phase 2: validate token with GitHub API
+            // For now, just store it
+            isAuthenticated = !!token;
+            if (isAuthenticated) {
+                document.getElementById('auth-banner').style.display = 'none';
+            }
+        }
+
+        function showSecurityInfo() {
+            alert(
+                'Security Model:\n\n' +
+                '1. Admin dashboard is read-only (public data)\n' +
+                '2. All write actions open GitHub Issues\n' +
+                '3. GitHub Issues are only visible to org members\n' +
+                '4. GitHub Actions process Issue commands\n' +
+                '5. Only org members can merge PRs (CODEOWNERS)\n' +
+                '6. All changes are git-committed — full audit trail\n\n' +
+                'Phase 2 will add GitHub OAuth for direct in-page actions.'
+            );
+        }
+    </script>
+</body>
+</html>
