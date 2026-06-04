@@ -539,12 +539,12 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <h4>One-Line Install (Recommended)</h4>
             <p>No repo clone needed. The bootstrapper downloads everything it needs:</p>
-            <pre><code>curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py</code></pre>
+            <pre><code>curl -O https://galaxy-registry.vercel.app/install.py && python install.py</code></pre>
             <p>On Windows without curl, use PowerShell:</p>
-            <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/galaxy.py -OutFile galaxy.py; python galaxy.py</code></pre>
+            <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.py -OutFile install.py; python install.py</code></pre>
             <p>The installer does three things:</p>
             <ul>
-                <li>Downloads <code>_galaxy.py</code> from GitHub and installs it to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix)</li>
+                <li>Downloads <code>_galaxy.py</code> from GitHub and installs it to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
                 <li>Creates a <code>galaxy.bat</code> (Windows) or <code>galaxy</code> (Unix) launcher</li>
                 <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
             </ul>
@@ -555,7 +555,7 @@ galaxy --help</code></pre>
             <h4>Method 2: From Source (if you already cloned the repo)</h4>
             <pre><code>git clone https://github.com/nova-programming/Nova.git
 cd Nova
-python galaxy.py</code></pre>
+python install.py</code></pre>
 
             <h4>Method 3: Direct (no install, run from repo)</h4>
             <pre><code>python _galaxy.py --help
@@ -563,7 +563,7 @@ python galaxy.py</code></pre>
 python -m galaxy --help</code></pre>
 
             <h4>Uninstalling</h4>
-            <pre><code>python galaxy.py --uninstall</code></pre>
+            <pre><code>python install.py --uninstall</code></pre>
 
             <!-- ===== COMMANDS ===== -->
             <h3 id="galaxy-commands">CLI Commands</h3>
@@ -621,12 +621,10 @@ galaxy update nova-math</code></pre>
 
             <!-- ===== TEMPLATES ===== -->
             <h3 id="galaxy-templates">Templates (galaxy init)</h3>
-            <p>The <code>galaxy init</code> command scaffolds a complete project structure from one of three templates. A quick summary:</p>
+            <p>The <code>galaxy init library &lt;name&gt;</code> command scaffolds a complete library project with the standard structure:</p>
             <table class="doc-table">
-                <tr><th>Template</th><th>Command</th><th>Files Created</th></tr>
-                <tr><td><code>library</code></td><td><code>galaxy init library my-lib</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td></tr>
-                <tr><td><code>app</code></td><td><code>galaxy init app my-app</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td></tr>
-                <tr><td><code>cli</code></td><td><code>galaxy init cli my-tool</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td></tr>
+                <tr><th>Command</th><th>Files Created</th></tr>
+                <tr><td><code>galaxy init library my-lib</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td></tr>
             </table>
             <p>For full template documentation — generated file contents, customization guide, galaxy.json manifest reference, and extending the template system — see the <a href="templates.html"><strong>Templates reference page</strong></a>.</p>
 

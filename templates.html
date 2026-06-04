@@ -159,8 +159,7 @@
                 <li><a href="#overview">Overview</a></li>
                 <li><a href="#usage">Usage</a></li>
                 <li><a href="#quick-ref">Quick Reference</a></li>
-                <li><a href="#library">library (complete)</a></li>
-                <li><a href="#other-templates">app / cli</a></li>
+                <li><a href="#library">library</a></li>
                 <li class="section-gap"><a href="#customizing">Customizing</a></li>
                 <li><a href="#manifest">galaxy.json Reference</a></li>
                 <li><a href="#extending">Extending Templates</a></li>
@@ -178,16 +177,11 @@
             </div>
 
             <h2 id="usage">Usage</h2>
-            <pre><code><span class="cmt"># Template as first argument, name as second</span>
-galaxy init &lt;template&gt; &lt;name&gt;
-
-<span class="cmt"># Examples</span>
+            <pre><code><span class="cmt"># Create a library</span>
 galaxy init library my-lib
-galaxy init app my-app
-galaxy init cli my-tool
 
-<span class="cmt"># Defaults to 'library' if no template specified</span>
-galaxy init my-lib         <span class="cmt"># same as 'galaxy init library my-lib'</span>
+<span class="cmt"># Or just (defaults to library)</span>
+galaxy init my-lib
 
 <span class="cmt"># 'lib' is an alias for 'library'</span>
 galaxy init lib my-lib     <span class="cmt"># same as above</span></code></pre>
@@ -198,20 +192,8 @@ galaxy init lib my-lib     <span class="cmt"># same as above</span></code></pre>
                 <tr>
                     <td><code>library</code></td>
                     <td><code>galaxy init library my-lib</code></td>
-                    <td>Reusable modules</td>
+                    <td>Reusable Nova modules</td>
                     <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td>
-                </tr>
-                <tr>
-                    <td><code>app</code></td>
-                    <td><code>galaxy init app my-app</code></td>
-                    <td>Standalone applications</td>
-                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
-                </tr>
-                <tr>
-                    <td><code>cli</code></td>
-                    <td><code>galaxy init cli my-tool</code></td>
-                    <td>CLI tools with args</td>
-                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
                 </tr>
             </table>
 
@@ -261,30 +243,7 @@ def hello() -&gt; string {
     return "Hello from my-lib!"
 }</code></pre>
 
-            <!-- ===== OTHER TEMPLATES ===== -->
-            <h2 id="other-templates">Other Templates</h2>
-            <p>Two additional templates are available but share the same structure as <code>library</code> with different entry point conventions:</p>
 
-            <table class="doc-table">
-                <tr><th>Template</th><th>Command</th><th>Entry Point</th><th>Files</th></tr>
-                <tr>
-                    <td><code>app</code></td>
-                    <td><code>galaxy init app my-app</code></td>
-                    <td><code>src/main.nv</code> with <code>__main__</code> block</td>
-                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
-                </tr>
-                <tr>
-                    <td><code>cli</code></td>
-                    <td><code>galaxy init cli my-tool</code></td>
-                    <td><code>src/main.nv</code> with <code>sys_get_args()</code> scaffold</td>
-                    <td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>README.md</code></td>
-                </tr>
-            </table>
-
-            <div class="callout callout-info">
-                <strong>Template documentation is incremental</strong>
-                Only the <code>library</code> template above has a complete reference. As other templates gain unique features, their documentation will be expanded here.
-            </div>
 
             <!-- ===== CUSTOMIZING ===== -->
             <h2 id="customizing">Customizing Generated Projects</h2>

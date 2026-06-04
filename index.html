@@ -341,8 +341,8 @@
                 <p>Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries.</p>
                 <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-tertiary);">One command to install galaxy CLI:</div>
                 <div class="hero-terminal" style="font-size:0.78rem;">
-                    <span>$ curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py</span>
-                    <button class="copy-btn" onclick="copyText('curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py', this)">
+                    <span>$ curl -O https://galaxy-registry.vercel.app/install.py && python install.py</span>
+                    <button class="copy-btn" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.py && python install.py', this)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
                 </div>
@@ -372,17 +372,17 @@
 
                 <h2 style="font-size:1.25rem;margin-top:0;">1. Install galaxy CLI</h2>
                 <p>One command — no repo clone needed, no dependencies:</p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/galaxy.py && python galaxy.py</code></pre>
-                <p>The <code>galaxy.py</code> installer downloads <code>_galaxy.py</code> from GitHub, installs it to <code>%LOCALAPPDATA%\galaxy\bin\</code> (Windows) or <code>~/.galaxy/bin/</code> (Unix), creates a launcher, and adds it to your PATH. Open a <strong>new terminal</strong> and run:</p>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/install.py && python install.py</code></pre>
+                <p>The <code>install.py</code> installer downloads the Nova repo, installs both the compiler and <code>_galaxy.py</code> to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix), creates launchers, and adds to your PATH. Open a <strong>new terminal</strong> and run:</p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy --help</code></pre>
-                <div class="callout callout-info"><strong>No pip required</strong> The installer is fully self-contained. It downloads a single Python file and creates a launcher — no dependencies.</div>
+                <div class="callout callout-info"><strong>No pip required</strong> The installer is fully self-contained. It downloads the repo zip and creates launchers — no dependencies.</div>
                 <p>On Windows without curl, use PowerShell:</p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/galaxy.py -OutFile galaxy.py; python galaxy.py</code></pre>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.py -OutFile install.py; python install.py</code></pre>
 
                 <h2 style="font-size:1.25rem;">2. Create a library project</h2>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy init library my-lib
 cd my-lib</code></pre>
-                <p>Three templates are available: <code>library</code> (reusable module), <code>app</code> (standalone), <code>cli</code> (CLI tool). See the <a href="templates.html"><strong>Templates reference</strong></a> for full details.</p>
+                <p>Use the <code>library</code> template for reusable Nova modules. See the <a href="templates.html"><strong>Templates reference</strong></a> for full details.</p>
                 <p>Your <code>galaxy.json</code> is auto-generated. Edit it to set your name, license, GitHub repo, and keywords.</p>
 
                 <h2 style="font-size:1.25rem;">3. Write code</h2>
