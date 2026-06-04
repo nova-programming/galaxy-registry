@@ -154,7 +154,10 @@
         /* Detail Layout */
         .details-body {
             display: grid; grid-template-columns: 1fr 280px; gap: 3rem; align-items: start;
+            overflow: hidden; width: 100%;
         }
+        .main-col { width: 100%; min-width: 0; }
+        .main-col .prose pre { max-width: 100%; }
         @media (max-width: 800px) { .details-body { grid-template-columns: 1fr; gap: 2rem; } }
         .main-col { min-width: 0; }
 
@@ -512,6 +515,7 @@
                 <a href="https://github.com/nova-programming" target="_blank">GitHub</a>
                 <a href="documentation.html">Docs</a>
                 <a href="#" onclick="switchNav('view-libraries');return false;">Libraries</a>
+                <a href="admin.html">Admin</a>
             </div>
         </div>
     </footer>
