@@ -312,6 +312,151 @@
             .hero h1 { font-size: 2rem; }
             .grid { grid-template-columns: 1fr; }
         }
+
+        /* ===== HERO ANIMATIONS ===== */
+        .hero-wrap {
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #f0fdf4 100%);
+            background-size: 400% 400%;
+            animation: heroGradient 12s ease infinite;
+            border-radius: 20px; padding: 3rem 2rem 4rem; margin: -1rem -1rem 2rem;
+        }
+        @keyframes heroGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .hero-wrap::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(0,112,243,0.06) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 50%, rgba(121,40,202,0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .hero {
+            position: relative; z-index: 1;
+            text-align: center; padding: 1rem 0 0;
+        }
+        .hero-glow {
+            display: inline-block;
+            font-size: 4rem; font-weight: 800; letter-spacing: -0.06em; line-height: 1.1; margin-bottom: 0.75rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            animation: fadeScale 0.8s ease-out;
+        }
+        .hero-glow span { display: inline-block; }
+        .hero-sub {
+            font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; min-height: 1.8em;
+        }
+        .hero-sub .cursor {
+            display: inline-block; width: 2px; height: 1.2em; background: var(--accent);
+            margin-left: 2px; vertical-align: text-bottom;
+            animation: blink 0.8s step-end infinite;
+        }
+        .hero-sub .cursor.done { animation: none; opacity: 1; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Terminal with title bar */
+        .term-wrap {
+            display: inline-flex; flex-direction: column;
+            background: var(--code-bg); border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            min-width: 520px; text-align: left;
+            animation: slideUp 0.6s ease-out 0.3s both;
+        }
+        .term-titlebar {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .term-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .term-dot.red { background: #ff5f57; }
+        .term-dot.yellow { background: #ffbd2e; }
+        .term-dot.green { background: #28c840; }
+        .term-title-text { font-size: 0.7rem; color: #888; margin-left: auto; }
+        .term-body {
+            padding: 1rem 1.25rem;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            color: #e4e4e7; line-height: 1.7;
+        }
+        .term-body .prompt { color: #28c840; }
+        .term-body .cmd { color: #e4e4e7; }
+        .term-body .comment { color: #666; font-style: italic; }
+        .term-body .typed-line {
+            display: block; white-space: nowrap; overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Feature cards */
+        .features {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+            margin: 3rem 0;
+        }
+        .feature-card {
+            border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem;
+            text-align: center; transition: all 0.3s; position: relative; overflow: hidden;
+            opacity: 0; transform: translateY(20px);
+        }
+        .feature-card.visible {
+            opacity: 1; transform: translateY(0);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .feature-card:hover {
+            border-color: #bbb; box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            transform: translateY(-4px);
+        }
+        .feature-card.core:hover { border-color: var(--core); }
+        .feature-card.verified:hover { border-color: var(--verified); }
+        .feature-card.community:hover { border-color: var(--community); }
+        .feature-card .icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem; font-size: 1.25rem;
+        }
+        .feature-card.core .icon { background: var(--core-bg); color: var(--core); }
+        .feature-card.verified .icon { background: var(--verified-bg); color: var(--verified); }
+        .feature-card.community .icon { background: var(--community-bg); color: var(--community); }
+        .feature-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+        .feature-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+
+        /* Stats row */
+        .stats-row {
+            display: flex; justify-content: center; gap: 3rem;
+            padding: 2rem 0; margin: 2rem 0 1rem;
+            border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        }
+        .stat-item { text-align: center; }
+        .stat-item .num {
+            font-size: 2rem; font-weight: 700; letter-spacing: -0.04em;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .stat-item .label { font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.15rem; }
+        .cta-group { margin-top: 2.5rem; }
+        .btn-primary.glow {
+            box-shadow: 0 4px 14px rgba(0,112,243,0.25);
+            transition: all 0.25s;
+        }
+        .btn-primary.glow:hover {
+            box-shadow: 0 6px 24px rgba(0,112,243,0.35);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width:700px) {
+            .features { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; gap: 1.25rem; }
+            .term-wrap { min-width: 0; width: 100%; }
+            .hero-glow { font-size: 2.5rem; }
+            .hero-wrap { padding: 2rem 1rem 3rem; border-radius: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -336,32 +481,67 @@
 
     <div class="container">
         <section id="view-home" class="view-section active">
-            <div class="hero">
-                <h1>The native package manager<br>for <span class="accent">Nova</span>.</h1>
-                <p>Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries.</p>
-                <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-tertiary);">No dependencies — install in one command:</div>
-                <div class="hero-terminal" style="font-size:0.78rem;">
-                    <span>$ curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</span>
-                    <button class="copy-btn" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    </button>
+            <div class="hero-wrap">
+                <div class="hero">
+                    <div class="hero-glow">Galaxy</div>
+                    <div class="hero-sub"><span id="tagline"></span><span class="cursor" id="cursor"></span></div>
+                    <div class="term-wrap" id="term">
+                        <div class="term-titlebar">
+                            <span class="term-dot red"></span>
+                            <span class="term-dot yellow"></span>
+                            <span class="term-dot green"></span>
+                            <span class="term-title-text">install.sh</span>
+                        </div>
+                        <div class="term-body" id="term-body">
+                            <span class="typed-line" id="line1" data-text="<span class=prompt>$</span> <span class=cmd>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</span>"></span>
+                            <span class="typed-line" id="line2" data-text="<span class=prompt>$</span> <span class=cmd>galaxy --version</span>  <span class=comment># v0.2.0</span>"></span>
+                            <span class="typed-line" id="line3" data-text="<span class=prompt>$</span> <span class=cmd>galaxy install nova-http</span>"></span>
+                        </div>
+                    </div>
+                    <div class="cta-group">
+                        <button class="btn-primary glow" onclick="switchNav('view-getting-started')">Get Started</button>
+                        <a class="btn-secondary" href="documentation.html" style="margin-left:0.75rem;">Documentation</a>
+                    </div>
                 </div>
-                <div style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-tertiary);">Then install any package:</div>
-                <div class="hero-terminal">
-                    <span>$ galaxy install nova-http</span>
-                    <button class="copy-btn" onclick="copyText('galaxy install nova-http', this)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    </button>
+            </div>
+
+            <div class="features">
+                <div class="feature-card core" data-delay="0">
+                    <div class="icon">&#9670;</div>
+                    <h3>Core</h3>
+                    <p>Inbuilt runtime packages maintained by the Nova team. Ship with the compiler — zero install needed.</p>
                 </div>
-                <div class="btn-group" style="margin-top:2rem;">
-                    <button class="btn-primary" onclick="switchNav('view-getting-started')">Get Started</button>
-                    <a class="btn-secondary" href="documentation.html">Read the Docs</a>
+                <div class="feature-card verified" data-delay="150">
+                    <div class="icon">&#10003;</div>
+                    <h3>Verified</h3>
+                    <p>Human-reviewed libraries vetted for code quality, security, and best practices.</p>
                 </div>
-                <div style="margin-top:2.5rem;display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;">
-                    <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge core">Core</span> Inbuilt runtime</span>
-                    <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge verified">Verified</span> Human-reviewed</span>
-                    <span style="font-size:0.8rem;color:var(--text-tertiary);display:flex;align-items:center;gap:0.5rem;"><span class="tier-badge community">Community</span> User-submitted</span>
+                <div class="feature-card community" data-delay="300">
+                    <div class="icon">&#9992;</div>
+                    <h3>Community</h3>
+                    <p>Anyone can publish. Auto-submitted via <code>galaxy publish</code> — open to all.</p>
                 </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="num" data-target="12">0</div>
+                    <div class="label">Packages</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" data-target="3">0</div>
+                    <div class="label">Trust Tiers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" data-target="2">0</div>
+                    <div class="label">Templates</div>
+                </div>
+            </div>
+
+            <div style="text-align:center;padding:1rem 0 0;">
+                <p style="color:var(--text-tertiary);font-size:0.85rem;">
+                    No dependencies &middot; One command &middot; Open to all
+                </p>
             </div>
         </section>
 
@@ -831,6 +1011,106 @@ galaxy remove nova-math   # Uninstall</code></pre>
             .then(r => r.json())
             .then(data => { allPackages = data.packages || []; renderGrid(); })
             .catch(() => { document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to registry.</div>'; });
+
+        /* ===== HOME PAGE ANIMATIONS ===== */
+        function typeWriter(el, text, speed, cb) {
+            let i = 0;
+            function tick() {
+                if (i < text.length) {
+                    el.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(tick, speed);
+                } else if (cb) { cb(); }
+            }
+            tick();
+        }
+
+        function revealTerminal(lines, cb) {
+            let i = 0;
+            function next() {
+                if (i < lines.length) {
+                    const el = document.getElementById(lines[i]);
+                    el.innerHTML = el.dataset.text || '';
+                    el.style.width = '0';
+                    el.style.overflow = 'hidden';
+                    el.style.whiteSpace = 'nowrap';
+                    el.style.display = 'inline-block';
+                    el.style.verticalAlign = 'bottom';
+                    el.style.transition = 'width 0.5s ease-out';
+                    requestAnimationFrame(() => { el.style.width = '100%'; });
+                    i++;
+                    setTimeout(next, 600);
+                } else if (cb) { setTimeout(cb, 400); }
+            }
+            next();
+        }
+
+        function countUp(el, target, duration) {
+            const start = parseInt(el.textContent) || 0;
+            const diff = target - start;
+            const step = Math.max(1, Math.floor(diff / (duration / 16)));
+            let current = start;
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    el.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    el.textContent = current;
+                }
+            }, 16);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hero = document.querySelector('.hero-wrap');
+            if (!hero) return;
+
+            /* Typewriter tagline */
+            typeWriter(document.getElementById('tagline'),
+                'Three tiers of trust. Zero compromise. Discover, install, and publish Nova libraries.',
+                30,
+                () => { document.getElementById('cursor').classList.add('done'); }
+            );
+
+            /* Terminal line reveal */
+            setTimeout(() => {
+                revealTerminal(['line1', 'line2', 'line3'], () => {
+                    const termBody = document.getElementById('term-body');
+                    const final = document.createElement('span');
+                    final.style.cssText = 'display:block;margin-top:0.5rem;color:#666;font-style:italic;';
+                    final.textContent = '> Ready — open a new terminal and run: galaxy install <pkg>';
+                    termBody.appendChild(final);
+                });
+            }, 800);
+
+            /* Feature card scroll reveal */
+            const cards = document.querySelectorAll('.feature-card');
+            const cardObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const card = entry.target;
+                        const delay = parseInt(card.dataset.delay) || 0;
+                        setTimeout(() => card.classList.add('visible'), delay);
+                        cardObserver.unobserve(card);
+                    }
+                });
+            }, { threshold: 0.3 });
+            cards.forEach(c => cardObserver.observe(c));
+
+            /* Stat count-up */
+            const statNums = document.querySelectorAll('.stat-item .num');
+            const statObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        const target = parseInt(el.dataset.target) || 0;
+                        countUp(el, target, 1000);
+                        statObserver.unobserve(el);
+                    }
+                });
+            }, { threshold: 0.5 });
+            statNums.forEach(n => statObserver.observe(n));
+        });
     </script>
 </body>
 </html>
