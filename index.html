@@ -1031,16 +1031,12 @@ galaxy remove nova-math   # Uninstall</code></pre>
                 if (i < lines.length) {
                     const el = document.getElementById(lines[i]);
                     el.innerHTML = el.dataset.text || '';
-                    el.style.width = '0';
-                    el.style.overflow = 'hidden';
-                    el.style.whiteSpace = 'nowrap';
-                    el.style.display = 'inline-block';
-                    el.style.verticalAlign = 'bottom';
-                    el.style.transition = 'width 0.5s ease-out';
-                    requestAnimationFrame(() => { el.style.width = '100%'; });
+                    el.style.opacity = '0';
+                    el.style.display = 'block';
+                    requestAnimationFrame(() => { el.style.transition = 'opacity 0.4s ease-out'; el.style.opacity = '1'; });
                     i++;
-                    setTimeout(next, 600);
-                } else if (cb) { setTimeout(cb, 400); }
+                    setTimeout(next, 500);
+                } else if (cb) { setTimeout(cb, 300); }
             }
             next();
         }
