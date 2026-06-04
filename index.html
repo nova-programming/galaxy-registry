@@ -171,7 +171,7 @@
         .doc-tab:hover { color: var(--text); }
         .doc-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-        .doc-section { display: none; }
+        .doc-section { display: none; min-height: 200px; }
         .doc-section.active { display: block; animation: fadeIn .2s ease-out; }
 
         /* Prose (for rendered markdown) */
@@ -212,7 +212,10 @@
         .example-card pre code { background: none; padding: 0; color: inherit; }
 
         /* Sidebar */
-        .side-col { border-left: 1px solid var(--border); padding-left: 2rem; }
+        .side-col {
+            border-left: 1px solid var(--border); padding-left: 2rem;
+            position: sticky; top: 80px; align-self: start;
+        }
         @media (max-width:800px) {
             .side-col { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 2rem; }
         }
@@ -409,6 +412,7 @@
 
                 <div class="details-body">
                     <div class="main-col">
+                        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:0.25rem;">Documentation</div>
                         <div class="doc-tabs" id="doc-tabs"></div>
                         <div id="doc-overview" class="doc-section active">
                             <div class="prose" id="detail-readme"></div>
@@ -688,14 +692,14 @@
                     /* Render examples */
                     const exContainer = document.getElementById('detail-examples');
                     if (data.examples && data.examples.length > 0) {
-                        exContainer.innerHTML = data.examples.map(ex => `
+                        exContainer.innerHTML = '<div class="prose">' + data.examples.map(ex => `
                             <div class="example-card">
                                 <div class="example-title">${ex.title}</div>
                                 <pre><code>${DOMPurify.sanitize(ex.code)}</code></pre>
                             </div>
-                        `).join('');
+                        `).join('') + '</div>';
                     } else {
-                        exContainer.innerHTML = '<p style="color:var(--text-tertiary);">No examples available yet.</p>';
+                        exContainer.innerHTML = '<div class="prose"><p style="color:var(--text-tertiary);">No examples available yet.</p></div>';
                     }
 
                     /* Fetch changelog */
