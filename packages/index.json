@@ -17,7 +17,7 @@
       "description": "High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.",
       "version": "1.0.2",
       "currentVersion": "1.0.2",
-      "newestVersion": "1.0.2",
+      "newestVersion": "1.1.0",
       "tier": "verified",
       "keywords": ["network", "http", "api", "rest", "client"],
       "upvotes": 47,

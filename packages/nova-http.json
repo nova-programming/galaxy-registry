@@ -4,7 +4,7 @@
   "github_repo": "nova-programming/nova-http",
   "version": "1.0.2",
   "currentVersion": "1.0.2",
-  "newestVersion": "1.0.2",
+  "newestVersion": "1.1.0",
   "author": "Nova Core Team",
   "description": "High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.",
   "keywords": ["network", "http", "api", "rest", "client"],
@@ -16,7 +16,8 @@
   "versions": [
     {"version": "1.0.0", "sha256": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d"},
     {"version": "1.0.1", "sha256": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e"},
-    {"version": "1.0.2", "sha256": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f"}
+    {"version": "1.0.2", "sha256": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f"},
+    {"version": "1.1.0", "sha256": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9"}
   ],
   "docs": {
     "api": "docs/api.md",
@@ -27,5 +28,6 @@
     {"title": "Simple GET request", "code": "import nova_http\n\nresponse = nova_http.get(\"https://api.example.com/users\")\nprint(response.status_code)  # 200\nprint(response.body)"},
     {"title": "POST with JSON body", "code": "import nova_http\n\npayload = \"{\\\"name\\\": \\\"Nova\\\", \\\"version\\\": 1}\"\nresponse = nova_http.post(\"https://api.example.com/data\", payload)\nprint(response.body)"}
   ],
-  "download_url": "https://github.com/nova-programming/nova-http/archive/refs/heads/main.zip"
+  "download_url": "https://github.com/nova-programming/nova-http/archive/refs/heads/main.zip",
+  "version_pending": true
 }
