@@ -35,26 +35,35 @@ function Fail  { Write-Host "  [FAIL] $($args[0])" -ForegroundColor Red; exit 1 
 
 function Add-ToPath {
     try {
-        $currentUser = [Environment]::GetEnvironmentVariable("PATH", "User")
-        $parts = $currentUser.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
+        # Read raw registry value (preserves %...% expand strings) and check if already present
+        $pathKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)
+        $rawPath = $pathKey.GetValue("PATH", "", "DoNotExpandEnvironmentNames")
+        $pathKey.Close()
         $normed = [System.IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
+        $parts = $rawPath.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
         $alreadyInPath = $false
         foreach ($p in $parts) {
             try {
                 $expanded = [Environment]::ExpandEnvironmentVariables($p)
-                $pNormed = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
-                if ($pNormed -eq $normed) { $alreadyInPath = $true; break }
+                if (( [System.IO.Path]::GetFullPath($expanded).TrimEnd('\') ) -eq $normed) {
+                    $alreadyInPath = $true; break
+                }
             } catch { continue }
         }
         if (-not $alreadyInPath) {
-            $newPath = ($currentUser.TrimEnd(";") + ";" + $InstallDir)
-            [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+            # Append to raw (unexpanded) PATH to preserve REG_EXPAND_SZ integrity
+            $newRaw = $rawPath.TrimEnd(";") + ";" + $InstallDir
+            $pathKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)
+            $pathKey.SetValue("PATH", $newRaw, "ExpandString")
+            $pathKey.Close()
             Ok "Added to PATH: $InstallDir"
         } else {
             Info "Install directory already in PATH"
-            [Environment]::SetEnvironmentVariable("PATH", $currentUser, "User")
-            Info "Refreshed environment - nova/galaxy should now work in new terminals."
         }
+        # Use setx as fallback to force WM_SETTINGCHANGE broadcast
+        $quoted = '"' + $env:LOCALAPPDATA + '\nova"'
+        setx PATH "$env:PATH;$quoted" | Out-Null
+        # Update current process PATH for immediate use
         $currentProcess = [Environment]::GetEnvironmentVariable("PATH", "Process")
         if ($currentProcess -notlike "*$InstallDir*") {
             [Environment]::SetEnvironmentVariable("PATH", $currentProcess.TrimEnd(";") + ";" + $InstallDir, "Process")

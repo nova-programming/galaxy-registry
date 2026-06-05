@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Language Reference — Galaxy Registry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #0a0a0f;
+            --text-secondary: #555;
+            --text-tertiary: #888;
+            --border: #e8e8ea;
+            --accent: #0070f3;
+            --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
+            --code-bg: #0a0a0f;
+            --code-text: #e4e4e7;
+            --nav-bg: rgba(255,255,255,0.85);
+            --sidebar-bg: #f7f7f8;
+            --keyword: #ff79c6;
+            --string: #50fa7b;
+            --number: #bd93f9;
+            --comment: #6272a4;
+            --builtin: #8be9fd;
+            --callout-info-bg: #eef4ff;
+            --callout-info-border: #0070f3;
+            --callout-tip-bg: #ecfdf5;
+            --callout-tip-border: #10b981;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+        nav.top-nav {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
+        }
+        .nav-brand {
+            font-weight: 700; font-size: 1.2rem;
+            letter-spacing: -0.03em; cursor: pointer;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none; color: inherit;
+        }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.875rem; font-weight: 500;
+            transition: color .2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .doc-layout {
+            display: grid; grid-template-columns: 220px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+        @media (max-width: 860px) {
+            .doc-layout { grid-template-columns: 1fr; }
+        }
+        .doc-sidebar {
+            position: sticky; top: 60px; align-self: start;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem;
+            background: var(--sidebar-bg);
+            font-size: 0.8rem;
+        }
+        .doc-sidebar h4 {
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em;
+            color: var(--text-tertiary); margin-bottom: 1rem;
+        }
+        .doc-sidebar ul { list-style: none; }
+        .doc-sidebar li { margin-bottom: 0.3rem; }
+        .doc-sidebar a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.8rem; transition: color .15s;
+            display: block; padding: 0.15rem 0;
+        }
+        .doc-sidebar a:hover, .doc-sidebar a.active { color: var(--accent); font-weight: 500; }
+        .doc-sidebar .section-gap { margin-top: 0.75rem; }
+        .doc-content {
+            padding: 2.5rem 3rem; max-width: 960px; min-width: 0;
+        }
+        @media (max-width:860px) { .doc-content { padding: 1.5rem 1.25rem; } }
+        .doc-content h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+        .doc-content h2 {
+            font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em;
+            margin-top: 2rem; margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border); padding-bottom: 0.35rem;
+        }
+        .doc-content h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .doc-content p { margin-bottom: 0.75rem; color: var(--text-secondary); font-size: 0.9rem; }
+        .doc-content code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82em; background: #f0f0f2;
+            padding: 0.15em 0.4em; border-radius: 4px;
+            color: #e03e8a;
+        }
+        .doc-content pre {
+            background: var(--code-bg); color: var(--code-text);
+            padding: 1rem 1.25rem; border-radius: 8px;
+            overflow-x: auto; margin: 0.75rem 0;
+            font-size: 0.8rem; line-height: 1.5;
+        }
+        .doc-content table {
+            width: 100%; border-collapse: collapse;
+            margin: 0.75rem 0; font-size: 0.85rem;
+        }
+        .doc-content th {
+            background: var(--sidebar-bg); text-align: left;
+            padding: 0.4rem 0.6rem; font-weight: 600;
+            border-bottom: 2px solid var(--border); font-size: 0.78rem;
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .doc-content td {
+            padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border);
+            color: var(--text-secondary); font-size: 0.85rem;
+        }
+        .doc-content td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; }
+        .doc-content tr:hover td { background: var(--sidebar-bg); }
+        .nv-kw { color: var(--keyword); }
+        .nv-str { color: var(--string); }
+        .nv-num { color: var(--number); }
+        .nv-cmt { color: var(--comment); font-style: italic; }
+        .nv-fn { color: var(--builtin); }
+        .nv-type { color: #8be9fd; }
+        .callout {
+            padding: 0.75rem 1rem; border-radius: 6px;
+            margin: 1rem 0; border-left: 4px solid;
+            font-size: 0.85rem;
+        }
+        .callout strong { display: block; margin-bottom: 0.15rem; }
+        .callout-info { background: var(--callout-info-bg); border-color: var(--callout-info-border); }
+        .callout-info code { background: rgba(0,0,0,0.06); }
+        .callout-tip { background: var(--callout-tip-bg); border-color: var(--callout-tip-border); }
+        footer {
+            border-top: 1px solid var(--border); padding: 1.75rem 2rem;
+            background: var(--sidebar-bg); margin-top: auto;
+        }
+        .footer-inner {
+            max-width: 1040px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; color: var(--text-tertiary);
+        }
+        .ref-card {
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 1.25rem; margin-bottom: 1.25rem;
+        }
+        .ref-card h3 { margin-top: 0; }
+        .prec-table td { text-align: center; }
+        .prec-table td:first-child { text-align: left; }
+        .inline-code-badge {
+            display: inline-block; background: #f0f0f2;
+            padding: 0.1rem 0.4rem; border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+            margin: 0.1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="nav-brand" href="index.html" style="text-decoration:none;color:inherit;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Galaxy
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html?view=view-libraries">Libraries</a>
+            <a href="documentation.html">Documentation</a>
+            <a href="#" class="active">Reference</a>
+            <a href="examples.html">Examples</a>
+            <a href="templates.html">Templates</a>
+            <a href="index.html?view=view-contribute">Contribute</a>
+        </div>
+    </nav>
+
+    <div class="doc-layout">
+        <nav class="doc-sidebar" id="sidebar">
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="#syntax">Syntax Summary</a></li>
+                <li><a href="#types">Type System</a></li>
+                <li><a href="#operators">Operators</a></li>
+                <li><a href="#precedence">Operator Precedence</a></li>
+                <li><a href="#control-flow">Control Flow</a></li>
+                <li><a href="#functions">Functions</a></li>
+                <li><a href="#classes">Classes</a></li>
+                <li><a href="#builtins">Built-in Functions</a></li>
+                <li><a href="#io">File I/O</a></li>
+                <li><a href="#os">OS Interface</a></li>
+                <li><a href="#math">Math &amp; Crypto</a></li>
+                <li class="section-gap"><a href="#directives">Compiler Directives</a></li>
+                <li><a href="#asm">Inline Assembly</a></li>
+                <li><a href="#grammar">Grammar (EBNF)</a></li>
+            </ul>
+        </nav>
+
+        <div class="doc-content">
+            <h1>Nova Language Reference</h1>
+            <p>Quick-reference for the Nova programming language syntax, types, operators, and built-ins.</p>
+
+            <!-- ========== SYNTAX SUMMARY ========== -->
+            <h2 id="syntax">Syntax Summary</h2>
+
+            <table>
+                <tr><th>Construct</th><th>Syntax</th><th>Example</th></tr>
+                <tr><td>Comment</td><td><code># ...</code></td><td><code># this is a comment</code></td></tr>
+                <tr><td>Variable</td><td><code>name = expr</code> or <code>name: type = expr</code></td><td><code>count: int = 10</code></td></tr>
+                <tr><td>Constant</td><td><code>const NAME = expr</code></td><td><code>const MAX = 4096</code></td></tr>
+                <tr><td>Assignment</td><td><code>name = expr</code></td><td><code>x = x + 1</code></td></tr>
+                <tr><td>If / Else</td><td><code>if cond { ... } else { ... }</code></td><td><code>if x > 0 { print("pos") }</code></td></tr>
+                <tr><td>While</td><td><code>while cond { ... }</code></td><td><code>while i < 10 { i = i + 1 }</code></td></tr>
+                <tr><td>For</td><td><code>for i = start to end step s { ... }</code></td><td><code>for i = 0 to 10 step 2 { ... }</code></td></tr>
+                <tr><td>For (down)</td><td><code>for i = start downto end step s { ... }</code></td><td><code>for i = 10 downto 0 step 1 { ... }</code></td></tr>
+                <tr><td>Function</td><td><code>def name(params) -> type { ... }</code></td><td><code>def add(a: int, b: int) -> int { return a + b }</code></td></tr>
+                <tr><td>Return</td><td><code>return expr</code></td><td><code>return 42</code></td></tr>
+                <tr><td>Class</td><td><code>class Name { fields ... methods ... }</code></td><td><code>class Player { health: int; def __init__() {} }</code></td></tr>
+                <tr><td>Import</td><td><code>import module_name</code></td><td><code>import math_utils</code></td></tr>
+                <tr><td>Print</td><td><code>print(expr)</code></td><td><code>print("Hello")</code></td></tr>
+            </table>
+
+            <!-- ========== TYPE SYSTEM ========== -->
+            <h2 id="types">Type System</h2>
+            <p>Nova is statically typed with inference. All types resolved at compile time.</p>
+
+            <table>
+                <tr><th>Type</th><th>Size</th><th>Description</th><th>Example Literal</th></tr>
+                <tr><td><code>int</code></td><td>4 bytes</td><td>32-bit signed integer</td><td><code>42, -7, 0</code></td></tr>
+                <tr><td><code>float</code></td><td>8 bytes</td><td>64-bit IEEE-754 (x87 FPU)</td><td><code>3.14, -0.5</code></td></tr>
+                <tr><td><code>string</code></td><td>heap</td><td>Immutable UTF-8 text</td><td><code>"hello"</code></td></tr>
+                <tr><td><code>bool</code></td><td>1 byte</td><td>Boolean</td><td><code>true, false</code></td></tr>
+                <tr><td><code>list[T]</code></td><td>heap</td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
+                <tr><td><code>any</code></td><td>—</td><td>Duck-typed generic</td><td><code>let x: any = 42</code></td></tr>
+            </table>
+
+            <div class="callout callout-info">
+                <strong>Type inference</strong>
+                Omit the type annotation and Nova will infer it: <code>pi = 3.14</code> infers <code>float</code>, <code>count = 10</code> infers <code>int</code>.
+            </div>
+
+            <!-- ========== OPERATORS ========== -->
+            <h2 id="operators">Operators</h2>
+
+            <h3>Arithmetic</h3>
+            <table>
+                <tr><th>Op</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
+                <tr><td><code>+</code></td><td>Addition</td><td><code>5 + 3</code></td><td><code>8</code></td></tr>
+                <tr><td><code>-</code></td><td>Subtraction</td><td><code>5 - 3</code></td><td><code>2</code></td></tr>
+                <tr><td><code>*</code></td><td>Multiplication</td><td><code>5 * 3</code></td><td><code>15</code></td></tr>
+                <tr><td><code>/</code></td><td>Integer division</td><td><code>7 / 3</code></td><td><code>2</code></td></tr>
+                <tr><td><code>%</code></td><td>Modulo</td><td><code>7 % 3</code></td><td><code>1</code></td></tr>
+            </table>
+
+            <h3>Comparison</h3>
+            <table>
+                <tr><th>Op</th><th>Meaning</th></tr>
+                <tr><td><code>==</code></td><td>Equal to</td></tr>
+                <tr><td><code>!=</code></td><td>Not equal to</td></tr>
+                <tr><td><code>&lt;</code></td><td>Less than</td></tr>
+                <tr><td><code>&gt;</code></td><td>Greater than</td></tr>
+                <tr><td><code>&lt;=</code></td><td>Less than or equal</td></tr>
+                <tr><td><code>&gt;=</code></td><td>Greater than or equal</td></tr>
+            </table>
+
+            <h3>Bitwise</h3>
+            <table>
+                <tr><th>Op</th><th>Meaning</th><th>Example</th></tr>
+                <tr><td><code>&amp;</code></td><td>AND</td><td><code>0b1010 &amp; 0b1100 = 0b1000</code></td></tr>
+                <tr><td><code>|</code></td><td>OR</td><td><code>0b1010 | 0b1100 = 0b1110</code></td></tr>
+                <tr><td><code>^</code></td><td>XOR</td><td><code>0b1010 ^ 0b1100 = 0b0110</code></td></tr>
+                <tr><td><code>~</code></td><td>NOT (one's complement)</td><td><code>~42 = -43</code></td></tr>
+                <tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>1 &lt;&lt; 3 = 8</code></td></tr>
+                <tr><td><code>&gt;&gt;</code></td><td>Right shift (arithmetic)</td><td><code>16 &gt;&gt; 2 = 4</code></td></tr>
+            </table>
+
+            <h3>Logical</h3>
+            <table>
+                <tr><th>Op</th><th>Meaning</th></tr>
+                <tr><td><code>and</code></td><td>Logical AND (short-circuit)</td></tr>
+                <tr><td><code>or</code></td><td>Logical OR (short-circuit)</td></tr>
+                <tr><td><code>not</code></td><td>Logical NOT</td></tr>
+            </table>
+
+            <!-- ========== PRECEDENCE ========== -->
+            <h2 id="precedence">Operator Precedence</h2>
+            <p>Highest to lowest. Operators on the same row have equal precedence, evaluated left-to-right.</p>
+            <table class="prec-table">
+                <tr><th>Level</th><th>Operators</th><th>Associativity</th></tr>
+                <tr><td>1 (highest)</td><td><code>()</code> <code>[]</code> <code>.</code></td><td>Left-to-right</td></tr>
+                <tr><td>2</td><td><code>not</code> <code>~</code></td><td>Right-to-left</td></tr>
+                <tr><td>3</td><td><code>*</code> <code>/</code> <code>%</code></td><td>Left-to-right</td></tr>
+                <tr><td>4</td><td><code>+</code> <code>-</code></td><td>Left-to-right</td></tr>
+                <tr><td>5</td><td><code>&lt;&lt;</code> <code>&gt;&gt;</code></td><td>Left-to-right</td></tr>
+                <tr><td>6</td><td><code>&amp;</code></td><td>Left-to-right</td></tr>
+                <tr><td>7</td><td><code>^</code></td><td>Left-to-right</td></tr>
+                <tr><td>8</td><td><code>|</code></td><td>Left-to-right</td></tr>
+                <tr><td>9</td><td><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td><td>Left-to-right</td></tr>
+                <tr><td>10</td><td><code>==</code> <code>!=</code></td><td>Left-to-right</td></tr>
+                <tr><td>11</td><td><code>and</code></td><td>Left-to-right</td></tr>
+                <tr><td>12 (lowest)</td><td><code>or</code></td><td>Left-to-right</td></tr>
+            </table>
+
+            <!-- ========== CONTROL FLOW ========== -->
+            <h2 id="control-flow">Control Flow</h2>
+
+            <h3>If / Else If / Else</h3>
+            <pre><code><span class="nv-kw">if</span> score &gt;= <span class="nv-num">90</span> {
+    <span class="nv-fn">print</span>(<span class="nv-str">"A"</span>)
+} <span class="nv-kw">else</span> <span class="nv-kw">if</span> score &gt;= <span class="nv-num">80</span> {
+    <span class="nv-fn">print</span>(<span class="nv-str">"B"</span>)
+} <span class="nv-kw">else</span> {
+    <span class="nv-fn">print</span>(<span class="nv-str">"C"</span>)
+}</code></pre>
+
+            <h3>While</h3>
+            <pre><code>i = <span class="nv-num">0</span>
+<span class="nv-kw">while</span> i &lt; <span class="nv-num">10</span> {
+    <span class="nv-fn">print</span>(i)
+    i = i + <span class="nv-num">1</span>
+}</code></pre>
+
+            <h3>For Loop</h3>
+            <pre><code><span class="nv-cmt"># Ascending</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">1</span> <span class="nv-kw">to</span> <span class="nv-num">10</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-fn">print</span>(i)
+}
+
+<span class="nv-cmt"># Descending</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">10</span> <span class="nv-kw">downto</span> <span class="nv-num">1</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-fn">print</span>(i)
+}
+
+<span class="nv-cmt"># Custom step</span>
+<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">100</span> <span class="nv-kw">step</span> <span class="nv-num">10</span> {
+    <span class="nv-fn">print</span>(i)
+}</code></pre>
+
+            <!-- ========== FUNCTIONS ========== -->
+            <h2 id="functions">Functions</h2>
+
+            <pre><code><span class="nv-cmt"># With return type annotation</span>
+<span class="nv-kw">def</span> <span class="nv-fn">add</span>(a: <span class="nv-type">int</span>, b: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
+    <span class="nv-kw">return</span> a + b
+}
+
+<span class="nv-cmt"># Inferred return type (no -&gt; annotation)</span>
+<span class="nv-kw">def</span> <span class="nv-fn">greet</span>(name: <span class="nv-type">string</span>) {
+    <span class="nv-fn">print</span>(<span class="nv-str">"Hello, "</span> + name)
+}
+
+<span class="nv-cmt"># Recursion</span>
+<span class="nv-kw">def</span> <span class="nv-fn">factorial</span>(n: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
+    <span class="nv-kw">if</span> n &lt;= <span class="nv-num">1</span> {
+        <span class="nv-kw">return</span> <span class="nv-num">1</span>
+    }
+    <span class="nv-kw">return</span> n * <span class="nv-fn">factorial</span>(n - <span class="nv-num">1</span>)
+}
+
+<span class="nv-cmt"># Call top-level code</span>
+<span class="nv-fn">print</span>(<span class="nv-fn">add</span>(<span class="nv-num">3</span>, <span class="nv-num">4</span>))</code></pre>
+
+            <!-- ========== CLASSES ========== -->
+            <h2 id="classes">Classes</h2>
+
+            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Player</span> {
+    health: <span class="nv-type">int</span>
+    name: <span class="nv-type">string</span>
+
+    <span class="nv-kw">def</span> <span class="nv-fn">__init__</span>(h: <span class="nv-type">int</span>, n: <span class="nv-type">string</span>) {
+        <span class="nv-kw">self</span>.health = h
+        <span class="nv-kw">self</span>.name = n
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">take_damage</span>(amount: <span class="nv-type">int</span>) {
+        <span class="nv-kw">self</span>.health = <span class="nv-kw">self</span>.health - amount
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">is_alive</span>() -&gt; <span class="nv-type">bool</span> {
+        <span class="nv-kw">return</span> <span class="nv-kw">self</span>.health &gt; <span class="nv-num">0</span>
+    }
+}
+
+<span class="nv-cmt"># Usage</span>
+p = <span class="nv-fn">Player</span>(<span class="nv-num">100</span>, <span class="nv-str">"Hero"</span>)
+p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
+<span class="nv-fn">print</span>(p.<span class="nv-fn">is_alive</span>())   <span class="nv-cmt"># true</span></code></pre>
+
+            <!-- ========== BUILT-INS ========== -->
+            <h2 id="builtins">Built-in Functions</h2>
+            <p>Available in any Nova program without an import.</p>
+
+            <table>
+                <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
+                <tr><td><code>print</code></td><td><code>(value) -> void</code></td><td>Print value to stdout with newline</td></tr>
+                <tr><td><code>printd</code></td><td><code>(value) -> void</code></td><td>Debug print (zero-cost in release builds)</td></tr>
+                <tr><td><code>len</code></td><td><code>(list) -> int</code></td><td>Length of a list</td></tr>
+                <tr><td><code>str</code></td><td><code>(value) -> string</code></td><td>Convert value to string representation</td></tr>
+                <tr><td><code>int_of</code></td><td><code>(value) -> int</code></td><td>Convert to integer</td></tr>
+                <tr><td><code>float_of</code></td><td><code>(value) -> float</code></td><td>Convert to float</td></tr>
+                <tr><td><code>type_name</code></td><td><code>(value) -> string</code></td><td>Returns type name as string</td></tr>
+                <tr><td><code>sys_flush</code></td><td><code>() -> void</code></td><td>Flush stdout buffer</td></tr>
+                <tr><td><code>sys_exit</code></td><td><code>(code: int) -> void</code></td><td>Terminate process immediately</td></tr>
+            </table>
+
+            <h2 id="io">File I/O</h2>
+            <table>
+                <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
+                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a"</td></tr>
+                <tr><td><code>read</code></td><td><code>(fd: int) -> string</code></td><td>Read entire file into string</td></tr>
+                <tr><td><code>write</code></td><td><code>(fd: int, content: string) -> int</code></td><td>Write string to file</td></tr>
+                <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
+            </table>
+
+            <h2 id="os">OS Interface</h2>
+            <table>
+                <tr><th>Function</th><th>Description</th></tr>
+                <tr><td><code>sys_get_args() -> list[string]</code></td><td>Command-line arguments</td></tr>
+                <tr><td><code>sys_system(cmd) -> int</code></td><td>Execute shell command, returns exit code</td></tr>
+                <tr><td><code>sys_get_tick_count() -> int</code></td><td>System uptime in milliseconds</td></tr>
+                <tr><td><code>sys_platform() -> string</code></td><td>Returns "win32" or "linux"</td></tr>
+            </table>
+
+            <h2 id="math">Math &amp; Cryptography</h2>
+            <table>
+                <tr><th>Function</th><th>Description</th></tr>
+                <tr><td><code>random() -> int</code></td><td>CSPRNG via ChaCha20 (auto-seeded)</td></tr>
+                <tr><td><code>square(x) -> int</code></td><td>x * x</td></tr>
+                <tr><td><code>cube(x) -> int</code></td><td>x * x * x</td></tr>
+                <tr><td><code>abs_val(x) -> int</code></td><td>Absolute value</td></tr>
+                <tr><td><code>max_of(a, b) -> int</code></td><td>Maximum of two values</td></tr>
+                <tr><td><code>min_of(a, b) -> int</code></td><td>Minimum of two values</td></tr>
+                <tr><td><code>factorial(n) -> int</code></td><td>n!</td></tr>
+                <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 state</td></tr>
+                <tr><td><code>chacha20_block(state)</code></td><td>Generate next 64-byte block</td></tr>
+            </table>
+
+            <!-- ========== COMPILER DIRECTIVES ========== -->
+            <h2 id="directives">Compiler Directives</h2>
+            <table>
+                <tr><th>Directive</th><th>Syntax</th><th>Purpose</th></tr>
+                <tr><td>Inline ASM</td><td><code>@raw { ... }</code></td><td>Insert raw assembly instructions</td></tr>
+                <tr><td>Pointer suffix</td><td><code>expr^</code></td><td>Dereference pointer</td></tr>
+                <tr><td>Address-of</td><td><code>&amp;var</code></td><td>Get memory address of variable</td></tr>
+            </table>
+
+            <h2 id="asm">Inline Assembly</h2>
+            <pre><code><span class="nv-cmt"># Insert raw x86 instructions</span>
+<span class="nv-kw">@raw</span> {
+    mov eax, <span class="nv-num">42</span>
+    ret
+}
+
+<span class="nv-cmt"># Access Nova variables by name</span>
+x = <span class="nv-num">10</span>
+<span class="nv-kw">@raw</span> {
+    mov eax, [x]    <span class="nv-cmt"># load x into eax</span>
+    add eax, <span class="nv-num">1</span>
+    mov [x], eax    <span class="nv-cmt"># store back</span>
+}</code></pre>
+
+            <!-- ========== GRAMMAR ========== -->
+            <h2 id="grammar">Grammar (EBNF)</h2>
+            <pre><code>program         = { top_level }
+top_level       = function_def | class_def | import_stmt | statement
+
+function_def    = "def" id "(" [ params ] ")" [ "->" type ] block
+class_def       = "class" id "{" { field | method } "}"
+import_stmt     = "import" id
+
+block           = "{" { statement } "}"
+statement       = if_stmt | while_stmt | for_stmt | return_stmt
+                | assign_stmt | call_stmt | print_stmt
+
+if_stmt         = "if" expr block [ "else" { if_stmt | block } ]
+while_stmt      = "while" expr block
+for_stmt        = "for" id "=" expr ( "to" | "downto" ) expr "step" expr block
+return_stmt     = "return" [ expr ]
+
+assign_stmt     = id "=" expr
+                | id "[" expr "]" "=" expr
+
+expr            = or_expr
+or_expr         = and_expr { "or" and_expr }
+and_expr        = bit_or_expr { "and" bit_or_expr }
+bit_or_expr     = bit_xor_expr { "|" bit_xor_expr }
+bit_xor_expr    = bit_and_expr { "^" bit_and_expr }
+bit_and_expr    = shift_expr { "&" shift_expr }
+shift_expr      = comp_expr { ( "&lt;&lt;" | "&gt;&gt;" ) comp_expr }
+comp_expr       = add_expr [ ( "==" | "!=" | "&lt;" | "&gt;" | "&lt;=" | "&gt;=" ) add_expr ]
+add_expr        = mul_expr { ( "+" | "-" ) mul_expr }
+mul_expr        = unary_expr { ( "*" | "/" | "%" ) unary_expr }
+unary_expr      = ( "not" | "~" | "-" ) unary_expr | postfix_expr
+postfix_expr    = primary { "[" expr "]" | "." id | "^" }
+primary         = int_literal | float_literal | string_literal
+                | bool_literal | id | "(" expr ")"
+                | id "(" [ args ] ")"      <span class="nv-cmt"># function call</span>
+
+type            = "int" | "float" | "string" | "bool" | "list"
+                | "any" | "[" type "]" | id</code></pre>
+
+            <div class="callout callout-tip">
+                <strong>See also</strong>
+                <a href="examples.html">Nova Examples</a> &mdash; runnable programs demonstrating these features in practice.
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.doc-content h2, .doc-content h3');
+            const navLinks = document.querySelectorAll('.doc-sidebar a');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const top = section.offsetTop;
+                    if (scrollY >= (top - 120)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+                });
+            });
+        });
+    </script>
+    <footer>
+        <div class="footer-inner">
+            <span>&copy; 2026 Nova Programming Language</span>
+            <div style="display:flex;gap:1.5rem;">
+                <a href="https://github.com/nova-programming" target="_blank" style="color:var(--text-tertiary);text-decoration:none;">GitHub</a>
+                <a href="documentation.html" style="color:var(--text-tertiary);text-decoration:none;">Docs</a>
+                <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
+                <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
+                <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
+                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

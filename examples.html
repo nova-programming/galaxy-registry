@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Examples — Galaxy Registry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #0a0a0f;
+            --text-secondary: #555;
+            --text-tertiary: #888;
+            --border: #e8e8ea;
+            --accent: #0070f3;
+            --accent-gradient: linear-gradient(135deg, #0070f3, #7928ca);
+            --code-bg: #0a0a0f;
+            --code-text: #e4e4e7;
+            --nav-bg: rgba(255,255,255,0.85);
+            --sidebar-bg: #f7f7f8;
+            --keyword: #ff79c6;
+            --string: #50fa7b;
+            --number: #bd93f9;
+            --comment: #6272a4;
+            --builtin: #8be9fd;
+            --callout-info-bg: #eef4ff;
+            --callout-info-border: #0070f3;
+            --callout-tip-bg: #ecfdf5;
+            --callout-tip-border: #10b981;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+        nav.top-nav {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
+        }
+        .nav-brand {
+            font-weight: 700; font-size: 1.2rem;
+            letter-spacing: -0.03em; cursor: pointer;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none; color: inherit;
+        }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.875rem; font-weight: 500;
+            transition: color .2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .layout {
+            display: grid; grid-template-columns: 220px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+        @media (max-width: 860px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+        .sidebar {
+            position: sticky; top: 60px; align-self: start;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem;
+            background: var(--sidebar-bg);
+        }
+        .sidebar h4 {
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em;
+            color: var(--text-tertiary); margin-bottom: 1rem;
+        }
+        .sidebar ul { list-style: none; }
+        .sidebar li { margin-bottom: 0.3rem; }
+        .sidebar a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.8rem; transition: color .15s;
+            display: block; padding: 0.15rem 0;
+        }
+        .sidebar a:hover, .sidebar a.active { color: var(--accent); font-weight: 500; }
+        .sidebar .section-gap { margin-top: 0.75rem; }
+        .content {
+            padding: 2.5rem 3rem; max-width: 960px; min-width: 0;
+        }
+        @media (max-width:860px) { .content { padding: 1.5rem 1.25rem; } }
+        .content h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
+        .content > p { margin-bottom: 2rem; color: var(--text-secondary); }
+        .example-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .example-header {
+            padding: 1rem 1.25rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--sidebar-bg);
+        }
+        .example-header h2 { font-size: 1.15rem; font-weight: 600; }
+        .example-header .desc { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.2rem; }
+        .example-body {
+            padding: 1.25rem;
+        }
+        .example-body pre {
+            background: var(--code-bg); color: var(--code-text);
+            padding: 1rem 1.25rem; border-radius: 8px;
+            overflow-x: auto; font-size: 0.82rem; line-height: 1.5;
+        }
+        .output-box {
+            background: #f0f0f2;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-top: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .output-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.35rem;
+        }
+        .nv-kw { color: var(--keyword); }
+        .nv-str { color: var(--string); }
+        .nv-num { color: var(--number); }
+        .nv-cmt { color: var(--comment); font-style: italic; }
+        .nv-fn { color: var(--builtin); }
+        .nv-type { color: #8be9fd; }
+        .callout {
+            padding: 0.75rem 1rem; border-radius: 6px;
+            margin: 1rem 0; border-left: 4px solid;
+            font-size: 0.85rem;
+        }
+        .callout-tip { background: var(--callout-tip-bg); border-color: var(--callout-tip-border); }
+        footer {
+            border-top: 1px solid var(--border); padding: 1.75rem 2rem;
+            background: var(--sidebar-bg); margin-top: auto;
+        }
+        .footer-inner {
+            max-width: 1040px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; color: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="nav-brand" href="index.html" style="text-decoration:none;color:inherit;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Galaxy
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html?view=view-libraries">Libraries</a>
+            <a href="documentation.html">Documentation</a>
+            <a href="reference.html">Reference</a>
+            <a href="#" class="active">Examples</a>
+            <a href="templates.html">Templates</a>
+            <a href="index.html?view=view-contribute">Contribute</a>
+        </div>
+    </nav>
+
+    <div class="layout">
+        <nav class="sidebar" id="sidebar">
+            <h4>Examples</h4>
+            <ul>
+                <li><a href="#hello">Hello World</a></li>
+                <li><a href="#vars">Variables &amp; Types</a></li>
+                <li><a href="#fizzbuzz">FizzBuzz</a></li>
+                <li><a href="#sum">Sum to N</a></li>
+                <li><a href="#primes">Prime Checker</a></li>
+                <li><a href="#fibonacci">Fibonacci</a></li>
+                <li><a href="#fileio">File Reader</a></li>
+                <li><a href="#random">Random Numbers</a></li>
+                <li><a href="#cli">CLI Arguments</a></li>
+                <li><a href="#classes">Classes</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <h1>Nova Examples</h1>
+            <p>Real, runnable Nova programs. Create a <code>.nv</code> file, run with <code>nova dev filename.nv</code>.</p>
+
+            <!-- ===== HELLO WORLD ===== -->
+            <div class="example-card" id="hello">
+                <div class="example-header">
+                    <h2>Hello World</h2>
+                    <div class="desc">The simplest Nova program — just a single print call.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello, World!"</span>)</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        Hello, World!
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== VARIABLES ===== -->
+            <div class="example-card" id="vars">
+                <div class="example-header">
+                    <h2>Variables &amp; Types</h2>
+                    <div class="desc">Demonstrates explicit types and type inference.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-cmt"># Explicit type annotation</span>
+name: <span class="nv-type">string</span> = <span class="nv-str">"Nova"</span>
+age: <span class="nv-type">int</span> = <span class="nv-num">42</span>
+
+<span class="nv-cmt"># Type inference — Nova figures it out</span>
+pi = <span class="nv-num">3.14</span>          <span class="nv-cmt"># inferred as float</span>
+is_ready = <span class="nv-kw">true</span>    <span class="nv-cmt"># inferred as bool</span>
+count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred as int</span>
+
+<span class="nv-cmt"># Constants</span>
+<span class="nv-kw">const</span> MAX_SIZE = <span class="nv-num">4096</span>
+
+<span class="nv-fn">print</span>(name)
+<span class="nv-fn">print</span>(age)
+<span class="nv-fn">print</span>(pi)
+<span class="nv-fn">print</span>(is_ready)
+<span class="nv-fn">print</span>(MAX_SIZE)</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        Nova<br>42<br>3.14<br>true<br>4096
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FIZZBUZZ ===== -->
+            <div class="example-card" id="fizzbuzz">
+                <div class="example-header">
+                    <h2>FizzBuzz</h2>
+                    <div class="desc">Classic programming problem — conditionals, loops, and modulo.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">for</span> i = <span class="nv-num">1</span> <span class="nv-kw">to</span> <span class="nv-num">20</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+    <span class="nv-kw">if</span> i % <span class="nv-num">15</span> == <span class="nv-num">0</span> {
+        <span class="nv-fn">print</span>(<span class="nv-str">"FizzBuzz"</span>)
+    } <span class="nv-kw">else</span> <span class="nv-kw">if</span> i % <span class="nv-num">3</span> == <span class="nv-num">0</span> {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Fizz"</span>)
+    } <span class="nv-kw">else</span> <span class="nv-kw">if</span> i % <span class="nv-num">5</span> == <span class="nv-num">0</span> {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Buzz"</span>)
+    } <span class="nv-kw">else</span> {
+        <span class="nv-fn">print</span>(i)
+    }
+}</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz 16 17 Fizz 19 Buzz
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SUM TO N ===== -->
+            <div class="example-card" id="sum">
+                <div class="example-header">
+                    <h2>Sum to N</h2>
+                    <div class="desc">Loop from 1 to N and accumulate the total.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">def</span> <span class="nv-fn">sum_to</span>(n) {
+    s = <span class="nv-num">0</span>
+    i = <span class="nv-num">0</span>
+    <span class="nv-kw">while</span> i &lt;= n {
+        s = s + i
+        i = i + <span class="nv-num">1</span>
+    }
+    <span class="nv-kw">return</span> s
+}
+
+<span class="nv-fn">print</span>(<span class="nv-fn">sum_to</span>(<span class="nv-num">100</span>))</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        5050
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PRIME CHECKER ===== -->
+            <div class="example-card" id="primes">
+                <div class="example-header">
+                    <h2>Prime Checker</h2>
+                    <div class="desc">Counts primes up to a limit using trial division.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">def</span> <span class="nv-fn">is_prime</span>(n) {
+    <span class="nv-kw">if</span> n &lt; <span class="nv-num">2</span> { <span class="nv-kw">return</span> <span class="nv-num">0</span> }
+    i = <span class="nv-num">2</span>
+    <span class="nv-kw">while</span> i * i &lt;= n {
+        <span class="nv-kw">if</span> n % i == <span class="nv-num">0</span> { <span class="nv-kw">return</span> <span class="nv-num">0</span> }
+        i = i + <span class="nv-num">1</span>
+    }
+    <span class="nv-kw">return</span> <span class="nv-num">1</span>
+}
+
+<span class="nv-kw">def</span> <span class="nv-fn">count_primes</span>(limit) {
+    count = <span class="nv-num">0</span>
+    i = <span class="nv-num">2</span>
+    <span class="nv-kw">while</span> i &lt;= limit {
+        <span class="nv-kw">if</span> <span class="nv-fn">is_prime</span>(i) == <span class="nv-num">1</span> { count = count + <span class="nv-num">1</span> }
+        i = i + <span class="nv-num">1</span>
+    }
+    <span class="nv-kw">return</span> count
+}
+
+<span class="nv-fn">print</span>(<span class="nv-fn">count_primes</span>(<span class="nv-num">100</span>))</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        25
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FIBONACCI ===== -->
+            <div class="example-card" id="fibonacci">
+                <div class="example-header">
+                    <h2>Fibonacci</h2>
+                    <div class="desc">Recursive Fibonacci — tests function call overhead and recursion depth.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">def</span> <span class="nv-fn">fib</span>(n) {
+    <span class="nv-kw">if</span> n &lt;= <span class="nv-num">1</span> { <span class="nv-kw">return</span> n }
+    <span class="nv-kw">return</span> <span class="nv-fn">fib</span>(n - <span class="nv-num">1</span>) + <span class="nv-fn">fib</span>(n - <span class="nv-num">2</span>)
+}
+
+<span class="nv-fn">print</span>(<span class="nv-fn">fib</span>(<span class="nv-num">10</span>))
+<span class="nv-fn">print</span>(<span class="nv-fn">fib</span>(<span class="nv-num">20</span>))
+<span class="nv-fn">print</span>(<span class="nv-fn">fib</span>(<span class="nv-num">35</span>))</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        55<br>6765<br>9227465
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FILE READER ===== -->
+            <div class="example-card" id="fileio">
+                <div class="example-header">
+                    <h2>File Reader</h2>
+                    <div class="desc">Open a file, read its contents, and print it.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>fd = <span class="nv-fn">open</span>(<span class="nv-str">"data.txt"</span>, <span class="nv-str">"r"</span>)
+content = <span class="nv-fn">read</span>(fd)
+<span class="nv-fn">print</span>(content)
+<span class="nv-fn">close</span>(fd)</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output (assuming data.txt contains "Hello from file")</div>
+                        Hello from file
+                    </div>
+                    <div class="callout callout-tip" style="margin-top:0.75rem;">
+                        <strong>Writing files</strong>
+                        Use <code>"w"</code> mode to write: <code>fd = open("out.txt", "w"); write(fd, "hello"); close(fd)</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RANDOM ===== -->
+            <div class="example-card" id="random">
+                <div class="example-header">
+                    <h2>Random Numbers</h2>
+                    <div class="desc">Cryptographically secure random numbers via ChaCha20 PRNG.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-cmt"># Seed the ChaCha20 generator</span>
+<span class="nv-fn">chacha20_init</span>(<span class="nv-num">12345</span>, <span class="nv-num">67890</span>)
+
+<span class="nv-cmt"># Generate 5 random numbers</span>
+i = <span class="nv-num">0</span>
+<span class="nv-kw">while</span> i &lt; <span class="nv-num">5</span> {
+    r = <span class="nv-fn">random</span>()
+    <span class="nv-fn">print</span>(<span class="nv-str">"Random: "</span> + <span class="nv-fn">str</span>(r))
+    i = i + <span class="nv-num">1</span>
+}</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output (example — values vary by seed)</div>
+                        Random: 123456789<br>Random: 987654321<br>Random: 555111222<br>Random: 333444777<br>Random: 888999000
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CLI ARGS ===== -->
+            <div class="example-card" id="cli">
+                <div class="example-header">
+                    <h2>CLI Arguments</h2>
+                    <div class="desc">Access command-line arguments passed to the program.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>args = <span class="nv-fn">sys_get_args</span>()
+i = <span class="nv-num">0</span>
+<span class="nv-kw">while</span> i &lt; <span class="nv-fn">len</span>(args) {
+    <span class="nv-fn">print</span>(<span class="nv-str">"arg["</span> + <span class="nv-fn">str</span>(i) + <span class="nv-str">"] = "</span> + args[i])
+    i = i + <span class="nv-num">1</span>
+}</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output (<code>nova dev args.nv hello world 42</code>)</div>
+                        arg[0] = args.nv<br>arg[1] = hello<br>arg[2] = world<br>arg[3] = 42
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CLASSES ===== -->
+            <div class="example-card" id="classes">
+                <div class="example-header">
+                    <h2>Classes</h2>
+                    <div class="desc">Object-oriented programming with constructors, fields, and methods.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Player</span> {
+    health: <span class="nv-type">int</span>
+    name: <span class="nv-type">string</span>
+
+    <span class="nv-kw">def</span> <span class="nv-fn">__init__</span>(h: <span class="nv-type">int</span>, n: <span class="nv-type">string</span>) {
+        <span class="nv-kw">self</span>.health = h
+        <span class="nv-kw">self</span>.name = n
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">take_damage</span>(amount: <span class="nv-type">int</span>) {
+        <span class="nv-kw">self</span>.health = <span class="nv-kw">self</span>.health - amount
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">is_alive</span>() -&gt; <span class="nv-type">bool</span> {
+        <span class="nv-kw">return</span> <span class="nv-kw">self</span>.health &gt; <span class="nv-num">0</span>
+    }
+}
+
+p = <span class="nv-fn">Player</span>(<span class="nv-num">100</span>, <span class="nv-str">"Hero"</span>)
+p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
+<span class="nv-fn">print</span>(p.<span class="nv-fn">is_alive</span>())
+<span class="nv-fn">print</span>(p.health)</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        true<br>75
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.example-card');
+            const navLinks = document.querySelectorAll('.sidebar a');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const top = section.offsetTop;
+                    if (scrollY >= (top - 130)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+                });
+            });
+        });
+    </script>
+    <footer>
+        <div class="footer-inner">
+            <span>&copy; 2026 Nova Programming Language</span>
+            <div style="display:flex;gap:1.5rem;">
+                <a href="https://github.com/nova-programming" target="_blank" style="color:var(--text-tertiary);text-decoration:none;">GitHub</a>
+                <a href="documentation.html" style="color:var(--text-tertiary);text-decoration:none;">Docs</a>
+                <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
+                <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
+                <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
+                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
