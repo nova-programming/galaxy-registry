@@ -35,7 +35,6 @@ function Fail  { Write-Host "  [FAIL] $($args[0])" -ForegroundColor Red; exit 1 
 
 function Add-ToPath {
     try {
-        # Check if already in User PATH
         $currentUser = [Environment]::GetEnvironmentVariable("PATH", "User")
         $parts = $currentUser.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
         $normed = [System.IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
@@ -47,20 +46,23 @@ function Add-ToPath {
                 if ($pNormed -eq $normed) { $alreadyInPath = $true; break }
             } catch { continue }
         }
-        if ($alreadyInPath) {
+        if (-not $alreadyInPath) {
+            # Use SetEnvironmentVariable("User") — writes registry AND broadcasts WM_SETTINGCHANGE
+            $newPath = ($currentUser.TrimEnd(";") + ";" + $InstallDir)
+            [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+            Ok "Added to PATH: $InstallDir"
+        } else {
             Info "Install directory already in PATH"
-            return
+            # Re-broadcast WM_SETTINGCHANGE even if already in PATH, so Explorer
+            # picks up any PATH that was set by a prior installer without broadcast.
+            [Environment]::SetEnvironmentVariable("PATH", $currentUser, "User")
+            Info "Refreshed environment — nova/galaxy should now work in new terminals."
         }
-        # Use SetEnvironmentVariable("User") — writes registry AND broadcasts WM_SETTINGCHANGE
-        $newPath = ($currentUser.TrimEnd(";") + ";" + $InstallDir)
-        [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
         # Also update current process so child processes see it immediately
         $currentProcess = [Environment]::GetEnvironmentVariable("PATH", "Process")
         if ($currentProcess -notlike "*$InstallDir*") {
             [Environment]::SetEnvironmentVariable("PATH", $currentProcess.TrimEnd(";") + ";" + $InstallDir, "Process")
         }
-        Ok "Added to PATH: $InstallDir"
-        Info "If nova/galaxy are not found after restarting, log off and back in."
     } catch {
         Warn "Could not update PATH: $_"
         Info "Add to PATH manually: $InstallDir"

@@ -351,6 +351,17 @@ def _create_launchers():
 # PATH management (Windows user-level PATH via Registry)
 # ---------------------------------------------------------------------------
 
+def _broadcast_env_change():
+    try:
+        HWND_BROADCAST = 0xFFFF
+        WM_SETTINGCHANGE = 0x001A
+        import ctypes
+        ctypes.windll.user32.SendMessageW(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment"
+        )
+    except Exception:
+        pass
+
 def _add_to_path_windows() -> bool:
     try:
         import winreg
@@ -374,21 +385,15 @@ def _add_to_path_windows() -> bool:
             normed = os.path.normcase(os.path.normpath(INSTALL_DIR))
             if any(os.path.normcase(os.path.normpath(p)) == normed for p in parts):
                 info("Install directory already in PATH")
+                # Still broadcast so Explorer picks up any PATH set without broadcast
+                _broadcast_env_change()
+                info("Refreshed environment — nova/galaxy should work in new terminals.")
                 return True
 
             current = current.rstrip(";") + ";" + INSTALL_DIR
             winreg.SetValueEx(key, "PATH", 0, reg_type, current)
 
-        # Notify Windows of environment change
-        try:
-            HWND_BROADCAST = 0xFFFF
-            WM_SETTINGCHANGE = 0x001A
-            import ctypes
-            ctypes.windll.user32.SendMessageW(
-                HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment"
-            )
-        except Exception:
-            pass
+        _broadcast_env_change()
 
         # Also update the current process's PATH so child terminals
         # (opened from this session) inherit the correct environment
