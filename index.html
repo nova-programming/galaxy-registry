@@ -557,17 +557,17 @@
                     </div>
                     <div style="margin-top:1.5rem;font-size:0.75rem;color:var(--text-tertiary);text-align:center;">Install — click to copy your platform's command:</div>
                     <div class="platform-grid">
-                        <div class="platform-card" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)" title="Click to copy">
+                        <div class="platform-card" data-cmd="curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh" title="Click to copy">
                             <div class="os-label">macOS / Linux</div>
                             <code>curl -O .../install.sh && bash install.sh</code>
                             <span class="copy-hint">&#x2398;</span>
                         </div>
-                        <div class="platform-card" onclick="copyText('powershell -ExecutionPolicy Bypass -Command \"Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1\"', this)" title="Click to copy">
+                        <div class="platform-card" data-cmd="powershell -ExecutionPolicy Bypass -Command &quot;Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1&quot;" title="Click to copy">
                             <div class="os-label">Windows</div>
                             <code>powershell -ExecutionPolicy Bypass .../install.ps1</code>
                             <span class="copy-hint">&#x2398;</span>
                         </div>
-                        <div class="platform-card" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.py && python install.py', this)" title="Click to copy">
+                        <div class="platform-card" data-cmd="curl -O https://galaxy-registry.vercel.app/install.py && python install.py" title="Click to copy">
                             <div class="os-label">Python (any OS)</div>
                             <code>curl -O .../install.py && python install.py</code>
                             <span class="copy-hint">&#x2398;</span>
@@ -1203,6 +1203,22 @@ galaxy remove nova-math   # Uninstall</code></pre>
                 });
             }, { threshold: 0.5 });
             statNums.forEach(n => statObserver.observe(n));
+
+            /* Platform card click-to-copy */
+            document.querySelectorAll('.platform-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const text = this.dataset.cmd;
+                    if (!text) return;
+                    navigator.clipboard.writeText(text);
+                    this.classList.add('copied');
+                    const hint = this.querySelector('.copy-hint');
+                    if (hint) { hint.textContent = 'Copied'; }
+                    setTimeout(() => {
+                        this.classList.remove('copied');
+                        if (hint) { hint.textContent = '\u2398'; }
+                    }, 2000);
+                });
+            });
         });
     </script>
 </body>
