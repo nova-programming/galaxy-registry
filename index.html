@@ -576,7 +576,7 @@
                 <p><strong>macOS / Linux (bash):</strong></p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</code></pre>
                 <p><strong>Windows (PowerShell):</strong></p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -File install.ps1</code></pre>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1"</code></pre>
                 <p><strong>Python fallback (any platform):</strong></p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/install.py && python install.py</code></pre>
                 <p>The installer downloads the Nova compiler and Galaxy CLI to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix), creates launchers, and adds to your PATH.</p>

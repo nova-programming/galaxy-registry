@@ -539,7 +539,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <h4>One-Click Install (No Python Required)</h4>
             <p><strong>Windows (PowerShell, pre-installed):</strong></p>
-            <pre><code>Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -File install.ps1</code></pre>
+            <pre><code>powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1"</code></pre>
             <p><strong>macOS / Linux (bash):</strong></p>
             <pre><code>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</code></pre>
             <p><strong>Any platform (requires Python):</strong></p>

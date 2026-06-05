@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Nova + Galaxy — Native Installer (PowerShell)
+    Nova + Galaxy ? Native Installer (PowerShell)
 .DESCRIPTION
     Downloads and installs the Nova compiler and Galaxy package manager
     without requiring Python. Creates launchers and adds to user PATH.
@@ -24,7 +24,7 @@ $GccDir = Join-Path $InstallDir "gcc"
 $AllowedFiles = @("main.py", "_galaxy.py", "nova.nv")
 $AllowedDirs = @("compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy")
 
-# Portable GCC (winlibs) — only downloaded on Windows if 'gcc' not on PATH
+# Portable GCC (winlibs) ? only downloaded on Windows if 'gcc' not on PATH
 $MINGW_ZIP_URL = "https://github.com/brechtsanders/winlibs_mingw/releases/download/16.1.0posix-14.0.0-msvcrt-r2/winlibs-x86_64-posix-seh-gcc-16.1.0-mingw-w64msvcrt-14.0.0-r2.zip"
 $MINGW_ZIP_TOP = "mingw64"
 
@@ -116,14 +116,14 @@ echo      galaxy --version
 function Install-GccIfMissing {
     $hasGcc = $null -ne (Get-Command "gcc" -ErrorAction SilentlyContinue)
     if ($hasGcc) {
-        Info "GCC found on PATH — skipping bundle."
+        Info "GCC found on PATH ? skipping bundle."
         return
     }
     if (Test-Path (Join-Path $GccDir "bin\gcc.exe")) {
-        Info "Bundled GCC found — skipping download."
+        Info "Bundled GCC found ? skipping download."
         return
     }
-    Info "GCC not found — downloading portable MinGW-w64 (~130MB)..."
+    Info "GCC not found ? downloading portable MinGW-w64 (~130MB)..."
     $tmpFile = Join-Path ([System.IO.Path]::GetTempPath()) "mingw-$(Get-Random).zip"
     try {
         $progressPreference = 'silentlyContinue'
@@ -135,7 +135,7 @@ function Install-GccIfMissing {
         return
     }
     $size = (Get-Item $tmpFile).Length / 1MB
-    Info "Downloaded $([math]::Round($size, 1)) MB — extracting..."
+    Info "Downloaded $([math]::Round($size, 1)) MB ? extracting..."
     try {
         $zip = [System.IO.Compression.ZipFile]::OpenRead($tmpFile)
         $prefix = "$MINGW_ZIP_TOP/"
@@ -175,7 +175,7 @@ function Install-NovaGalaxy {
     Info "Install directory: $InstallDir"
 
     if (Test-Path $InstallDir) {
-        Info "Directory already exists — will overwrite."
+        Info "Directory already exists ? will overwrite."
         $okMsg = "Reinstalled"
     } else {
         $okMsg = "Installed"
@@ -193,7 +193,7 @@ function Install-NovaGalaxy {
     }
 
     $size = (Get-Item $tmpFile).Length / 1MB
-    Info "Downloaded $([math]::Round($size, 1)) MB — verifying..."
+    Info "Downloaded $([math]::Round($size, 1)) MB ? verifying..."
 
     try {
         $zip = [System.IO.Compression.ZipFile]::OpenRead($tmpFile)
