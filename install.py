@@ -530,10 +530,12 @@ def install():
     print()
     info(f"Location: {INSTALL_DIR}")
     if platform.system() == "Windows":
-        info("To use nova/galaxy in THIS terminal:")
-        info('  cmd.exe:  call "%LOCALAPPDATA%\\nova\\use_nova.bat"')
-        info('  PowerShell: $env:PATH = "$env:LOCALAPPDATA\\nova;$env:PATH"')
-        info("Or open a NEW terminal.")
+        print("  -------------------------------------------------")
+        print("  >> IMMEDIATE USE (no restart needed):")
+        print('  >>   cmd.exe:  call "%LOCALAPPDATA%\\nova\\use_nova.bat"')
+        print('  >>   PowerShell: $env:PATH = "$env:LOCALAPPDATA\\nova;$env:PATH"')
+        print("  -------------------------------------------------")
+        info("Or open a NEW terminal (may need log off/on if not found).")
     else:
         info("Restart your terminal or source your shell config, then:")
     print()

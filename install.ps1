@@ -35,30 +35,32 @@ function Fail  { Write-Host "  [FAIL] $($args[0])" -ForegroundColor Red; exit 1 
 
 function Add-ToPath {
     try {
-        $pathKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)
-        $current = $pathKey.GetValue("PATH", "", "DoNotExpandEnvironmentNames")
-        $parts = $current.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
-        $normed = [System.IO.Path]::GetFullPath([System.Environment]::ExpandEnvironmentVariables($InstallDir)).TrimEnd('\')
+        # Check if already in User PATH
+        $currentUser = [Environment]::GetEnvironmentVariable("PATH", "User")
+        $parts = $currentUser.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
+        $normed = [System.IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
         $alreadyInPath = $false
         foreach ($p in $parts) {
             try {
-                $expanded = [System.Environment]::ExpandEnvironmentVariables($p)
+                $expanded = [Environment]::ExpandEnvironmentVariables($p)
                 $pNormed = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
                 if ($pNormed -eq $normed) { $alreadyInPath = $true; break }
             } catch { continue }
         }
         if ($alreadyInPath) {
             Info "Install directory already in PATH"
-            $pathKey.Close()
             return
         }
-        $newPath = $current.TrimEnd(";") + ";" + $InstallDir
-        $pathKey.SetValue("PATH", $newPath, "ExpandString")
-        $pathKey.Close()
-        # Update current session only, registry already set above
-        [Environment]::SetEnvironmentVariable("PATH", [Environment]::GetEnvironmentVariable("PATH", "User") + ";" + $InstallDir, "Process")
+        # Use SetEnvironmentVariable("User") — writes registry AND broadcasts WM_SETTINGCHANGE
+        $newPath = ($currentUser.TrimEnd(";") + ";" + $InstallDir)
+        [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+        # Also update current process so child processes see it immediately
+        $currentProcess = [Environment]::GetEnvironmentVariable("PATH", "Process")
+        if ($currentProcess -notlike "*$InstallDir*") {
+            [Environment]::SetEnvironmentVariable("PATH", $currentProcess.TrimEnd(";") + ";" + $InstallDir, "Process")
+        }
         Ok "Added to PATH: $InstallDir"
-        Info "Restart your terminal for the change to take effect."
+        Info "If nova/galaxy are not found after restarting, log off and back in."
     } catch {
         Warn "Could not update PATH: $_"
         Info "Add to PATH manually: $InstallDir"
@@ -234,10 +236,12 @@ function Install-NovaGalaxy {
     Write-Host "  +------------------------------------------------+"
     Write-Host ""
     Info "Location: $InstallDir"
-    Info "To use nova/galaxy in THIS terminal:"
-    Info '  cmd.exe:  call "%LOCALAPPDATA%\nova\use_nova.bat"'
-    Info '  PowerShell: $env:PATH = "$env:LOCALAPPDATA\nova;$env:PATH"'
-    Info "Or open a NEW terminal."
+    Write-Host "  -------------------------------------------------" -ForegroundColor Cyan
+    Write-Host "  >> IMMEDIATE USE (no restart needed):" -ForegroundColor Cyan
+    Write-Host '  >>   cmd.exe:  call "%LOCALAPPDATA%\nova\use_nova.bat"' -ForegroundColor Cyan
+    Write-Host '  >>   PowerShell: $env:PATH = "$env:LOCALAPPDATA\nova;$env:PATH"' -ForegroundColor Cyan
+    Write-Host "  -------------------------------------------------" -ForegroundColor Cyan
+    Info "Or open a NEW terminal (may need log off/on if not found)."
     Write-Host ""
     Info "  nova --version          Check Nova version"
     Info "  nova build hello.nv     Compile a Nova program"
