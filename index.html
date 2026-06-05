@@ -462,12 +462,46 @@
             transform: translateY(-1px);
         }
 
+        /* Platform install options under hero */
+        .platform-grid {
+            display: flex; gap: 0.75rem; justify-content: center;
+            margin: 1.5rem auto 0; max-width: 720px; flex-wrap: wrap;
+        }
+        .platform-card {
+            flex: 1; min-width: 190px; max-width: 240px;
+            background: #fff; border: 1px solid var(--border);
+            border-radius: 10px; padding: 0.85rem 1rem;
+            text-align: left; transition: all 0.2s;
+            cursor: pointer; position: relative;
+        }
+        .platform-card:hover {
+            border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,112,243,0.1);
+        }
+        .platform-card .os-label {
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; color: var(--text-tertiary); margin-bottom: 0.4rem;
+        }
+        .platform-card code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem; color: var(--text); line-height: 1.5;
+            display: block; word-break: break-all;
+        }
+        .platform-card .copy-hint {
+            position: absolute; top: 0.4rem; right: 0.5rem;
+            color: var(--text-tertiary); opacity: 0; transition: opacity 0.2s;
+        }
+        .platform-card:hover .copy-hint { opacity: 0.5; }
+        .platform-card.copied { border-color: #10b981; }
+        .platform-card.copied .copy-hint { opacity: 1; color: #10b981; }
+
         @media (max-width:700px) {
             .features { grid-template-columns: 1fr; }
             .stats-row { flex-direction: column; gap: 1.25rem; }
             .term-wrap { min-width: 0; width: 100%; }
             .hero-glow { font-size: 2.5rem; }
             .hero-wrap { padding: 2rem 1rem 3rem; border-radius: 12px; }
+            .platform-grid { flex-direction: column; align-items: center; }
+            .platform-card { max-width: 100%; min-width: 0; width: 100%; }
         }
     </style>
 </head>
@@ -502,7 +536,7 @@
                             <span class="term-dot red"></span>
                             <span class="term-dot yellow"></span>
                             <span class="term-dot green"></span>
-                            <span class="term-title-text">install.sh</span>
+                            <span class="term-title-text">Quick Install</span>
                         </div>
                         <div class="term-body" id="term-body">
                             <div class="term-line" id="line1">
@@ -510,13 +544,34 @@
                                 <button class="term-copy" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
                             <div class="term-line" id="line2">
-                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy --version</span>  <span class=comment># v0.2.0</span>"></span>
-                                <button class="term-copy" onclick="copyText('galaxy --version', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>nova --version &amp;&amp; galaxy --version</span>  <span class=comment># Nova v0.6.0 / Galaxy v0.6.0</span>"></span>
+                                <button class="term-copy" onclick="copyText('nova --version && galaxy --version', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
                             <div class="term-line" id="line3">
+                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy init library my-lib</span>"></span>
+                                <button class="term-copy" onclick="copyText('galaxy init library my-lib', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            </div>
+                            <div class="term-line" id="line4">
                                 <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy install nova-http</span>"></span>
                                 <button class="term-copy" onclick="copyText('galaxy install nova-http', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
+                        </div>
+                    </div>
+                    <div class="platform-grid">
+                        <div class="platform-card" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)" title="Click to copy">
+                            <div class="os-label">macOS / Linux</div>
+                            <code>curl -O .../install.sh && bash install.sh</code>
+                            <span class="copy-hint">&#x2398;</span>
+                        </div>
+                        <div class="platform-card" onclick="copyText('powershell -ExecutionPolicy Bypass -Command \"Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1\"', this)" title="Click to copy">
+                            <div class="os-label">Windows</div>
+                            <code>powershell -ExecutionPolicy Bypass .../install.ps1</code>
+                            <span class="copy-hint">&#x2398;</span>
+                        </div>
+                        <div class="platform-card" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.py && python install.py', this)" title="Click to copy">
+                            <div class="os-label">Python (any OS)</div>
+                            <code>curl -O .../install.py && python install.py</code>
+                            <span class="copy-hint">&#x2398;</span>
                         </div>
                     </div>
                     <div class="cta-group">
@@ -571,8 +626,8 @@
                 <h1 style="font-size:2rem;font-weight:700;margin-bottom:0.5rem;">Get Started with Galaxy</h1>
                 <p style="color:var(--text-secondary);font-size:1rem;margin-bottom:2rem;">Install the CLI, create a library, publish to the world.</p>
 
-                <h2 style="font-size:1.25rem;margin-top:0;">1. Install galaxy CLI</h2>
-                <p><strong>No Python required</strong> — native installers for every platform:</p>
+                <h2 style="font-size:1.25rem;margin-top:0;">1. Install the Nova system</h2>
+                <p><strong>No Python required</strong> — installs both the <strong>Nova compiler</strong> and <strong>Galaxy package manager</strong> together:</p>
                 <p><strong>macOS / Linux (bash):</strong></p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</code></pre>
                 <p><strong>Windows (PowerShell):</strong></p>
@@ -599,18 +654,23 @@ cd my-lib</code></pre>
                 <h2 style="font-size:1.25rem;">3. Write code</h2>
                 <p>Add Nova source files to <code>src/</code>. The main file is <code>src/main.nv</code> (or the file specified in <code>galaxy.json</code> under <code>"main"</code>).</p>
 
-                <h2 style="font-size:1.25rem;">4. Install from the registry</h2>
+                <h2 style="font-size:1.25rem;">4. Compile your project</h2>
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova build src/main.nv
+./main</code></pre>
+                <p>Compiles Nova source to a native executable using the self-hosted compiler (assembles + links automatically). Outputs an <code>.exe</code> with debug info preserved for troubleshooting.</p>
+
+                <h2 style="font-size:1.25rem;">5. Install from the registry</h2>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy install nova-math
 galaxy install nova-http</code></pre>
                 <p>You can also install directly from GitHub:</p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy install owner/repo</code></pre>
 
-                <h2 style="font-size:1.25rem;">5. Publish your library</h2>
+                <h2 style="font-size:1.25rem;">6. Publish your library</h2>
                 <p>From your library directory, run:</p>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy publish</code></pre>
                 <p>This validates your <code>galaxy.json</code>, computes SHA-256 hashes of your source files, and opens a pre-filled <strong>GitHub Issue</strong> on the <a href="https://github.com/nova-programming/galaxy-registry">galaxy-registry</a> repository. The registry maintainers will review and merge your submission.</p>
 
-                <h2 style="font-size:1.25rem;">6. Stay updated</h2>
+                <h2 style="font-size:1.25rem;">7. Stay updated</h2>
                 <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova --version            # Check Nova version
 nova update               # Update Nova compiler
 galaxy --version          # Check Galaxy version
@@ -854,7 +914,18 @@ galaxy remove nova-math   # Uninstall</code></pre>
         function copyText(text, btn) {
             navigator.clipboard.writeText(text);
             const svg = btn.querySelector('svg');
-            if (svg) { svg.outerHTML = checkIcon; setTimeout(() => { svg.outerHTML = copyIcon; }, 2000); }
+            if (svg) {
+                svg.outerHTML = checkIcon;
+                setTimeout(() => { svg.outerHTML = copyIcon; }, 2000);
+            } else {
+                btn.classList.add('copied');
+                const hint = btn.querySelector('.copy-hint');
+                if (hint) { hint.textContent = 'Copied'; }
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    if (hint) { hint.textContent = '\u2398'; }
+                }, 2000);
+            }
         }
 
         function filterPackages() { renderGrid(); }
@@ -1097,11 +1168,11 @@ galaxy remove nova-math   # Uninstall</code></pre>
 
             /* Terminal line reveal */
             setTimeout(() => {
-                revealTerminal(['line1', 'line2', 'line3'], () => {
+                revealTerminal(['line1', 'line2', 'line3', 'line4'], () => {
                     const termBody = document.getElementById('term-body');
                     const final = document.createElement('span');
                     final.style.cssText = 'display:block;margin-top:0.5rem;color:#666;font-style:italic;';
-                    final.textContent = '> Ready — open a new terminal and run: galaxy install <pkg>';
+                    final.textContent = '> Nova v0.6.0 + Galaxy v0.6.0 ready — install packages with: galaxy install <pkg>';
                     termBody.appendChild(final);
                 });
             }, 800);
