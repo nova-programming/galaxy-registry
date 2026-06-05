@@ -15,6 +15,9 @@ import os
 import shutil
 import stat
 import platform
+
+if sys.version_info < (3, 6):
+    sys.exit("ERROR: Python 3.6+ is required. You have " + sys.version)
 import urllib.request
 import urllib.error
 import zipfile
@@ -28,11 +31,15 @@ NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
 NOVA_ZIP_URL = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 ZIP_PREFIX = "Nova-develop"
 
-ALLOWED_ROOT_FILES = {"main.py", "_galaxy.py", "nova_main.nv"}
+ALLOWED_ROOT_FILES = {"main.py", "_galaxy.py", "nova.nv"}
 ALLOWED_SUBDIRS = {
     "compiler", "parser", "lexer", "stdlib",
     "nova_ast", "tools", "galaxy", "vm", "modules",
 }
+
+# Portable MinGW-w64 for Windows — only downloaded if 'gcc' not on PATH
+MINGW_ZIP_URL = "https://github.com/brechtsanders/winlibs_mingw/releases/download/16.1.0posix-14.0.0-msvcrt-r2/winlibs-x86_64-posix-seh-gcc-16.1.0-mingw-w64msvcrt-14.0.0-r2.zip"
+MINGW_ZIP_TOP = "mingw64"
 
 if platform.system() == "Windows":
     INSTALL_DIR = os.path.join(
@@ -48,12 +55,20 @@ if platform.system() == "Windows":
             '@echo off\r\n'
             'python "%~dp0_galaxy.py" %*\r\n'
         ),
+        "use_nova.bat": (
+            '@echo off\r\n'
+            'set "PATH=%~dp0;%PATH%"\r\n'
+            'echo Nova and Galaxy are now available in this terminal.\r\n'
+            'echo.\r\n'
+            'echo Try: nova --version\r\n'
+            'echo      galaxy --version\r\n'
+        ),
     }
 else:
     INSTALL_DIR = os.path.join(os.path.expanduser("~"), ".nova")
     LAUNCHER_TEMPLATES = {
         "nova": (
-            '#!/usr/bin/env python3\n'
+            '#!/usr/bin/env python\n'
             '"""Nova compiler launcher"""\n'
             'import sys, os\n'
             'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n'
@@ -62,7 +77,7 @@ else:
             'main()\n'
         ),
         "galaxy": (
-            '#!/usr/bin/env python3\n'
+            '#!/usr/bin/env python\n'
             '"""Galaxy package manager launcher"""\n'
             'import sys, os\n'
             'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n'
@@ -70,6 +85,8 @@ else:
             'main()\n'
         ),
     }
+
+GCC_DIR = os.path.join(INSTALL_DIR, "gcc")
 
 
 # ---------------------------------------------------------------------------
@@ -268,6 +285,52 @@ def _extract_zip(zip_data: bytes) -> int:
 # Launchers
 # ---------------------------------------------------------------------------
 
+def _install_gcc_if_missing():
+    """Download and bundle a portable MinGW-w64 if GCC is not found on PATH."""
+    if shutil.which("gcc"):
+        info("GCC found on PATH — skipping bundle.")
+        return
+    gcc_bin = os.path.join(GCC_DIR, "bin", "gcc.exe")
+    if os.path.exists(gcc_bin):
+        info("Bundled GCC found — skipping download.")
+        return
+    # On non-Windows, GCC is typically installed via package manager
+    if platform.system() != "Windows":
+        info("GCC not found. Use your package manager to install build-essential (Linux) or Xcode CLI tools (macOS).")
+        info("Alternatively, use 'nova dev <file.nv>' (VM mode) which needs no compiler.")
+        return
+    info("GCC not found — downloading portable MinGW-w64 (~130MB)...")
+    try:
+        req = urllib.request.Request(MINGW_ZIP_URL, headers={"User-Agent": "nova-installer/1.0"})
+        rsp = urllib.request.urlopen(req, timeout=300)
+        data = rsp.read()
+        mb = len(data) / (1024 * 1024)
+        info(f"Downloaded {mb:.1f} MB — extracting...")
+    except Exception as e:
+        warn(f"Could not download portable GCC: {e}")
+        info("Install GCC manually, or use 'nova dev' (VM mode) instead.")
+        return
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            prefix = MINGW_ZIP_TOP + "/"
+            count = 0
+            for name in zf.namelist():
+                if name.endswith("/"):
+                    continue
+                if not name.startswith(prefix):
+                    continue
+                rel = name[len(prefix):]
+                dst = os.path.join(GCC_DIR, rel)
+                dst_dir = os.path.dirname(dst)
+                os.makedirs(dst_dir, exist_ok=True)
+                with zf.open(name) as src, open(dst, "wb") as df:
+                    shutil.copyfileobj(src, df)
+                count += 1
+            ok(f"Extracted {count} GCC files to {GCC_DIR}")
+    except Exception as e:
+        warn(f"Could not extract GCC: {e}")
+
+
 def _create_launchers():
     for name, content in LAUNCHER_TEMPLATES.items():
         path = os.path.join(INSTALL_DIR, name)
@@ -321,6 +384,12 @@ def _add_to_path_windows() -> bool:
             )
         except Exception:
             pass
+
+        # Also update the current process's PATH so child terminals
+        # (opened from this session) inherit the correct environment
+        old_path = os.environ.get("PATH", "")
+        if INSTALL_DIR not in old_path:
+            os.environ["PATH"] = old_path.rstrip(";") + ";" + INSTALL_DIR
 
         ok(f"Added to PATH: {INSTALL_DIR}")
         info("Restart your terminal for the change to take effect.")
@@ -445,6 +514,7 @@ def install():
     count = _extract_archive(data)
     ok(f"Extracted {count} files")
 
+    _install_gcc_if_missing()
     _create_launchers()
     _add_to_path()
 
@@ -455,7 +525,10 @@ def install():
     print()
     info(f"Location: {INSTALL_DIR}")
     if platform.system() == "Windows":
-        info("Open a NEW terminal, then:")
+        info("To use nova/galaxy in THIS terminal:")
+        info('  cmd.exe:  call "%LOCALAPPDATA%\\nova\\use_nova.bat"')
+        info('  PowerShell: $env:PATH = "$env:LOCALAPPDATA\\nova;$env:PATH"')
+        info("Or open a NEW terminal.")
     else:
         info("Restart your terminal or source your shell config, then:")
     print()
@@ -487,6 +560,22 @@ def uninstall():
 def main():
     if len(sys.argv) > 1 and sys.argv[1] in ("--uninstall", "uninstall", "remove"):
         uninstall()
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--dry-run", "dry-run"):
+        print()
+        print(f"  +========================================+")
+        print(f"  |  Nova + Galaxy Dry Run                |")
+        print(f"  +========================================+")
+        print()
+        info(f"Install directory: {INSTALL_DIR}")
+        info(f"GCC directory:     {GCC_DIR}")
+        info(f"Launchers:         {', '.join(LAUNCHER_TEMPLATES.keys())}")
+        info(f"Allowed root:      {', '.join(ALLOWED_ROOT_FILES)}")
+        info(f"Allowed subdirs:   {', '.join(sorted(ALLOWED_SUBDIRS))}")
+        info(f"Python version:    {sys.version}")
+        info(f"Platform:          {platform.system()}")
+        print()
+        info("Dry-run complete — no files were written.")
+        print()
     else:
         install()
 

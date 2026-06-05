@@ -549,11 +549,17 @@ salt = <span class="nv-fn">random</span>()</code></pre>
             <p>The installer does four things:</p>
             <ul>
                 <li>Downloads the Nova compiler (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>) and Galaxy CLI (<code>_galaxy.py</code>, <code>galaxy/</code>) to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
-                <li>Creates <code>nova.bat</code> and <code>galaxy.bat</code> (Windows) or shell scripts (Unix) launchers</li>
+                <li>Creates <code>nova.bat</code>, <code>galaxy.bat</code>, and <code>use_nova.bat</code> helper (Windows) or shell scripts (Unix) launchers</li>
                 <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
                 <li>Verifies SHA-256 integrity of the downloaded archive</li>
             </ul>
-            <p>Restart your terminal, then:</p>
+            <p><strong>To use <code>nova</code> and <code>galaxy</code> immediately without restarting your terminal:</strong></p>
+            <pre><code><span class="nv-cmt"># cmd.exe:</span>
+call "%LOCALAPPDATA%\nova\use_nova.bat"
+
+<span class="nv-cmt"># PowerShell:</span>
+$env:PATH = "$env:LOCALAPPDATA\nova;$env:PATH"</code></pre>
+            <p>Or open a <strong>new terminal</strong> and run:</p>
             <pre><code><span class="nv-cmt"># Verify installation</span>
 nova --version
 galaxy --version</code></pre>
@@ -569,10 +575,7 @@ python install.py</code></pre>
 python -m galaxy --help</code></pre>
 
             <h4>Uninstalling</h4>
-            <pre><code>nova --uninstall
-<span class="nv-cmt"># or</span>
-python main.py --uninstall
-<span class="nv-cmt"># or re-run the installer</span>
+            <pre><code><span class="nv-cmt"># Re-run the installer with --uninstall</span>
 python install.py --uninstall</code></pre>
 
             <!-- ===== COMMANDS ===== -->

@@ -20,8 +20,13 @@ $AppName = "Nova + Galaxy"
 $NovaZipUrl = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 $ZipPrefix = "Nova-develop"
 $InstallDir = Join-Path $env:LOCALAPPDATA "nova"
-$AllowedFiles = @("main.py", "_galaxy.py", "nova_main.nv")
+$GccDir = Join-Path $InstallDir "gcc"
+$AllowedFiles = @("main.py", "_galaxy.py", "nova.nv")
 $AllowedDirs = @("compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy")
+
+# Portable GCC (winlibs) — only downloaded on Windows if 'gcc' not on PATH
+$MINGW_ZIP_URL = "https://github.com/brechtsanders/winlibs_mingw/releases/download/16.1.0posix-14.0.0-msvcrt-r2/winlibs-x86_64-posix-seh-gcc-16.1.0-mingw-w64msvcrt-14.0.0-r2.zip"
+$MINGW_ZIP_TOP = "mingw64"
 
 function Info  { Write-Host "  [..]  $($args[0])" }
 function Ok    { Write-Host "  [OK]   $($args[0])" -ForegroundColor Green }
@@ -33,16 +38,25 @@ function Add-ToPath {
         $pathKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)
         $current = $pathKey.GetValue("PATH", "", "DoNotExpandEnvironmentNames")
         $parts = $current.Split(";", [StringSplitOptions]::RemoveEmptyEntries)
-        $normed = [System.IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
-        if ($parts | Where-Object { [System.IO.Path]::GetFullPath($_).TrimEnd('\') -eq $normed }) {
+        $normed = [System.IO.Path]::GetFullPath([System.Environment]::ExpandEnvironmentVariables($InstallDir)).TrimEnd('\')
+        $alreadyInPath = $false
+        foreach ($p in $parts) {
+            try {
+                $expanded = [System.Environment]::ExpandEnvironmentVariables($p)
+                $pNormed = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
+                if ($pNormed -eq $normed) { $alreadyInPath = $true; break }
+            } catch { continue }
+        }
+        if ($alreadyInPath) {
             Info "Install directory already in PATH"
+            $pathKey.Close()
             return
         }
         $newPath = $current.TrimEnd(";") + ";" + $InstallDir
         $pathKey.SetValue("PATH", $newPath, "ExpandString")
         $pathKey.Close()
-        # Notify Windows
-        [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";" + $InstallDir, "User")
+        # Update current session only, registry already set above
+        [Environment]::SetEnvironmentVariable("PATH", [Environment]::GetEnvironmentVariable("PATH", "User") + ";" + $InstallDir, "Process")
         Ok "Added to PATH: $InstallDir"
         Info "Restart your terminal for the change to take effect."
     } catch {
@@ -55,9 +69,12 @@ function Remove-FromPath {
     try {
         $pathKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)
         $current = $pathKey.GetValue("PATH", "", "DoNotExpandEnvironmentNames")
-        $normed = [System.IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
+        $normed = [System.IO.Path]::GetFullPath([System.Environment]::ExpandEnvironmentVariables($InstallDir)).TrimEnd('\')
         $parts = $current.Split(";", [StringSplitOptions]::RemoveEmptyEntries) | Where-Object {
-            [System.IO.Path]::GetFullPath($_).TrimEnd('\') -ne $normed
+            try {
+                $expanded = [System.Environment]::ExpandEnvironmentVariables($_)
+                [System.IO.Path]::GetFullPath($expanded).TrimEnd('\') -ne $normed
+            } catch { $true }
         }
         $newPath = $parts -join ";"
         $pathKey.SetValue("PATH", $newPath, "ExpandString")
@@ -77,12 +94,68 @@ python "%~dp0main.py" %*
 @echo off
 python "%~dp0_galaxy.py" %*
 '@
+    $useNovaLauncher = @'
+@echo off
+set "PATH=%~dp0;%PATH%"
+echo Nova and Galaxy are now available in this terminal.
+echo.
+echo Try: nova --version
+echo      galaxy --version
+'@
     $novaPath = Join-Path $InstallDir "nova.bat"
     $galaxyPath = Join-Path $InstallDir "galaxy.bat"
+    $useNovaPath = Join-Path $InstallDir "use_nova.bat"
     Set-Content -Path $novaPath -Value $novaLauncher -Encoding ASCII
     Set-Content -Path $galaxyPath -Value $galaxyLauncher -Encoding ASCII
+    Set-Content -Path $useNovaPath -Value $useNovaLauncher -Encoding ASCII
     Ok "Created launcher: $novaPath"
     Ok "Created launcher: $galaxyPath"
+    Ok "Created helper: $useNovaPath"
+}
+
+function Install-GccIfMissing {
+    $hasGcc = $null -ne (Get-Command "gcc" -ErrorAction SilentlyContinue)
+    if ($hasGcc) {
+        Info "GCC found on PATH — skipping bundle."
+        return
+    }
+    if (Test-Path (Join-Path $GccDir "bin\gcc.exe")) {
+        Info "Bundled GCC found — skipping download."
+        return
+    }
+    Info "GCC not found — downloading portable MinGW-w64 (~130MB)..."
+    $tmpFile = Join-Path ([System.IO.Path]::GetTempPath()) "mingw-$(Get-Random).zip"
+    try {
+        $progressPreference = 'silentlyContinue'
+        Invoke-WebRequest -Uri $MINGW_ZIP_URL -OutFile $tmpFile -TimeoutSec 300
+        $progressPreference = 'continue'
+    } catch {
+        Warn "Could not download portable GCC: $_"
+        Info "Install GCC manually, or use 'nova dev' (VM mode) instead."
+        return
+    }
+    $size = (Get-Item $tmpFile).Length / 1MB
+    Info "Downloaded $([math]::Round($size, 1)) MB — extracting..."
+    try {
+        $zip = [System.IO.Compression.ZipFile]::OpenRead($tmpFile)
+        $prefix = "$MINGW_ZIP_TOP/"
+        $count = 0
+        foreach ($entry in $zip.Entries) {
+            if ($entry.FullName -like "$prefix*" -and $entry.Length -gt 0) {
+                $rel = $entry.FullName.Substring($prefix.Length)
+                $dst = Join-Path $GccDir $rel.Replace("/", "\")
+                $dstDir = Split-Path $dst -Parent
+                if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Path $dstDir -Force | Out-Null }
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $dst, $true)
+                $count++
+            }
+        }
+        $zip.Dispose()
+        Ok "Extracted $count GCC files to $GccDir"
+    } catch {
+        Warn "Could not extract GCC: $_"
+    }
+    Remove-Item $tmpFile -Force
 }
 
 function Should-Extract($relPath) {
@@ -151,6 +224,7 @@ function Install-NovaGalaxy {
 
     Ok "Extracted $count files"
 
+    Install-GccIfMissing
     New-Launchers
     Add-ToPath
 
@@ -160,7 +234,10 @@ function Install-NovaGalaxy {
     Write-Host "  +------------------------------------------------+"
     Write-Host ""
     Info "Location: $InstallDir"
-    Info "Open a NEW terminal, then:"
+    Info "To use nova/galaxy in THIS terminal:"
+    Info '  cmd.exe:  call "%LOCALAPPDATA%\nova\use_nova.bat"'
+    Info '  PowerShell: $env:PATH = "$env:LOCALAPPDATA\nova;$env:PATH"'
+    Info "Or open a NEW terminal."
     Write-Host ""
     Info "  nova --version          Check Nova version"
     Info "  nova build hello.nv     Compile a Nova program"
