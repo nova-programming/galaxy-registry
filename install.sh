@@ -43,6 +43,9 @@ create_launchers() {
     # Probe for python command — prefer python3, fall back to python
     py_cmd="python3"
     command -v python3 >/dev/null 2>&1 || py_cmd="python"
+    # Remove any conflicting directories before creating launcher scripts
+    [ -d "${INSTALL_DIR}/nova" ] && rmdir "${INSTALL_DIR}/nova" 2>/dev/null || rm -rf "${INSTALL_DIR}/nova"
+    [ -d "${INSTALL_DIR}/galaxy" ] && rm -rf "${INSTALL_DIR}/galaxy"
     printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'os.chdir(os.path.dirname(os.path.abspath(__file__)))' 'from main import main; main()' > "${INSTALL_DIR}/nova"
     printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'from _galaxy import main; main()' > "${INSTALL_DIR}/galaxy"
     chmod +x "${INSTALL_DIR}/nova" "${INSTALL_DIR}/galaxy"

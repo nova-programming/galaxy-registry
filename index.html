@@ -473,9 +473,11 @@
             border-radius: 10px; padding: 0.85rem 1rem;
             text-align: left; transition: all 0.2s;
             cursor: pointer; position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .platform-card:hover {
-            border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,112,243,0.1);
+            border-color: var(--accent); box-shadow: 0 6px 20px rgba(0,112,243,0.12);
+            transform: translateY(-2px);
         }
         .platform-card .os-label {
             font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
@@ -536,27 +538,24 @@
                             <span class="term-dot red"></span>
                             <span class="term-dot yellow"></span>
                             <span class="term-dot green"></span>
-                            <span class="term-title-text">Quick Install</span>
+                            <span class="term-title-text">Quick Start</span>
                         </div>
                         <div class="term-body" id="term-body">
                             <div class="term-line" id="line1">
-                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</span>"></span>
-                                <button class="term-copy" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                            </div>
-                            <div class="term-line" id="line2">
                                 <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>nova --version &amp;&amp; galaxy --version</span>  <span class=comment># Nova v0.6.0 / Galaxy v0.6.0</span>"></span>
                                 <button class="term-copy" onclick="copyText('nova --version && galaxy --version', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
-                            <div class="term-line" id="line3">
+                            <div class="term-line" id="line2">
                                 <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy init library my-lib</span>"></span>
                                 <button class="term-copy" onclick="copyText('galaxy init library my-lib', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
-                            <div class="term-line" id="line4">
+                            <div class="term-line" id="line3">
                                 <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>galaxy install nova-http</span>"></span>
                                 <button class="term-copy" onclick="copyText('galaxy install nova-http', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
                         </div>
                     </div>
+                    <div style="margin-top:1.5rem;font-size:0.75rem;color:var(--text-tertiary);text-align:center;">Install — click to copy your platform's command:</div>
                     <div class="platform-grid">
                         <div class="platform-card" onclick="copyText('curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh', this)" title="Click to copy">
                             <div class="os-label">macOS / Linux</div>
@@ -1168,11 +1167,11 @@ galaxy remove nova-math   # Uninstall</code></pre>
 
             /* Terminal line reveal */
             setTimeout(() => {
-                revealTerminal(['line1', 'line2', 'line3', 'line4'], () => {
+                revealTerminal(['line1', 'line2', 'line3'], () => {
                     const termBody = document.getElementById('term-body');
                     const final = document.createElement('span');
                     final.style.cssText = 'display:block;margin-top:0.5rem;color:#666;font-style:italic;';
-                    final.textContent = '> Nova v0.6.0 + Galaxy v0.6.0 ready — install packages with: galaxy install <pkg>';
+                    final.textContent = '> Nova v0.6.0 + Galaxy v0.6.0 — choose your OS above to install';
                     termBody.appendChild(final);
                 });
             }, 800);

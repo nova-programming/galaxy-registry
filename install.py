@@ -332,6 +332,11 @@ def _install_gcc_if_missing():
 
 
 def _create_launchers():
+    # Remove conflicting directories before creating launcher scripts
+    for name in LAUNCHER_TEMPLATES:
+        path = os.path.join(INSTALL_DIR, name)
+        if os.path.isdir(path):
+            shutil.rmtree(path, ignore_errors=True)
     for name, content in LAUNCHER_TEMPLATES.items():
         path = os.path.join(INSTALL_DIR, name)
         with open(path, "w", newline="\n") as f:
