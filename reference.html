@@ -458,7 +458,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_get_args</code></td><td><code>() -> list[string]</code></td><td>Command-line arguments (native only)</td></tr>
                 <tr><td><code>sys_system</code></td><td><code>(cmd) -> int</code></td><td>Execute shell command, returns exit code (native only)</td></tr>
                 <tr><td><code>sys_get_tick_count</code></td><td><code>() -> int</code></td><td>System uptime in milliseconds (native only)</td></tr>
-                <tr><td><code>sys_platform</code></td><td><code>() -> string</code></td><td>Returns "windows" or "linux" (native only)</td></tr>
+                <tr><td><code>sys_platform</code></td><td><code>() -&gt; string</code></td><td>Returns "windows", "linux", or "macos" (native only)</td></tr>
                 <tr><td><code>sys_exit</code></td><td><code>(code: int) -> void</code></td><td>Terminate process immediately (native only)</td></tr>
                 <tr><td><code>sys_flush</code></td><td><code>() -> void</code></td><td>Flush stdout buffer (native only)</td></tr>
             </table>
@@ -490,7 +490,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             <table>
                 <tr><th>Function</th><th>Description</th></tr>
                 <tr><td><code>sys_write_raw(fd, bytes) -> void</code></td><td>Write raw byte list to file descriptor</td></tr>
-                <tr><td><code>sys_platform() -> string</code></td><td>Returns "windows" or "linux"</td></tr>
+                <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns "windows", "linux", or "macos"</td></tr>
             </table>
 
             <h2 id="math">Math &amp; Cryptography</h2>

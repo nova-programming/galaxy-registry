@@ -313,7 +313,10 @@ def _install_gcc_if_missing():
         return
     # On non-Windows, GCC is typically installed via package manager
     if platform.system() != "Windows":
-        info("GCC not found. Use your package manager to install build-essential (Linux) or Xcode CLI tools (macOS).")
+        if platform.system() == "Darwin":
+            info("macOS detected: Run 'xcode-select --install' to install Apple Clang.")
+        else:
+            info("GCC not found. Use your package manager to install build-essential (Linux) or GCC.")
         info("Alternatively, use 'nova dev <file.nv>' (VM mode) which needs no compiler.")
         return
     info("GCC not found — downloading portable MinGW-w64 (~130MB)...")
