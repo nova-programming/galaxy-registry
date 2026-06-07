@@ -221,7 +221,7 @@
                 <tr><td>Variable</td><td><code>name = expr</code> or <code>name: type = expr</code></td><td><code>count: int = 10</code></td></tr>
                 <tr><td>Constant</td><td><code>const NAME = expr</code></td><td><code>const MAX = 4096</code></td></tr>
                 <tr><td>Assignment</td><td><code>name = expr</code></td><td><code>x = x + 1</code></td></tr>
-                <tr><td>If / Else</td><td><code>if cond { ... } else { ... }</code></td><td><code>if x > 0 { print("pos") }</code></td></tr>
+                <tr><td>If / Elif / Else</td><td><code>if cond { ... } elif cond { ... } else { ... }</code></td><td><code>if x > 0 { print("pos") }</code></td></tr>
                 <tr><td>While</td><td><code>while cond { ... }</code></td><td><code>while i < 10 { i = i + 1 }</code></td></tr>
                 <tr><td>For</td><td><code>for i = start to end step s { ... }</code></td><td><code>for i = 0 to 10 step 2 { ... }</code></td></tr>
                 <tr><td>For (down)</td><td><code>for i = start downto end step s { ... }</code></td><td><code>for i = 10 downto 0 step 1 { ... }</code></td></tr>
@@ -231,6 +231,14 @@
                 <tr><td>Import</td><td><code>import module_name</code></td><td><code>import math_utils</code></td></tr>
                 <tr><td>Print</td><td><code>print(expr)</code></td><td><code>print("Hello")</code></td></tr>
                 <tr><td>String interpolation</td><td><code>"Hello {name}"</code></td><td>Embeds expression result, auto-converts via <code>str()</code></td></tr>
+                <tr><td>Elif</td><td><code>if cond { ... } elif cond { ... } else { ... }</code></td><td><code>if x > 0 { print("pos") } elif x < 0 { print("neg") }</code></td></tr>
+                <tr><td>Switch</td><td><code>switch expr { case val { body } else { body } }</code></td><td><code>switch x { case 1 { print("one") } }</code></td></tr>
+                <tr><td>Enum</td><td><code>enum Name { A, B, C }</code></td><td><code>enum Color { Red, Green, Blue }</code></td></tr>
+                <tr><td>Data</td><td><code>data Name { field: type }</code></td><td><code>data Point { x: int, y: int }</code></td></tr>
+                <tr><td>Break</td><td><code>break</code></td><td>Exit loop early</td></tr>
+                <tr><td>Continue</td><td><code>continue</code></td><td>Skip to next iteration</td></tr>
+                <tr><td>Inline ASM</td><td><code>@raw { ... }</code></td><td>Insert raw assembly instructions</td></tr>
+                <tr><td>Dict literal</td><td><code>{"key": value}</code></td><td><code>d = {"name": "Alice", "age": 10}</code></td></tr>
             </table>
 
             <!-- ========== TYPE SYSTEM ========== -->
@@ -243,8 +251,8 @@
                 <tr><td><code>float</code></td><td>8 bytes</td><td>64-bit IEEE-754 (x87 FPU)</td><td><code>3.14, -0.5</code></td></tr>
                 <tr><td><code>string</code></td><td>heap</td><td>Immutable UTF-8 text</td><td><code>"hello"</code></td></tr>
                 <tr><td><code>bool</code></td><td>1 byte</td><td>Boolean</td><td><code>true, false</code></td></tr>
-                <tr><td><code>list[T]</code></td><td>heap</td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
-                <tr><td><code>any</code></td><td>—</td><td>Duck-typed generic</td><td><code>let x: any = 42</code></td></tr>
+                <tr><td><code>list</code></td><td>heap</td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
+                <tr><td><code>data</code></td><td>heap</td><td>Struct with named fields</td><td><code>data Point { x: int, y: int }</code></td></tr>
             </table>
 
             <div class="callout callout-info">
@@ -436,20 +444,30 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
                 <tr><td><code>print</code></td><td><code>(value) -> void</code></td><td>Print value to stdout with newline</td></tr>
                 <tr><td><code>printd</code></td><td><code>(value) -> void</code></td><td>Debug print (zero-cost in release builds)</td></tr>
-                <tr><td><code>len</code></td><td><code>(list) -> int</code></td><td>Length of a list</td></tr>
+                <tr><td><code>len</code></td><td><code>(value) -> int</code></td><td>Length of string, list, or dict</td></tr>
                 <tr><td><code>str</code></td><td><code>(value) -> string</code></td><td>Convert value to string representation</td></tr>
-                <tr><td><code>int_of</code></td><td><code>(value) -> int</code></td><td>Convert to integer</td></tr>
-                <tr><td><code>float_of</code></td><td><code>(value) -> float</code></td><td>Convert to float</td></tr>
-                <tr><td><code>type_name</code></td><td><code>(value) -> string</code></td><td>Returns type name as string</td></tr>
-                <tr><td><code>sys_flush</code></td><td><code>() -> void</code></td><td>Flush stdout buffer</td></tr>
-                <tr><td><code>sys_exit</code></td><td><code>(code: int) -> void</code></td><td>Terminate process immediately</td></tr>
+                <tr><td><code>sizeof</code></td><td><code>(expr) -> int</code></td><td>Size of value or type in bytes</td></tr>
+                <tr><td><code>alloc</code></td><td><code>(size: int) -> ptr</code></td><td>Allocate heap memory</td></tr>
+                <tr><td><code>free</code></td><td><code>(ptr) -> void</code></td><td>Free heap memory</td></tr>
+                <tr><td><code>open</code></td><td><code>(path, mode) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a"</td></tr>
+                <tr><td><code>read</code></td><td><code>(fd: int) -> string</code></td><td>Read entire file into string</td></tr>
+                <tr><td><code>write</code></td><td><code>(fd: int, content: string) -> int</code></td><td>Write string to file</td></tr>
+                <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
+                <tr><td><code>openf</code></td><td><code>(path, mode?)</code></td><td>Open file with auto-read (returns file struct)</td></tr>
+                <tr><td><code>api</code></td><td><code>(url: string) -> string</code></td><td>Make HTTP request (Windows only, uses WinHTTP)</td></tr>
+                <tr><td><code>sys_get_args</code></td><td><code>() -> list[string]</code></td><td>Command-line arguments (native only)</td></tr>
+                <tr><td><code>sys_system</code></td><td><code>(cmd) -> int</code></td><td>Execute shell command, returns exit code (native only)</td></tr>
+                <tr><td><code>sys_get_tick_count</code></td><td><code>() -> int</code></td><td>System uptime in milliseconds (native only)</td></tr>
+                <tr><td><code>sys_platform</code></td><td><code>() -> string</code></td><td>Returns "windows" or "linux" (native only)</td></tr>
+                <tr><td><code>sys_exit</code></td><td><code>(code: int) -> void</code></td><td>Terminate process immediately (native only)</td></tr>
+                <tr><td><code>sys_flush</code></td><td><code>() -> void</code></td><td>Flush stdout buffer (native only)</td></tr>
             </table>
 
             <h3 id="string-functions">String Functions</h3>
             <p>Built-in string methods available in VM mode:</p>
             <table>
               <tr><td><code>split(delim?)</code></td><td>Split string into list by delimiter (default: space)</td></tr>
-              <tr><td><code>join(list)</code></td><td>Join list elements into string</td></tr>
+              <tr><td><code>join(list)</code></td><td>Join list elements into string (uses string as separator)</td></tr>
               <tr><td><code>trim()</code></td><td>Strip leading/trailing whitespace</td></tr>
               <tr><td><code>contains(substr)</code></td><td>Check if substring exists</td></tr>
               <tr><td><code>replace(old, new)</code></td><td>Replace all occurrences</td></tr>
@@ -471,24 +489,22 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             <h2 id="os">OS Interface</h2>
             <table>
                 <tr><th>Function</th><th>Description</th></tr>
-                <tr><td><code>sys_get_args() -> list[string]</code></td><td>Command-line arguments</td></tr>
-                <tr><td><code>sys_system(cmd) -> int</code></td><td>Execute shell command, returns exit code</td></tr>
-                <tr><td><code>sys_get_tick_count() -> int</code></td><td>System uptime in milliseconds</td></tr>
-                <tr><td><code>sys_platform() -> string</code></td><td>Returns "win32" or "linux"</td></tr>
+                <tr><td><code>sys_write_raw(fd, bytes) -> void</code></td><td>Write raw byte list to file descriptor</td></tr>
+                <tr><td><code>sys_platform() -> string</code></td><td>Returns "windows" or "linux"</td></tr>
             </table>
 
             <h2 id="math">Math &amp; Cryptography</h2>
             <table>
-                <tr><th>Function</th><th>Description</th></tr>
-                <tr><td><code>random() -> int</code></td><td>CSPRNG via ChaCha20 (auto-seeded)</td></tr>
-                <tr><td><code>square(x) -> int</code></td><td>x * x</td></tr>
-                <tr><td><code>cube(x) -> int</code></td><td>x * x * x</td></tr>
-                <tr><td><code>abs_val(x) -> int</code></td><td>Absolute value</td></tr>
-                <tr><td><code>max_of(a, b) -> int</code></td><td>Maximum of two values</td></tr>
-                <tr><td><code>min_of(a, b) -> int</code></td><td>Minimum of two values</td></tr>
-                <tr><td><code>factorial(n) -> int</code></td><td>n!</td></tr>
-                <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 state</td></tr>
-                <tr><td><code>chacha20_block(state)</code></td><td>Generate next 64-byte block</td></tr>
+                <tr><th>Function</th><th>Description</th><th>Availability</th></tr>
+                <tr><td><code>square(x) -> int</code></td><td>x * x</td><td>Native only</td></tr>
+                <tr><td><code>cube(x) -> int</code></td><td>x * x * x</td><td>Native only</td></tr>
+                <tr><td><code>abs_val(x) -> int</code></td><td>Absolute value</td><td>Native only</td></tr>
+                <tr><td><code>max_of(a, b) -> int</code></td><td>Maximum of two values</td><td>Native only</td></tr>
+                <tr><td><code>min_of(a, b) -> int</code></td><td>Minimum of two values</td><td>Native only</td></tr>
+                <tr><td><code>factorial(n) -> int</code></td><td>n!</td><td>Native only</td></tr>
+                <tr><td><code>random() -> int</code></td><td>CSPRNG via ChaCha20 (auto-seeded)</td><td>Native only</td></tr>
+                <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 PRNG state</td><td>Native only</td></tr>
+                <tr><td><code>chacha20_block(state)</code></td><td>Generate next block (deprecated, use <code>random()</code>)</td><td>Native only</td></tr>
             </table>
 
             <!-- ========== COMPILER DIRECTIVES ========== -->
@@ -518,20 +534,28 @@ x = <span class="nv-num">10</span>
             <!-- ========== GRAMMAR ========== -->
             <h2 id="grammar">Grammar (EBNF)</h2>
             <pre><code>program         = { top_level }
-top_level       = function_def | class_def | import_stmt | statement
+top_level       = function_def | class_def | data_def | enum_def | import_stmt | statement
 
 function_def    = "def" id "(" [ params ] ")" [ "->" type ] block
 class_def       = "class" id "{" { field | method } "}"
-import_stmt     = "import" id
+data_def        = "data" id "{" { field } "}"
+enum_def        = "enum" id "{" id { "," id } "}"
+import_stmt     = "import" id [ "as" id ]
 
 block           = "{" { statement } "}"
-statement       = if_stmt | while_stmt | for_stmt | return_stmt
-                | assign_stmt | call_stmt | print_stmt
+statement       = if_stmt | switch_stmt | while_stmt | for_stmt | for_in_stmt
+                | return_stmt | break_stmt | continue_stmt
+                | const_stmt | assign_stmt | call_stmt | print_stmt
 
-if_stmt         = "if" expr block [ "else" { if_stmt | block } ]
+if_stmt         = "if" expr block { "elif" expr block } [ "else" block ]
+switch_stmt     = "switch" expr "{" { "case" expr block } [ "else" block ] "}"
 while_stmt      = "while" expr block
 for_stmt        = "for" id "=" expr ( "to" | "downto" ) expr "step" expr block
+for_in_stmt     = "for" id "in" expr block
 return_stmt     = "return" [ expr ]
+break_stmt      = "break"
+continue_stmt   = "continue"
+const_stmt      = "const" id "=" expr
 
 assign_stmt     = id "=" expr
                 | id "[" expr "]" "=" expr
@@ -541,7 +565,7 @@ or_expr         = and_expr { "or" and_expr }
 and_expr        = bit_or_expr { "and" bit_or_expr }
 bit_or_expr     = bit_xor_expr { "|" bit_xor_expr }
 bit_xor_expr    = bit_and_expr { "^" bit_and_expr }
-bit_and_expr    = shift_expr { "&" shift_expr }
+bit_and_expr    = shift_expr { "&amp;" shift_expr }
 shift_expr      = comp_expr { ( "&lt;&lt;" | "&gt;&gt;" ) comp_expr }
 comp_expr       = add_expr [ ( "==" | "!=" | "&lt;" | "&gt;" | "&lt;=" | "&gt;=" ) add_expr ]
 add_expr        = mul_expr { ( "+" | "-" ) mul_expr }
@@ -551,9 +575,14 @@ postfix_expr    = primary { "[" expr "]" | "." id | "^" }
 primary         = int_literal | float_literal | string_literal
                 | bool_literal | id | "(" expr ")"
                 | id "(" [ args ] ")"      <span class="nv-cmt"># function call</span>
+                | "[" [ expr { "," expr } ] "]"       <span class="nv-cmt"># list literal</span>
+                | "{" [ expr ":" expr { "," expr ":" expr } ] "}"   <span class="nv-cmt"># dict literal</span>
 
-type            = "int" | "float" | "string" | "bool" | "list"
-                | "any" | "[" type "]" | id</code></pre>
+string_literal  = '"' { char | interpolation } '"'
+interpolation   = "{" expr "}"
+int_literal     = decimal | "0x" hex_digit+ | "0b" binary_digit+
+
+type            = "int" | "float" | "string" | "bool" | "list" | id</code></pre>
 
             <div class="callout callout-tip">
                 <strong>See also</strong>

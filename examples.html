@@ -188,6 +188,11 @@
                 <li><a href="#random">Random Numbers</a></li>
                 <li><a href="#cli">CLI Arguments</a></li>
                 <li><a href="#classes">Classes</a></li>
+                <li><a href="#str-interp">String Interpolation</a></li>
+                <li><a href="#enum">Enum Types</a></li>
+                <li><a href="#switch">Switch / Match</a></li>
+                <li><a href="#dict">Dictionary / HashMap</a></li>
+                <li><a href="#binhex">Binary &amp; Hex Literals</a></li>
             </ul>
         </nav>
 
@@ -374,7 +379,7 @@ content = <span class="nv-fn">read</span>(fd)
             <div class="example-card" id="random">
                 <div class="example-header">
                     <h2>Random Numbers</h2>
-                    <div class="desc">Cryptographically secure random numbers via ChaCha20 PRNG.</div>
+                    <div class="desc">Cryptographically secure random numbers via ChaCha20 PRNG (native only).</div>
                 </div>
                 <div class="example-body">
                     <pre><code><span class="nv-cmt"># Seed the ChaCha20 generator</span>
@@ -390,6 +395,10 @@ i = <span class="nv-num">0</span>
                     <div class="output-box">
                         <div class="output-label">Output (example — values vary by seed)</div>
                         Random: 123456789<br>Random: 987654321<br>Random: 555111222<br>Random: 333444777<br>Random: 888999000
+                    </div>
+                    <div class="callout callout-tip" style="margin-top:0.75rem;">
+                        <strong>Native only</strong>
+                        ChaCha20 functions (<code>chacha20_init</code>, <code>chacha20_block</code>) and <code>random()</code> are only available in compiled executables via <code>nova build</code>, not in the VM (<code>nova dev</code>).
                     </div>
                 </div>
             </div>

@@ -244,13 +244,13 @@
             <h2 id="quickstart">Quick Start</h2>
             <p>Get a Nova program running in under a minute.</p>
             <h3>Installation</h3>
-            <p>Download the <code>nova_main.exe</code> binary from the <a href="https://github.com/nova-programming/Nova/releases" target="_blank">releases page</a>. Place it anywhere in your <code>PATH</code>. No dependencies required.</p>
+            <p>Download the <code>nova.exe</code> binary from the <a href="https://github.com/nova-programming/Nova/releases" target="_blank">releases page</a>. Place it anywhere in your <code>PATH</code>. No dependencies required.</p>
             <h3>Your First Program</h3>
             <p>Create <code>hello.nv</code>:</p>
             <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello, World!"</span>)</code></pre>
             <p>Compile and run:</p>
             <pre><code><span class="nv-cmt"># Compile to a Windows executable</span>
-nova_main build hello.nv
+nova build hello.nv
 
 <span class="nv-cmt"># Run it</span>
 .\hello.exe</code></pre>
@@ -312,8 +312,8 @@ count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred a
                 <tr><td><code>float</code></td><td>64-bit IEEE-754 (via x87 FPU)</td><td><code>3.14, -0.5, 2.0</code></td></tr>
                 <tr><td><code>string</code></td><td>Immutable UTF-8 text (heap-allocated)</td><td><code>"hello"</code></td></tr>
                 <tr><td><code>bool</code></td><td>Boolean true/false</td><td><code>true, false</code></td></tr>
-                <tr><td><code>list[T]</code></td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
-                <tr><td><code>any</code></td><td>Duck-typed generic</td><td><code>let x: any = 42</code></td></tr>
+                <tr><td><code>list</code></td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
+                <tr><td><code>data</code></td><td>Struct with named fields</td><td><code>data Point { x: int, y: int }</code></td></tr>
             </table>
 
             <h3>Lists</h3>
@@ -324,7 +324,7 @@ numbers: <span class="nv-type">list</span> = [<span class="nv-num">1</span>, <sp
 first = numbers[<span class="nv-num">0</span>]      <span class="nv-cmt"># -> 1</span>
 
 <span class="nv-cmt"># Iterate</span>
-<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> numbers.length <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> len(numbers) <span class="nv-kw">step</span> <span class="nv-num">1</span> {
     <span class="nv-fn">print</span>(numbers[i])
 }
 
@@ -387,7 +387,7 @@ matrix = [[<span class="nv-num">1</span>, <span class="nv-num">2</span>], [<span
             <h3>If / Else</h3>
             <pre><code><span class="nv-kw">if</span> score &gt;= <span class="nv-num">90</span> {
     <span class="nv-fn">print</span>(<span class="nv-str">"Grade A"</span>)
-} <span class="nv-kw">else</span> <span class="nv-kw">if</span> score &gt;= <span class="nv-num">80</span> {
+} <span class="nv-kw">elif</span> score &gt;= <span class="nv-num">80</span> {
     <span class="nv-fn">print</span>(<span class="nv-str">"Grade B"</span>)
 } <span class="nv-kw">else</span> {
     <span class="nv-fn">print</span>(<span class="nv-str">"Grade C"</span>)
@@ -490,7 +490,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_system(cmd) -&gt; int</code></td><td>Execute shell command, returns exit code</td></tr>
                 <tr><td><code>sys_exit(code)</code></td><td>Terminate process immediately</td></tr>
                 <tr><td><code>sys_get_tick_count() -&gt; int</code></td><td>System uptime in milliseconds</td></tr>
-                <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns <code>"win32"</code> or <code>"linux"</code></td></tr>
+                <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns <code>"windows"</code> or <code>"linux"</code></td></tr>
             </table>
 
             <h3>Math &amp; Cryptography</h3>
@@ -506,6 +506,11 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 state</td></tr>
                 <tr><td><code>chacha20_block(state)</code></td><td>Generate next 64-byte block</td></tr>
             </table>
+
+            <div class="callout callout-warn">
+                <strong>Native only</strong>
+                Math, cryptography, and OS functions are only available in compiled executables via <code>nova build</code>, not in the VM (<code>nova dev</code>).
+            </div>
 
             <h3>Debug</h3>
             <table class="doc-table">
@@ -744,7 +749,7 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
 
             <!-- ========== COMPILER CLI ========== -->
             <h2 id="compiler-cli">Compiler Command-Line Reference</h2>
-            <p>The Nova compiler is available as both a native executable (<code>nova_main.exe</code>) and a Python CLI (<code>nova</code> / <code>python main.py</code>).</p>
+            <p>The Nova compiler is available as both a native executable (<code>nova.exe</code>) and a Python CLI (<code>nova</code> / <code>python main.py</code>).</p>
 
             <table class="doc-table">
                 <tr><th>Command</th><th>Description</th></tr>
@@ -812,9 +817,14 @@ galaxy install pkg</code></pre>
     <span class="nv-fn">printd</span>(i)
 }</code></pre>
 
-            <h3>3. Static Duck Typing (<code>has</code> Keyword)</h3>
-            <p>Statically check if a structure has a field at compile time.</p>
-            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">serialize</span>(entity: <span class="nv-type">any</span>) {
+            <h3>3. Field Existence Check (<code>has</code> Keyword)</h3>
+            <p>Check at runtime if an object or struct has a field.</p>
+            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Entity</span> {
+    name: <span class="nv-type">string</span>
+    score: <span class="nv-type">int</span>
+}
+
+<span class="nv-kw">def</span> <span class="nv-fn">check_score</span>(entity) {
     <span class="nv-kw">if</span> entity <span class="nv-kw">has</span> score {
         <span class="nv-fn">print</span>(<span class="nv-str">"Score: "</span> + entity.score)
     }
@@ -826,7 +836,7 @@ galaxy install pkg</code></pre>
 salt = <span class="nv-fn">random</span>()
 
 <span class="nv-cmt"># Full ChaCha20 control</span>
-state = <span class="nv-fn">chacha20_init</span>(key, nonce)
+state = <span class="nv-fn">chacha20_init</span>(key, counter)
 block = <span class="nv-fn">chacha20_block</span>(state)</code></pre>
 
             <h3>5. Pointer Suffix Directives</h3>
@@ -843,7 +853,7 @@ block = <span class="nv-fn">chacha20_block</span>(state)</code></pre>
             <p>Nova communicates with the host operating system through built-in wrappers. These compile to direct syscall wrappers or C runtime calls.</p>
             <pre><code><span class="nv-cmt"># Get command-line arguments</span>
 args = <span class="nv-fn">sys_get_args</span>()
-<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> args.length <span class="nv-kw">step</span> <span class="nv-num">1</span> {
+<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> len(args) <span class="nv-kw">step</span> <span class="nv-num">1</span> {
     <span class="nv-fn">print</span>(args[i])
 }
 
@@ -861,7 +871,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
 
             <!-- ========== ARCHITECTURE ========== -->
             <h2 id="architecture">Compiler Architecture</h2>
-            <p>When you run <code>nova_main build hello.nv</code>, the compiler processes your source through a single in-process pipeline:</p>
+            <p>When you run <code>nova build hello.nv</code>, the compiler processes your source through a single in-process pipeline:</p>
             <ol>
                 <li><strong>Lexer</strong> — tokenizes source into structured <code>Token</code> objects</li>
                 <li><strong>Parser</strong> — recursive-descent parser that builds an AST with constant folding</li>
