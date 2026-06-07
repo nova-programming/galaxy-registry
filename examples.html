@@ -450,6 +450,119 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 </div>
             </div>
 
+            <!-- ===== STRING INTERPOLATION ===== -->
+            <div class="example-card" id="str-interp">
+                <div class="example-header">
+                    <h2>String Interpolation</h2>
+                    <div class="desc">Embed expressions directly in strings with <code>{expr}</code> syntax.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>name = <span class="nv-str">"World"</span>
+count = <span class="nv-num">42</span>
+<span class="nv-fn">print</span>(<span class="nv-str">"Hello {name}, count is {count}"</span>)
+<span class="nv-fn">print</span>(<span class="nv-str">"Sum: {10 + 20}"</span>)
+
+<span class="nv-cmt">// Output:</span>
+<span class="nv-cmt">// Hello World, count is 42</span>
+<span class="nv-cmt">// Sum: 30</span></code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        Hello World, count is 42<br>Sum: 30
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ENUM TYPES ===== -->
+            <div class="example-card" id="enum">
+                <div class="example-header">
+                    <h2>Enum Types</h2>
+                    <div class="desc">Named constants with auto-incrementing integer values.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">enum</span> Color { Red, Green, Blue }
+
+<span class="nv-kw">def</span> <span class="nv-fn">main</span>() -&gt; <span class="nv-type">int</span> {
+    <span class="nv-fn">print</span>(Color_Red)    <span class="nv-cmt">// 0</span>
+    <span class="nv-fn">print</span>(Color_Green)  <span class="nv-cmt">// 1</span>
+    <span class="nv-fn">print</span>(Color_Blue)   <span class="nv-cmt">// 2</span>
+    <span class="nv-kw">return</span> <span class="nv-num">0</span>
+}</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        0<br>1<br>2
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SWITCH/MATCH ===== -->
+            <div class="example-card" id="switch">
+                <div class="example-header">
+                    <h2>Switch / Match</h2>
+                    <div class="desc">Multi-branch conditional that compiles to efficient if-elif-else chains.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">def</span> <span class="nv-fn">describe</span>(x: <span class="nv-type">int</span>) -&gt; <span class="nv-type">string</span> {
+    <span class="nv-kw">switch</span> x {
+        <span class="nv-kw">case</span> <span class="nv-num">1</span> { <span class="nv-kw">return</span> <span class="nv-str">"one"</span> }
+        <span class="nv-kw">case</span> <span class="nv-num">2</span> { <span class="nv-kw">return</span> <span class="nv-str">"two"</span> }
+        <span class="nv-kw">else</span> { <span class="nv-kw">return</span> <span class="nv-str">"many"</span> }
+    }
+}
+
+<span class="nv-fn">print</span>(<span class="nv-fn">describe</span>(<span class="nv-num">1</span>))  <span class="nv-cmt">// one</span>
+<span class="nv-fn">print</span>(<span class="nv-fn">describe</span>(<span class="nv-num">3</span>))  <span class="nv-cmt">// many</span></code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        one<br>many
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DICTIONARY / HASHMAP ===== -->
+            <div class="example-card" id="dict">
+                <div class="example-header">
+                    <h2>Dictionary / HashMap</h2>
+                    <div class="desc">Key-value store with literal syntax and built-in methods.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code><span class="nv-kw">def</span> <span class="nv-fn">main</span>() -&gt; <span class="nv-type">int</span> {
+    config = {<span class="nv-str">"host"</span>: <span class="nv-str">"localhost"</span>, <span class="nv-str">"port"</span>: <span class="nv-num">8080</span>}
+    <span class="nv-fn">print</span>(config.<span class="nv-fn">get</span>(<span class="nv-str">"host"</span>))
+  
+    config.<span class="nv-fn">set</span>(<span class="nv-str">"host"</span>, <span class="nv-str">"0.0.0.0"</span>)
+    <span class="nv-fn">print</span>(config.<span class="nv-fn">get</span>(<span class="nv-str">"host"</span>))
+  
+    <span class="nv-fn">print</span>(<span class="nv-fn">len</span>(config))
+    <span class="nv-fn">print</span>(config.<span class="nv-fn">has</span>(<span class="nv-str">"port"</span>))
+    <span class="nv-kw">return</span> <span class="nv-num">0</span>
+}</code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        localhost<br>0.0.0.0<br>2<br>true
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== BINARY & HEX LITERALS ===== -->
+            <div class="example-card" id="binhex">
+                <div class="example-header">
+                    <h2>Binary and Hex Literals</h2>
+                    <div class="desc">Write numbers in decimal, binary (<code>0b...</code>), or hex (<code>0x...</code>).</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>a = <span class="nv-num">0xFF</span>      <span class="nv-cmt">// 255</span>
+b = <span class="nv-num">0b1010</span>    <span class="nv-cmt">// 10</span>
+c = <span class="nv-num">255</span>
+<span class="nv-fn">print</span>(a)      <span class="nv-cmt">// 255</span>
+<span class="nv-fn">print</span>(b)      <span class="nv-cmt">// 10</span>
+<span class="nv-fn">print</span>(a == c) <span class="nv-cmt">// True</span></code></pre>
+                    <div class="output-box">
+                        <div class="output-label">Output</div>
+                        255<br>10<br>true
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 

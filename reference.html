@@ -230,6 +230,7 @@
                 <tr><td>Class</td><td><code>class Name { fields ... methods ... }</code></td><td><code>class Player { health: int; def __init__() {} }</code></td></tr>
                 <tr><td>Import</td><td><code>import module_name</code></td><td><code>import math_utils</code></td></tr>
                 <tr><td>Print</td><td><code>print(expr)</code></td><td><code>print("Hello")</code></td></tr>
+                <tr><td>String interpolation</td><td><code>"Hello {name}"</code></td><td>Embeds expression result, auto-converts via <code>str()</code></td></tr>
             </table>
 
             <!-- ========== TYPE SYSTEM ========== -->
@@ -238,7 +239,7 @@
 
             <table>
                 <tr><th>Type</th><th>Size</th><th>Description</th><th>Example Literal</th></tr>
-                <tr><td><code>int</code></td><td>4 bytes</td><td>32-bit signed integer</td><td><code>42, -7, 0</code></td></tr>
+                <tr><td><code>int</code></td><td>4 bytes</td><td>32-bit signed integer</td><td><code>42, 0xFF</code> (hex), <code>0b1010</code> (binary)</td></tr>
                 <tr><td><code>float</code></td><td>8 bytes</td><td>64-bit IEEE-754 (x87 FPU)</td><td><code>3.14, -0.5</code></td></tr>
                 <tr><td><code>string</code></td><td>heap</td><td>Immutable UTF-8 text</td><td><code>"hello"</code></td></tr>
                 <tr><td><code>bool</code></td><td>1 byte</td><td>Boolean</td><td><code>true, false</code></td></tr>
@@ -250,6 +251,27 @@
                 <strong>Type inference</strong>
                 Omit the type annotation and Nova will infer it: <code>pi = 3.14</code> infers <code>float</code>, <code>count = 10</code> infers <code>int</code>.
             </div>
+
+            <h3 id="enum">Enum</h3>
+            <p>Named integer constants with auto-incrementing values, desugared to const assignments at compile time.</p>
+            <pre><code>enum Color { Red, Green, Blue }
+// Desugars to:
+// const Color_Red = 0
+// const Color_Green = 1
+// const Color_Blue = 2</code></pre>
+
+            <h3 id="dict">HashMap / Dictionary</h3>
+            <p>Key-value store with <code>{"key": value}</code> literal syntax. Keys must be strings; values can be any type.</p>
+            <pre><code>d = {"name": "Alice", "age": 10}
+print(d.get("name"))      # Alice
+print(d.get("missing"))   # 0 (default)
+d.set("name", "Bob")      # update value
+print(d.has("name"))      # True
+print(len(d))             # 2
+d.remove("name")          # delete key
+print(d.keys())           # list of keys
+print(d.values())         # list of values
+print(d.items())          # [key1, val1, key2, val2]</code></pre>
 
             <!-- ========== OPERATORS ========== -->
             <h2 id="operators">Operators</h2>
@@ -348,6 +370,14 @@
     <span class="nv-fn">print</span>(i)
 }</code></pre>
 
+            <h3 id="switch">Switch</h3>
+            <p>Multi-branch conditional that desugars to if-elif-else. Works with any comparable type (int, string, bool).</p>
+            <pre><code>switch x {
+    case 1 { print("one") }
+    case 2 { print("two") }
+    else { print("other") }
+}</code></pre>
+
             <!-- ========== FUNCTIONS ========== -->
             <h2 id="functions">Functions</h2>
 
@@ -413,6 +443,20 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>type_name</code></td><td><code>(value) -> string</code></td><td>Returns type name as string</td></tr>
                 <tr><td><code>sys_flush</code></td><td><code>() -> void</code></td><td>Flush stdout buffer</td></tr>
                 <tr><td><code>sys_exit</code></td><td><code>(code: int) -> void</code></td><td>Terminate process immediately</td></tr>
+            </table>
+
+            <h3 id="string-functions">String Functions</h3>
+            <p>Built-in string methods available in VM mode:</p>
+            <table>
+              <tr><td><code>split(delim?)</code></td><td>Split string into list by delimiter (default: space)</td></tr>
+              <tr><td><code>join(list)</code></td><td>Join list elements into string</td></tr>
+              <tr><td><code>trim()</code></td><td>Strip leading/trailing whitespace</td></tr>
+              <tr><td><code>contains(substr)</code></td><td>Check if substring exists</td></tr>
+              <tr><td><code>replace(old, new)</code></td><td>Replace all occurrences</td></tr>
+              <tr><td><code>to_upper()</code></td><td>Convert to uppercase</td></tr>
+              <tr><td><code>to_lower()</code></td><td>Convert to lowercase</td></tr>
+              <tr><td><code>starts_with(prefix)</code></td><td>Check prefix</td></tr>
+              <tr><td><code>ends_with(suffix)</code></td><td>Check suffix</td></tr>
             </table>
 
             <h2 id="io">File I/O</h2>
