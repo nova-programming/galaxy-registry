@@ -755,7 +755,7 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
                 <tr><th>Command</th><th>Description</th></tr>
                 <tr><td><code>nova --version</code></td><td>Show the Nova compiler version</td></tr>
                 <tr><td><code>nova dev &lt;file.nv&gt;</code></td><td>Run a Nova program in the VM (fast, for development)</td></tr>
-                <tr><td><code>nova build &lt;file.nv&gt;</code></td><td>Compile to a native executable</td></tr>
+                <tr><td><code>nova build &lt;file.nv&gt; [-arch &lt;arch&gt;]</code></td><td>Compile to native executable (supports <code>x86_64</code>, <code>arm64</code>, <code>x86</code>)</td></tr>
                 <tr><td><code>nova run &lt;file.nv&gt;</code></td><td>Alias for <code>dev</code> (backward compatible)</td></tr>
                 <tr><td><code>nova update</code></td><td>Update the Nova compiler itself to the latest version</td></tr>
                 <tr><td><code>nova galaxy &lt;cmd&gt;</code></td><td>Run Galaxy Package Manager commands through Nova</td></tr>

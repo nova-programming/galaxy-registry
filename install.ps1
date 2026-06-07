@@ -28,10 +28,10 @@ $AllowedDirs = @("compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "mod
 $MINGW_ZIP_URL = "https://github.com/brechtsanders/winlibs_mingw/releases/download/16.1.0posix-14.0.0-msvcrt-r2/winlibs-x86_64-posix-seh-gcc-16.1.0-mingw-w64msvcrt-14.0.0-r2.zip"
 $MINGW_ZIP_TOP = "mingw64"
 
-function Info  { Write-Host "  [..]  $($args[0])" }
-function Ok    { Write-Host "  [OK]   $($args[0])" -ForegroundColor Green }
-function Warn  { Write-Host "  [WARN] $($args[0])" -ForegroundColor Yellow }
-function Fail  { Write-Host "  [FAIL] $($args[0])" -ForegroundColor Red; exit 1 }
+function Info { Write-Host "  [..]  $($args[0])" }
+function Ok { Write-Host "  [OK]   $($args[0])" -ForegroundColor Green }
+function Warn { Write-Host "  [WARN] $($args[0])" -ForegroundColor Yellow }
+function Fail { Write-Host "  [FAIL] $($args[0])" -ForegroundColor Red; exit 1 }
 
 function Add-ToPath {
     try {
@@ -48,7 +48,8 @@ function Add-ToPath {
                 if (( [System.IO.Path]::GetFullPath($expanded).TrimEnd('\') ) -eq $normed) {
                     $alreadyInPath = $true; break
                 }
-            } catch { continue }
+            }
+            catch { continue }
         }
         if (-not $alreadyInPath) {
             # Append to raw (unexpanded) PATH to preserve REG_EXPAND_SZ integrity
@@ -57,7 +58,8 @@ function Add-ToPath {
             $pathKey.SetValue("PATH", $newRaw, "ExpandString")
             $pathKey.Close()
             Ok "Added to PATH: $InstallDir"
-        } else {
+        }
+        else {
             Info "Install directory already in PATH"
         }
         # Use setx as fallback to force WM_SETTINGCHANGE broadcast
@@ -68,7 +70,8 @@ function Add-ToPath {
         if ($currentProcess -notlike "*$InstallDir*") {
             [Environment]::SetEnvironmentVariable("PATH", $currentProcess.TrimEnd(";") + ";" + $InstallDir, "Process")
         }
-    } catch {
+    }
+    catch {
         Warn "Could not update PATH: $_"
         Info "Add to PATH manually: $InstallDir"
     }
@@ -83,13 +86,15 @@ function Remove-FromPath {
             try {
                 $expanded = [System.Environment]::ExpandEnvironmentVariables($_)
                 [System.IO.Path]::GetFullPath($expanded).TrimEnd('\') -ne $normed
-            } catch { $true }
+            }
+            catch { $true }
         }
         $newPath = $parts -join ";"
         $pathKey.SetValue("PATH", $newPath, "ExpandString")
         $pathKey.Close()
         Ok "Removed from PATH"
-    } catch {
+    }
+    catch {
         Warn "Could not remove from PATH: $_"
     }
 }
@@ -138,7 +143,8 @@ function Install-GccIfMissing {
         $progressPreference = 'silentlyContinue'
         Invoke-WebRequest -Uri $MINGW_ZIP_URL -OutFile $tmpFile -TimeoutSec 300
         $progressPreference = 'continue'
-    } catch {
+    }
+    catch {
         Warn "Could not download portable GCC: $_"
         Info "Install GCC manually, or use 'nova dev' (VM mode) instead."
         return
@@ -161,7 +167,8 @@ function Install-GccIfMissing {
         }
         $zip.Dispose()
         Ok "Extracted $count GCC files to $GccDir"
-    } catch {
+    }
+    catch {
         Warn "Could not extract GCC: $_"
     }
     Remove-Item $tmpFile -Force
@@ -177,7 +184,7 @@ function Get-TargetArch {
 
 function Should-Extract($relPath, $TargetArch) {
     $parts = $relPath.Split("/")
-    
+
     if ($parts.Length -ge 3 -and ($parts[0] -eq "compiler" -or $parts[0] -eq "stdlib") -and $parts[1] -eq "backend") {
         $backend_arch = $parts[2]
         if ($backend_arch -ne $TargetArch) { return $false }
@@ -195,7 +202,7 @@ function Install-NovaGalaxy {
     Write-Host "  |  Nova + Galaxy Installer (PowerShell)  |"
     Write-Host "  +========================================+"
     Write-Host ""
-    
+
     $TargetArch = Get-TargetArch
     Info "Target Architecture: $TargetArch"
     Info "Install directory: $InstallDir"
@@ -203,7 +210,8 @@ function Install-NovaGalaxy {
     if (Test-Path $InstallDir) {
         Info "Directory already exists - will overwrite."
         $okMsg = "Reinstalled"
-    } else {
+    }
+    else {
         $okMsg = "Installed"
         New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     }
@@ -214,7 +222,8 @@ function Install-NovaGalaxy {
         $progressPreference = 'silentlyContinue'
         Invoke-WebRequest -Uri $NovaZipUrl -OutFile $tmpFile -TimeoutSec 120
         $progressPreference = 'continue'
-    } catch {
+    }
+    catch {
         Fail "Download failed: $_"
     }
 
@@ -225,7 +234,8 @@ function Install-NovaGalaxy {
         $zip = [System.IO.Compression.ZipFile]::OpenRead($tmpFile)
         $entries = $zip.Entries
         if ($entries.Count -eq 0) { throw "Empty archive" }
-    } catch {
+    }
+    catch {
         Fail "Corrupted zip archive: $_"
     }
 
@@ -281,7 +291,8 @@ function Uninstall-NovaGalaxy {
     if (Test-Path $InstallDir) {
         Remove-Item -Path $InstallDir -Recurse -Force
         Ok "Removed: $InstallDir"
-    } else {
+    }
+    else {
         Info "Nothing to remove at $InstallDir"
     }
     Remove-FromPath
@@ -293,7 +304,8 @@ function Uninstall-NovaGalaxy {
 function Main {
     if ($Uninstall) {
         Uninstall-NovaGalaxy
-    } else {
+    }
+    else {
         Install-NovaGalaxy
     }
 }
