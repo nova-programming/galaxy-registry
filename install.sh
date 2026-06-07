@@ -152,12 +152,16 @@ zf.close()
 
     [ "$downloaded" = 0 ] && fail "Extraction failed"
 
-    # Check for GCC (needed by 'nova build')
-    if command -v gcc >/dev/null 2>&1; then
-        ok "GCC found on PATH"
+    # Check for C Compiler (needed by 'nova build')
+    if command -v gcc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
+        ok "C compiler (GCC/Clang) found on PATH"
     else
-        warn "GCC not found — 'nova build' will need it."
-        warn "Install build-essential (Linux) or Xcode CLI tools (macOS)."
+        warn "C compiler not found — 'nova build' will need it."
+        if [ "$(uname -s)" = "Darwin" ]; then
+            warn "macOS detected: Run 'xcode-select --install' to install Apple Clang."
+        else
+            warn "Install build-essential (Linux) or GCC."
+        fi
         warn "Or use 'nova dev <file.nv>' (VM mode, no compiler needed)."
     fi
 
