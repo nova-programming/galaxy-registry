@@ -238,7 +238,7 @@
         <div class="doc-content">
 
             <h1 id="intro" style="margin-top:0;">Nova Language Documentation</h1>
-            <p>Welcome to the official Nova documentation. Nova is a systems programming language that compiles directly to x86 machine code — no interpreter, no VM, no gigabytes of build tools. It gives you <strong>C-level performance</strong> with <strong>Python-level readability</strong>.</p>
+            <p>Welcome to the official Nova documentation. Nova is a systems programming language that compiles directly to native machine code (x86, x86_64, etc.) — no interpreter, no VM, no gigabytes of build tools. It gives you <strong>C-level performance</strong> with <strong>Python-level readability</strong>.</p>
 
             <!-- ========== QUICK START ========== -->
             <h2 id="quickstart">Quick Start</h2>
@@ -264,7 +264,7 @@ nova build hello.nv
             <p>Developers today face an impossible trade-off: high-level languages (Python, JS) let you iterate fast but run 10-50x slower than C, while low-level languages (C, C++, Rust) give you raw speed but force you through setup hell and manual memory management.</p>
             <p><strong>Nova eliminates this compromise.</strong></p>
             <ul>
-                <li><strong>14x Faster than Python</strong> — direct x86 compilation, no interpreter overhead</li>
+                <li><strong>14x Faster than Python</strong> — direct native compilation, no interpreter overhead</li>
                 <li><strong>Near-C Performance</strong> — competes with GCC <code>-O3</code> on tight integer loops</li>
                 <li><strong>Zero Dependencies</strong> — a single 200 KB binary is the entire toolchain</li>
                 <li><strong>Pythonic Syntax</strong> — reads like Python, runs like C</li>
@@ -309,7 +309,7 @@ count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred a
             <table class="doc-table">
                 <tr><th>Type</th><th>Description</th><th>Example</th></tr>
                 <tr><td><code>int</code></td><td>32-bit signed integer</td><td><code>42, -7, 0</code></td></tr>
-                <tr><td><code>float</code></td><td>64-bit IEEE-754 (via x87 FPU)</td><td><code>3.14, -0.5, 2.0</code></td></tr>
+                <tr><td><code>float</code></td><td>64-bit IEEE-754</td><td><code>3.14, -0.5, 2.0</code></td></tr>
                 <tr><td><code>string</code></td><td>Immutable UTF-8 text (heap-allocated)</td><td><code>"hello"</code></td></tr>
                 <tr><td><code>bool</code></td><td>Boolean true/false</td><td><code>true, false</code></td></tr>
                 <tr><td><code>list</code></td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
@@ -472,7 +472,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
 
             <!-- ========== STANDARD LIBRARY ========== -->
             <h2 id="stdlib">Standard Library</h2>
-            <p>Nova ships with a built-in standard library covering file I/O, OS interaction, math, and cryptography. All functions compile to efficient x86 machine code.</p>
+            <p>Nova ships with a built-in standard library covering file I/O, OS interaction, math, and cryptography. All functions compile to efficient native machine code.</p>
 
             <h3>File I/O</h3>
             <table class="doc-table">
@@ -799,7 +799,7 @@ galaxy install pkg</code></pre>
             <h2 id="advanced">Advanced Features</h2>
 
             <h3>1. Inline Assembly (<code>@raw</code> Blocks)</h3>
-            <p>Drop directly into x86 assembly anywhere in your code. This is Nova's escape hatch for low-level optimization and hardware access.</p>
+            <p>Drop directly into native assembly anywhere in your code. This is Nova's escape hatch for low-level optimization and hardware access.</p>
             <pre><code><span class="nv-kw">def</span> <span class="nv-fn">fast_inv_sqrt</span>(number: <span class="nv-type">float</span>) -&gt; <span class="nv-type">float</span> {
     <span class="nv-kw">@raw</span> {
         mov eax, dword [ebp+8]
@@ -876,9 +876,9 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 <li><strong>Lexer</strong> — tokenizes source into structured <code>Token</code> objects</li>
                 <li><strong>Parser</strong> — recursive-descent parser that builds an AST with constant folding</li>
                 <li><strong>Type Checker</strong> — static type inference and validation</li>
-                <li><strong>Code Generator</strong> — emits Intel-syntax x86-32 assembly with bounds-checking and variable-to-register promotion</li>
+                <li><strong>Code Generator</strong> — emits native assembly (dynamically selected for your target architecture like x86, x86_64) with bounds-checking and variable-to-register promotion</li>
                 <li><strong>Tree Shaker</strong> — builds a call-graph dependency map and removes unused stdlib functions (up to 70% binary size reduction)</li>
-                <li><strong>Assembler</strong> — encodes assembly mnemonics to native x86 machine code in-process</li>
+                <li><strong>Assembler</strong> — encodes assembly mnemonics to native machine code in-process</li>
                 <li><strong>Linker</strong> — packages machine code into a valid Windows PE binary</li>
             </ol>
             <p>The entire pipeline runs in a single process. No external tools are invoked.</p>

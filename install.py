@@ -183,10 +183,27 @@ def _download_zip():
 # Extraction (preserves full project structure minus dev-only files)
 # ---------------------------------------------------------------------------
 
-def _should_extract(rel_path: str) -> bool:
+def get_target_arch() -> str:
+    machine = platform.machine().lower()
+    if machine in ("amd64", "x86_64"):
+        return "x86_64"
+    elif machine in ("i386", "i686", "x86"):
+        return "x86"
+    elif machine in ("arm64", "aarch64"):
+        return "arm64"
+    return "x86_64"
+
+
+def _should_extract(rel_path: str, target_arch: str) -> bool:
     """Return True if the file belongs in a production install."""
     parts = rel_path.strip("/").split("/")
     top = parts[0]
+
+    # Filter out backends that do not match the target architecture
+    if len(parts) >= 3 and top in ("compiler", "stdlib") and parts[1] == "backend":
+        backend_arch = parts[2]
+        if backend_arch != target_arch:
+            return False
 
     # Only allow specific subdirectories
     if top in ALLOWED_SUBDIRS:
@@ -203,22 +220,22 @@ def _should_extract(rel_path: str) -> bool:
     return False
 
 
-def _extract_archive(data: bytes) -> int:
+def _extract_archive(data: bytes, target_arch: str) -> int:
     """Extract either a .zip or .tar.gz archive."""
     # Try zip first
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             names = zf.namelist()
             if names:
-                return _extract_zip(data)
+                return _extract_zip(data, target_arch)
     except zipfile.BadZipFile:
         pass
     # Fallback to tar
     import tarfile
-    return _extract_tar(data)
+    return _extract_tar(data, target_arch)
 
 
-def _extract_tar(data: bytes) -> int:
+def _extract_tar(data: bytes, target_arch: str) -> int:
     count = 0
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tf:
         names = tf.getmembers()
@@ -234,7 +251,7 @@ def _extract_tar(data: bytes) -> int:
                 rel = name[len(ZIP_PREFIX) + 1:]
             else:
                 rel = name
-            if not rel or not _should_extract(rel):
+            if not rel or not _should_extract(rel, target_arch):
                 continue
             dst = os.path.join(INSTALL_DIR, rel)
             dst_dir = os.path.dirname(dst)
@@ -245,7 +262,7 @@ def _extract_tar(data: bytes) -> int:
     return count
 
 
-def _extract_zip(zip_data: bytes) -> int:
+def _extract_zip(zip_data: bytes, target_arch: str) -> int:
     count = 0
     with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
         bad = zf.testzip()
@@ -268,7 +285,7 @@ def _extract_zip(zip_data: bytes) -> int:
                 rel = name
             if not rel:
                 continue
-            if not _should_extract(rel):
+            if not _should_extract(rel, target_arch):
                 continue
 
             dst = os.path.join(INSTALL_DIR, rel)
@@ -511,6 +528,9 @@ def install():
     print(f"  |  Nova + Galaxy Unified Installer       |")
     print(f"  +========================================+")
     print()
+    
+    target_arch = get_target_arch()
+    info(f"Target Architecture: {target_arch}")
     info(f"Install directory: {INSTALL_DIR}")
 
     if os.path.exists(INSTALL_DIR):
@@ -521,7 +541,7 @@ def install():
 
     data = _download_zip()
     info("Extracting files (this may take a moment)...")
-    count = _extract_archive(data)
+    count = _extract_archive(data, target_arch)
     ok(f"Extracted {count} files")
 
     _install_gcc_if_missing()

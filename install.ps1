@@ -167,8 +167,22 @@ function Install-GccIfMissing {
     Remove-Item $tmpFile -Force
 }
 
-function Should-Extract($relPath) {
+function Get-TargetArch {
+    $arch = $env:PROCESSOR_ARCHITECTURE.ToLower()
+    if ($arch -eq "amd64" -or $arch -eq "x86_64") { return "x86_64" }
+    if ($arch -eq "x86" -or $arch -eq "i386") { return "x86" }
+    if ($arch -eq "arm64") { return "arm64" }
+    return "x86_64"
+}
+
+function Should-Extract($relPath, $TargetArch) {
     $parts = $relPath.Split("/")
+    
+    if ($parts.Length -ge 3 -and ($parts[0] -eq "compiler" -or $parts[0] -eq "stdlib") -and $parts[1] -eq "backend") {
+        $backend_arch = $parts[2]
+        if ($backend_arch -ne $TargetArch) { return $false }
+    }
+
     $top = $parts[0]
     if ($AllowedFiles -contains $top) { return $true }
     if ($AllowedDirs -contains $top) { return $true }
@@ -181,6 +195,9 @@ function Install-NovaGalaxy {
     Write-Host "  |  Nova + Galaxy Installer (PowerShell)  |"
     Write-Host "  +========================================+"
     Write-Host ""
+    
+    $TargetArch = Get-TargetArch
+    Info "Target Architecture: $TargetArch"
     Info "Install directory: $InstallDir"
 
     if (Test-Path $InstallDir) {
@@ -218,7 +235,7 @@ function Install-NovaGalaxy {
     foreach ($entry in $zip.Entries) {
         if ($entry.FullName -like "$prefix*" -and $entry.Length -gt 0) {
             $rel = $entry.FullName.Substring($prefix.Length)
-            if (Should-Extract $rel) {
+            if (Should-Extract $rel $TargetArch) {
                 $dst = Join-Path $InstallDir $rel.Replace("/", "\")
                 $dstDir = Split-Path $dst -Parent
                 if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Path $dstDir -Force | Out-Null }

@@ -54,6 +54,18 @@ create_launchers() {
 
 do_install() {
     echo ""; echo "  +========================================+"; echo "  |  Nova + Galaxy Installer               |"; echo "  +========================================+"; echo ""
+    
+    machine=$(uname -m | tr '[:upper:]' '[:lower:]')
+    if [ "$machine" = "amd64" ] || [ "$machine" = "x86_64" ]; then
+        TARGET_ARCH="x86_64"
+    elif [ "$machine" = "i386" ] || [ "$machine" = "i686" ] || [ "$machine" = "x86" ]; then
+        TARGET_ARCH="x86"
+    elif [ "$machine" = "aarch64" ] || [ "$machine" = "arm64" ]; then
+        TARGET_ARCH="arm64"
+    else
+        TARGET_ARCH="x86_64"
+    fi
+    info "Target Architecture: ${TARGET_ARCH}"
     info "Install directory: ${INSTALL_DIR}"
 
     if [ -d "$INSTALL_DIR" ]; then info "Directory exists — will overwrite."; fi
@@ -107,10 +119,15 @@ zf = zipfile.ZipFile('${tmpzip}')
 prefix = '${ZIP_PREFIX}/'
 allowed_files = set('${ALLOWED_FILES}'.split())
 allowed_dirs = set('${ALLOWED_DIRS}'.split())
+target_arch = '${TARGET_ARCH}'
 for name in zf.namelist():
     if not name.startswith(prefix) or name.endswith('/'): continue
     rel = name[len(prefix):]
-    top = rel.split('/')[0]
+    parts = rel.split('/')
+    top = parts[0]
+    if len(parts) >= 3 and top in ('compiler', 'stdlib') and parts[1] == 'backend':
+        if parts[2] != target_arch:
+            continue
     if top in allowed_files or top in allowed_dirs:
         dst = os.path.join('${INSTALL_DIR}', rel)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -122,6 +139,15 @@ zf.close()
             fail "Need unzip or python3 to extract. Install one and re-run."
         fi
         rm -f "$tmpzip"
+    fi
+
+    if [ "$downloaded" = 1 ]; then
+        for arch in x86 x86_64 arm64; do
+            if [ "$arch" != "$TARGET_ARCH" ]; then
+                rm -rf "${INSTALL_DIR}/compiler/backend/${arch}" 2>/dev/null || true
+                rm -rf "${INSTALL_DIR}/stdlib/backend/${arch}" 2>/dev/null || true
+            fi
+        done
     fi
 
     [ "$downloaded" = 0 ] && fail "Extraction failed"

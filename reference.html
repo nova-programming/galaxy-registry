@@ -248,7 +248,7 @@
             <table>
                 <tr><th>Type</th><th>Size</th><th>Description</th><th>Example Literal</th></tr>
                 <tr><td><code>int</code></td><td>4 bytes</td><td>32-bit signed integer</td><td><code>42, 0xFF</code> (hex), <code>0b1010</code> (binary)</td></tr>
-                <tr><td><code>float</code></td><td>8 bytes</td><td>64-bit IEEE-754 (x87 FPU)</td><td><code>3.14, -0.5</code></td></tr>
+                <tr><td><code>float</code></td><td>8 bytes</td><td>64-bit IEEE-754</td><td><code>3.14, -0.5</code></td></tr>
                 <tr><td><code>string</code></td><td>heap</td><td>Immutable UTF-8 text</td><td><code>"hello"</code></td></tr>
                 <tr><td><code>bool</code></td><td>1 byte</td><td>Boolean</td><td><code>true, false</code></td></tr>
                 <tr><td><code>list</code></td><td>heap</td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
@@ -517,7 +517,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             </table>
 
             <h2 id="asm">Inline Assembly</h2>
-            <pre><code><span class="nv-cmt"># Insert raw x86 instructions</span>
+            <pre><code><span class="nv-cmt"># Insert raw assembly instructions</span>
 <span class="nv-kw">@raw</span> {
     mov eax, <span class="nv-num">42</span>
     ret
