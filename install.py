@@ -183,27 +183,10 @@ def _download_zip():
 # Extraction (preserves full project structure minus dev-only files)
 # ---------------------------------------------------------------------------
 
-def get_target_arch() -> str:
-    machine = platform.machine().lower()
-    if machine in ("amd64", "x86_64"):
-        return "x86_64"
-    elif machine in ("i386", "i686", "x86"):
-        return "x86"
-    elif machine in ("arm64", "aarch64"):
-        return "arm64"
-    return "x86_64"
-
-
-def _should_extract(rel_path: str, target_arch: str) -> bool:
+def _should_extract(rel_path: str) -> bool:
     """Return True if the file belongs in a production install."""
     parts = rel_path.strip("/").split("/")
     top = parts[0]
-
-    # Filter out backends that do not match the target architecture
-    if len(parts) >= 3 and top in ("compiler", "stdlib") and parts[1] == "backend":
-        backend_arch = parts[2]
-        if backend_arch != target_arch:
-            return False
 
     # Only allow specific subdirectories
     if top in ALLOWED_SUBDIRS:
@@ -220,22 +203,22 @@ def _should_extract(rel_path: str, target_arch: str) -> bool:
     return False
 
 
-def _extract_archive(data: bytes, target_arch: str) -> int:
+def _extract_archive(data: bytes) -> int:
     """Extract either a .zip or .tar.gz archive."""
     # Try zip first
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             names = zf.namelist()
             if names:
-                return _extract_zip(data, target_arch)
+                return _extract_zip(data)
     except zipfile.BadZipFile:
         pass
     # Fallback to tar
     import tarfile
-    return _extract_tar(data, target_arch)
+    return _extract_tar(data)
 
 
-def _extract_tar(data: bytes, target_arch: str) -> int:
+def _extract_tar(data: bytes) -> int:
     count = 0
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tf:
         names = tf.getmembers()
@@ -251,7 +234,7 @@ def _extract_tar(data: bytes, target_arch: str) -> int:
                 rel = name[len(ZIP_PREFIX) + 1:]
             else:
                 rel = name
-            if not rel or not _should_extract(rel, target_arch):
+            if not rel or not _should_extract(rel):
                 continue
             dst = os.path.join(INSTALL_DIR, rel)
             dst_dir = os.path.dirname(dst)
@@ -262,7 +245,7 @@ def _extract_tar(data: bytes, target_arch: str) -> int:
     return count
 
 
-def _extract_zip(zip_data: bytes, target_arch: str) -> int:
+def _extract_zip(zip_data: bytes) -> int:
     count = 0
     with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
         bad = zf.testzip()
@@ -285,7 +268,7 @@ def _extract_zip(zip_data: bytes, target_arch: str) -> int:
                 rel = name
             if not rel:
                 continue
-            if not _should_extract(rel, target_arch):
+            if not _should_extract(rel):
                 continue
 
             dst = os.path.join(INSTALL_DIR, rel)
@@ -313,10 +296,7 @@ def _install_gcc_if_missing():
         return
     # On non-Windows, GCC is typically installed via package manager
     if platform.system() != "Windows":
-        if platform.system() == "Darwin":
-            info("macOS detected: Run 'xcode-select --install' to install Apple Clang.")
-        else:
-            info("GCC not found. Use your package manager to install build-essential (Linux) or GCC.")
+        info("GCC not found. Use your package manager to install build-essential (Linux) or Xcode CLI tools (macOS).")
         info("Alternatively, use 'nova dev <file.nv>' (VM mode) which needs no compiler.")
         return
     info("GCC not found — downloading portable MinGW-w64 (~130MB)...")
@@ -352,11 +332,6 @@ def _install_gcc_if_missing():
 
 
 def _create_launchers():
-    # Remove conflicting directories before creating launcher scripts
-    for name in LAUNCHER_TEMPLATES:
-        path = os.path.join(INSTALL_DIR, name)
-        if os.path.isdir(path):
-            shutil.rmtree(path, ignore_errors=True)
     for name, content in LAUNCHER_TEMPLATES.items():
         path = os.path.join(INSTALL_DIR, name)
         with open(path, "w", newline="\n") as f:
@@ -370,17 +345,6 @@ def _create_launchers():
 # ---------------------------------------------------------------------------
 # PATH management (Windows user-level PATH via Registry)
 # ---------------------------------------------------------------------------
-
-def _broadcast_env_change():
-    try:
-        HWND_BROADCAST = 0xFFFF
-        WM_SETTINGCHANGE = 0x001A
-        import ctypes
-        ctypes.windll.user32.SendMessageW(
-            HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment"
-        )
-    except Exception:
-        pass
 
 def _add_to_path_windows() -> bool:
     try:
@@ -405,15 +369,21 @@ def _add_to_path_windows() -> bool:
             normed = os.path.normcase(os.path.normpath(INSTALL_DIR))
             if any(os.path.normcase(os.path.normpath(p)) == normed for p in parts):
                 info("Install directory already in PATH")
-                # Still broadcast so Explorer picks up any PATH set without broadcast
-                _broadcast_env_change()
-                info("Refreshed environment — nova/galaxy should work in new terminals.")
                 return True
 
             current = current.rstrip(";") + ";" + INSTALL_DIR
             winreg.SetValueEx(key, "PATH", 0, reg_type, current)
 
-        _broadcast_env_change()
+        # Notify Windows of environment change
+        try:
+            HWND_BROADCAST = 0xFFFF
+            WM_SETTINGCHANGE = 0x001A
+            import ctypes
+            ctypes.windll.user32.SendMessageW(
+                HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment"
+            )
+        except Exception:
+            pass
 
         # Also update the current process's PATH so child terminals
         # (opened from this session) inherit the correct environment
@@ -531,9 +501,6 @@ def install():
     print(f"  |  Nova + Galaxy Unified Installer       |")
     print(f"  +========================================+")
     print()
-    
-    target_arch = get_target_arch()
-    info(f"Target Architecture: {target_arch}")
     info(f"Install directory: {INSTALL_DIR}")
 
     if os.path.exists(INSTALL_DIR):
@@ -544,7 +511,7 @@ def install():
 
     data = _download_zip()
     info("Extracting files (this may take a moment)...")
-    count = _extract_archive(data, target_arch)
+    count = _extract_archive(data)
     ok(f"Extracted {count} files")
 
     _install_gcc_if_missing()
@@ -558,12 +525,10 @@ def install():
     print()
     info(f"Location: {INSTALL_DIR}")
     if platform.system() == "Windows":
-        print("  -------------------------------------------------")
-        print("  >> IMMEDIATE USE (no restart needed):")
-        print('  >>   cmd.exe:  call "%LOCALAPPDATA%\\nova\\use_nova.bat"')
-        print('  >>   PowerShell: $env:PATH = "$env:LOCALAPPDATA\\nova;$env:PATH"')
-        print("  -------------------------------------------------")
-        info("Or open a NEW terminal (may need log off/on if not found).")
+        info("To use nova/galaxy in THIS terminal:")
+        info('  cmd.exe:  call "%LOCALAPPDATA%\\nova\\use_nova.bat"')
+        info('  PowerShell: $env:PATH = "$env:LOCALAPPDATA\\nova;$env:PATH"')
+        info("Or open a NEW terminal.")
     else:
         info("Restart your terminal or source your shell config, then:")
     print()

@@ -43,9 +43,6 @@ create_launchers() {
     # Probe for python command — prefer python3, fall back to python
     py_cmd="python3"
     command -v python3 >/dev/null 2>&1 || py_cmd="python"
-    # Remove any conflicting directories before creating launcher scripts
-    [ -d "${INSTALL_DIR}/nova" ] && rmdir "${INSTALL_DIR}/nova" 2>/dev/null || rm -rf "${INSTALL_DIR}/nova"
-    [ -d "${INSTALL_DIR}/galaxy" ] && rm -rf "${INSTALL_DIR}/galaxy"
     printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'os.chdir(os.path.dirname(os.path.abspath(__file__)))' 'from main import main; main()' > "${INSTALL_DIR}/nova"
     printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'from _galaxy import main; main()' > "${INSTALL_DIR}/galaxy"
     chmod +x "${INSTALL_DIR}/nova" "${INSTALL_DIR}/galaxy"
@@ -54,18 +51,6 @@ create_launchers() {
 
 do_install() {
     echo ""; echo "  +========================================+"; echo "  |  Nova + Galaxy Installer               |"; echo "  +========================================+"; echo ""
-    
-    machine=$(uname -m | tr '[:upper:]' '[:lower:]')
-    if [ "$machine" = "amd64" ] || [ "$machine" = "x86_64" ]; then
-        TARGET_ARCH="x86_64"
-    elif [ "$machine" = "i386" ] || [ "$machine" = "i686" ] || [ "$machine" = "x86" ]; then
-        TARGET_ARCH="x86"
-    elif [ "$machine" = "aarch64" ] || [ "$machine" = "arm64" ]; then
-        TARGET_ARCH="arm64"
-    else
-        TARGET_ARCH="x86_64"
-    fi
-    info "Target Architecture: ${TARGET_ARCH}"
     info "Install directory: ${INSTALL_DIR}"
 
     if [ -d "$INSTALL_DIR" ]; then info "Directory exists — will overwrite."; fi
@@ -119,15 +104,10 @@ zf = zipfile.ZipFile('${tmpzip}')
 prefix = '${ZIP_PREFIX}/'
 allowed_files = set('${ALLOWED_FILES}'.split())
 allowed_dirs = set('${ALLOWED_DIRS}'.split())
-target_arch = '${TARGET_ARCH}'
 for name in zf.namelist():
     if not name.startswith(prefix) or name.endswith('/'): continue
     rel = name[len(prefix):]
-    parts = rel.split('/')
-    top = parts[0]
-    if len(parts) >= 3 and top in ('compiler', 'stdlib') and parts[1] == 'backend':
-        if parts[2] != target_arch:
-            continue
+    top = rel.split('/')[0]
     if top in allowed_files or top in allowed_dirs:
         dst = os.path.join('${INSTALL_DIR}', rel)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -141,27 +121,14 @@ zf.close()
         rm -f "$tmpzip"
     fi
 
-    if [ "$downloaded" = 1 ]; then
-        for arch in x86 x86_64 arm64; do
-            if [ "$arch" != "$TARGET_ARCH" ]; then
-                rm -rf "${INSTALL_DIR}/compiler/backend/${arch}" 2>/dev/null || true
-                rm -rf "${INSTALL_DIR}/stdlib/backend/${arch}" 2>/dev/null || true
-            fi
-        done
-    fi
-
     [ "$downloaded" = 0 ] && fail "Extraction failed"
 
-    # Check for C Compiler (needed by 'nova build')
-    if command -v gcc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
-        ok "C compiler (GCC/Clang) found on PATH"
+    # Check for GCC (needed by 'nova build')
+    if command -v gcc >/dev/null 2>&1; then
+        ok "GCC found on PATH"
     else
-        warn "C compiler not found — 'nova build' will need it."
-        if [ "$(uname -s)" = "Darwin" ]; then
-            warn "macOS detected: Run 'xcode-select --install' to install Apple Clang."
-        else
-            warn "Install build-essential (Linux) or GCC."
-        fi
+        warn "GCC not found — 'nova build' will need it."
+        warn "Install build-essential (Linux) or Xcode CLI tools (macOS)."
         warn "Or use 'nova dev <file.nv>' (VM mode, no compiler needed)."
     fi
 
