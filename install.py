@@ -28,8 +28,8 @@ import time
 APP_NAME = "Nova + Galaxy"
 # Try release zip first (leaner), fall back to full repo zip
 NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
-NOVA_ZIP_URL = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
-ZIP_PREFIX = "Nova-develop"
+NOVA_ZIP_URL = "https://github.com/nova-programming/Nova/archive/refs/heads/main.zip"
+ZIP_PREFIX = "Nova-main"
 
 ALLOWED_ROOT_FILES = {"_galaxy.py", "nova.nv"}
 ALLOWED_SUBDIRS = {

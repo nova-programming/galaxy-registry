@@ -17,8 +17,8 @@ param([switch]$Uninstall)
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $AppName = "Nova + Galaxy"
-$NovaZipUrl = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
-$ZipPrefix = "Nova-develop"
+$NovaZipUrl = "https://github.com/nova-programming/Nova/archive/refs/heads/main.zip"
+$ZipPrefix = "Nova-main"
 $InstallDir = Join-Path $env:LOCALAPPDATA "nova"
 $GccDir = Join-Path $InstallDir "gcc"
 $AllowedFiles = @("_galaxy.py", "nova.nv")

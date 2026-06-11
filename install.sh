@@ -3,8 +3,8 @@ set -eu
 
 APP_NAME="Nova + Galaxy"
 RELEASE_BASE="https://github.com/nova-programming/Nova/releases/download"
-NOVA_REPO_ZIP="https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
-ZIP_PREFIX="Nova-develop"
+NOVA_REPO_ZIP="https://github.com/nova-programming/Nova/archive/refs/heads/main.zip"
+ZIP_PREFIX="Nova-main"
 INSTALL_DIR="${HOME}/.nova"
 ALLOWED_FILES="_galaxy.py nova.nv"
 ALLOWED_DIRS="bootstrap stdlib tools galaxy"
