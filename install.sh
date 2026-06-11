@@ -6,8 +6,8 @@ RELEASE_BASE="https://github.com/nova-programming/Nova/releases/download"
 NOVA_REPO_ZIP="https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 ZIP_PREFIX="Nova-develop"
 INSTALL_DIR="${HOME}/.nova"
-ALLOWED_FILES="main.py _galaxy.py nova.nv"
-ALLOWED_DIRS="compiler parser lexer nova_ast vm stdlib modules tools galaxy"
+ALLOWED_FILES="_galaxy.py nova.nv"
+ALLOWED_DIRS="bootstrap stdlib tools galaxy"
 
 info()  { printf "  [..]  %s\n" "$1"; }
 ok()    { printf "  [OK]  %s\n" "$1"; }
@@ -43,7 +43,7 @@ create_launchers() {
     # Probe for python command — prefer python3, fall back to python
     py_cmd="python3"
     command -v python3 >/dev/null 2>&1 || py_cmd="python"
-    printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'os.chdir(os.path.dirname(os.path.abspath(__file__)))' 'from main import main; main()' > "${INSTALL_DIR}/nova"
+    printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'os.chdir(os.path.dirname(os.path.abspath(__file__)))' 'from bootstrap.main import main; main()' > "${INSTALL_DIR}/nova"
     printf '%s\n' "#!/usr/bin/env ${py_cmd}" 'import sys, os' 'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))' 'from _galaxy import main; main()' > "${INSTALL_DIR}/galaxy"
     chmod +x "${INSTALL_DIR}/nova" "${INSTALL_DIR}/galaxy"
     ok "Created launchers"

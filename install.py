@@ -31,10 +31,9 @@ NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
 NOVA_ZIP_URL = "https://github.com/nova-programming/Nova/archive/refs/heads/develop.zip"
 ZIP_PREFIX = "Nova-develop"
 
-ALLOWED_ROOT_FILES = {"main.py", "_galaxy.py", "nova.nv"}
+ALLOWED_ROOT_FILES = {"_galaxy.py", "nova.nv"}
 ALLOWED_SUBDIRS = {
-    "compiler", "parser", "lexer", "stdlib",
-    "nova_ast", "tools", "galaxy", "vm", "modules",
+    "bootstrap", "stdlib", "tools", "galaxy",
 }
 
 # Portable MinGW-w64 for Windows — only downloaded if 'gcc' not on PATH
@@ -49,7 +48,7 @@ if platform.system() == "Windows":
     LAUNCHER_TEMPLATES = {
         "nova.bat": (
             '@echo off\r\n'
-            'python "%~dp0main.py" %*\r\n'
+            'python "%~dp0bootstrap\\main.py" %*\r\n'
         ),
         "galaxy.bat": (
             '@echo off\r\n'
@@ -73,7 +72,7 @@ else:
             'import sys, os\n'
             'sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n'
             'os.chdir(os.path.dirname(os.path.abspath(__file__)))\n'
-            'from main import main\n'
+            'from bootstrap.main import main\n'
             'main()\n'
         ),
         "galaxy": (

@@ -21,7 +21,7 @@ $NovaZipUrl = "https://github.com/nova-programming/Nova/archive/refs/heads/devel
 $ZipPrefix = "Nova-develop"
 $InstallDir = Join-Path $env:LOCALAPPDATA "nova"
 $GccDir = Join-Path $InstallDir "gcc"
-$AllowedFiles = @("main.py", "_galaxy.py", "nova.nv")
+$AllowedFiles = @("_galaxy.py", "nova.nv")
 $AllowedDirs = @("compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy")
 
 # Portable GCC (winlibs) — only downloaded on Windows if 'gcc' not on PATH
@@ -88,7 +88,7 @@ function Remove-FromPath {
 function New-Launchers {
     $novaLauncher = @'
 @echo off
-python "%~dp0main.py" %*
+python "%~dp0bootstrap\main.py" %*
 '@
     $galaxyLauncher = @'
 @echo off
