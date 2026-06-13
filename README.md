@@ -24,6 +24,10 @@ curl -O https://galaxy-registry.vercel.app/install.py && python install.py
 
 This installs both the Nova compiler and Galaxy package manager globally.
 
+## Status
+
+The Nova compiler is fully self-hosted (June 2026) — `nova.exe` successfully compiles itself. Supports x86_64 (primary) and ARM64 (secondary) backends. 190+ tests passing.
+
 ## Repository Structure
 
 ```
