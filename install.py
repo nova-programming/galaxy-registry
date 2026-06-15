@@ -152,7 +152,7 @@ def _download_zip():
     is_unix = platform.system() != "Windows"
     ext = ".tar.gz" if is_unix else ".zip"
     urls_to_try = [
-        f"{NOVA_RELEASE_BASE}/nova-v0.6.0/nova-v0.6.0{ext}",
+        f"{NOVA_RELEASE_BASE}/nova-v0.7.0/nova-v0.7.0{ext}",
         NOVA_ZIP_URL,
     ]
     last_err = None

@@ -71,7 +71,7 @@ do_install() {
         info "Fetching release tarball..."
         tmpdir="/tmp/nova-install-$$"
         mkdir -p "$tmpdir"
-        curl -fsSL -o "${tmpdir}/nova.tar.gz" "${RELEASE_BASE}/nova-v0.6.0/nova-v0.6.0.tar.gz" 2>/dev/null && \
+        curl -fsSL -o "${tmpdir}/nova.tar.gz" "${RELEASE_BASE}/nova-v0.7.0/nova-v0.7.0.tar.gz" 2>/dev/null && \
         tar xzf "${tmpdir}/nova.tar.gz" -C "$INSTALL_DIR" 2>/dev/null && \
         downloaded=1 && ok "Extracted release tarball"
         rm -rf "$tmpdir"

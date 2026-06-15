@@ -238,6 +238,9 @@
                 <tr><td>Break</td><td><code>break</code></td><td>Exit loop early</td></tr>
                 <tr><td>Continue</td><td><code>continue</code></td><td>Skip to next iteration</td></tr>
                 <tr><td>Inline ASM</td><td><code>@raw { ... }</code></td><td>Insert raw assembly instructions</td></tr>
+                <tr><td>List comp</td><td><code>[expr for x in list if cond]</code></td><td><code>[x*2 for x in items if x>3]</code></td></tr>
+                <tr><td>Try/Catch</td><td><code>try { ... } catch e { ... }</code></td><td>Exception handling with setjmp/longjmp</td></tr>
+                <tr><td>Throw</td><td><code>throw expr</code></td><td><code>throw "error"</code></td></tr>
                 <tr><td>Dict literal</td><td><code>{"key": value}</code></td><td><code>d = {"name": "Alice", "age": 10}</code></td></tr>
             </table>
 
@@ -386,6 +389,47 @@ print(d.items())          # [key1, val1, key2, val2]</code></pre>
     else { print("other") }
 }</code></pre>
 
+            <h3 id="exceptions">Exceptions</h3>
+            <p>Nova supports structured exception handling via try/catch/throw, using setjmp/longjmp in native compilation.</p>
+            <pre><code>try {
+    throw "something went wrong"
+} catch(e) {
+    print(e.message)
+}
+
+# No exception: catch body skipped
+try {
+    print("all good")
+} catch(e) {
+    print("not reached")
+}
+
+# throw inside function
+def safe_div(a, b) {
+    if b == 0 {
+        throw "divide by zero"
+    }
+    print(a / b)
+}
+
+try {
+    safe_div(10, 0)
+} catch(e) {
+    print(-1)
+}</code></pre>
+
+            <h3 id="list-comp">List Comprehensions</h3>
+            <p>Syntax: <code>[expr for x in list if cond]</code>. Desugars at parse time to a ForIn loop with append. The <code>if</code> clause is optional.</p>
+            <pre><code># Basic
+items = [1, 2, 3, 4, 5]
+result = [x * 2 for x in items]
+
+# With filter
+evens = [x for x in items if x % 2 == 0]
+
+# Inline
+print([x * 10 for x in items if x > 2])</code></pre>
+
             <!-- ========== FUNCTIONS ========== -->
             <h2 id="functions">Functions</h2>
 
@@ -461,6 +505,13 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_platform</code></td><td><code>() -&gt; string</code></td><td>Returns "windows", "linux", or "macos" (native only)</td></tr>
                 <tr><td><code>sys_exit</code></td><td><code>(code: int) -> void</code></td><td>Terminate process immediately (native only)</td></tr>
                 <tr><td><code>sys_flush</code></td><td><code>() -> void</code></td><td>Flush stdout buffer (native only)</td></tr>
+                <tr><td><code>abs</code></td><td><code>(n: int) -> int</code></td><td>Absolute value</td></tr>
+                <tr><td><code>min</code></td><td><code>(a: int, b: int) -> int</code></td><td>Minimum of two integers</td></tr>
+                <tr><td><code>max</code></td><td><code>(a: int, b: int) -> int</code></td><td>Maximum of two integers</td></tr>
+                <tr><td><code>file_exists</code></td><td><code>(path: string) -> bool</code></td><td>Check if file exists</td></tr>
+                <tr><td><code>file_size</code></td><td><code>(path: string) -> int</code></td><td>File size in bytes</td></tr>
+                <tr><td><code>file_type</code></td><td><code>(path: string) -> string</code></td><td>Returns "file", "dir", or "none"</td></tr>
+                <tr><td><code>now</code></td><td><code>() -> string</code></td><td>Current timestamp string</td></tr>
             </table>
 
             <h3 id="string-functions">String Functions</h3>
@@ -552,6 +603,9 @@ switch_stmt     = "switch" expr "{" { "case" expr block } [ "else" block ] "}"
 while_stmt      = "while" expr block
 for_stmt        = "for" id "=" expr ( "to" | "downto" ) expr "step" expr block
 for_in_stmt     = "for" id "in" expr block
+list_comp       = "[" expr "for" id "in" expr [ "if" expr ] "]"
+try_stmt        = "try" block "catch" id block
+throw_stmt      = "throw" expr
 return_stmt     = "return" [ expr ]
 break_stmt      = "break"
 continue_stmt   = "continue"
