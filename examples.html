@@ -382,7 +382,8 @@ content = <span class="nv-fn">read</span>(fd)
                     <div class="desc">Cryptographically secure random numbers via ChaCha20 PRNG (native only).</div>
                 </div>
                 <div class="example-body">
-                    <pre><code><span class="nv-cmt"># Seed the ChaCha20 generator</span>
+                    <pre><code><span class="nv-cmt"># random() is the primary API — ChaCha20 is auto-seeded at startup</span>
+<span class="nv-cmt"># Manual seeding (optional):</span>
 <span class="nv-fn">chacha20_init</span>(<span class="nv-num">12345</span>, <span class="nv-num">67890</span>)
 
 <span class="nv-cmt"># Generate 5 random numbers</span>

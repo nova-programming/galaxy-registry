@@ -477,7 +477,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             <h3>File I/O</h3>
             <table class="doc-table">
                 <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
-                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -&gt; int</code></td><td>Open file. Returns file descriptor. Mode: <code>"r"</code>, <code>"w"</code>, <code>"a"</code></td></tr>
+                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -&gt; int</code></td><td>Open file. Returns file descriptor. Mode: <code>"r"</code>, <code>"w"</code>, <code>"a"</code>, <code>"wb"</code>, <code>"rb"</code>, <code>"ab"</code>, <code>"w+"</code>, <code>"r+"</code>, <code>"a+"</code>, <code>"w+b"</code></td></tr>
                 <tr><td><code>read</code></td><td><code>(fd: int) -&gt; string</code></td><td>Read entire file into a string</td></tr>
                 <tr><td><code>write</code></td><td><code>(fd: int, content: string) -&gt; int</code></td><td>Write string to file</td></tr>
                 <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
@@ -639,11 +639,11 @@ galaxy search nova-team
             <p><strong>Self-update — updates Galaxy CLI itself.</strong> Checks the registry for a newer version of Galaxy, prompts before downloading, and replaces the installed files. Works the same way as <code>nova update</code>.</p>
             <pre><code><span class="nv-cmt"># Update Galaxy CLI to the latest version</span>
 galaxy update
-<span class="nv-cmt"># Galaxy v0.7.0
-# Latest version: v0.6.1  (current: v0.7.0)
-# Update to v0.6.1? (Y/n): y
+<span class="nv-cmt"># Galaxy v0.6.1
+# Latest version: v0.7.0  (current: v0.6.1)
+# Update to v0.7.0? (Y/n): y
 # Updated 2 files.
-# Galaxy has been updated to v0.6.1.</span></code></pre>
+# Galaxy has been updated to v0.7.0.</span></code></pre>
             <p>Uses the same installation directory detected during <code>install.py</code> setup. Only Galaxy-related files are replaced (<code>_galaxy.py</code> and <code>galaxy/</code>).</p>
 
             <h4>galaxy upgrade</h4>
@@ -755,7 +755,8 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
                 <tr><th>Command</th><th>Description</th></tr>
                 <tr><td><code>nova --version</code></td><td>Show the Nova compiler version</td></tr>
                 <tr><td><code>nova dev &lt;file.nv&gt;</code></td><td>Run a Nova program in the VM (fast, for development)</td></tr>
-                <tr><td><code>nova build &lt;file.nv&gt; [-arch &lt;arch&gt;]</code></td><td>Compile to native executable (supports <code>x86_64</code>, <code>arm64</code>, <code>x86</code>)</td></tr>
+                <tr><td><code>nova build &lt;file.nv&gt; [-arch &lt;arch&gt;]</code></td><td>Compile to native executable (supports <code>x86_64</code>, <code>arm64</code>)</td></tr>
+                <tr><td><code>nova repl</code></td><td>Start the interactive REPL (Read-Eval-Print Loop)</td></tr>
                 <tr><td><code>nova run &lt;file.nv&gt;</code></td><td>Alias for <code>dev</code> (backward compatible)</td></tr>
                 <tr><td><code>nova update</code></td><td>Update the Nova compiler itself to the latest version</td></tr>
                 <tr><td><code>nova galaxy &lt;cmd&gt;</code></td><td>Run Galaxy Package Manager commands through Nova</td></tr>
@@ -771,10 +772,10 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
             <pre><code><span class="nv-cmt"># Update Nova to the latest version</span>
 nova update
 <span class="nv-cmt"># Nova v0.7.0
-# Latest version: v0.6.1  (current: v0.7.0)
-# Update to v0.6.1? (Y/n): y
+# Latest version: v0.7.0  (current: v0.6.1)
+# Update to v0.7.0? (Y/n): y
 # Updated 3 files.
-# Nova has been updated to v0.6.1.</span></code></pre>
+# Nova has been updated to v0.7.0.</span></code></pre>
             <p>Uses the installation directory detected from the script location or standard paths (<code>%LOCALAPPDATA%\nova\</code> on Windows, <code>~/.nova/</code> on Unix). Only compiler-related files are replaced (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>).</p>
 
             <p>Package management is handled by the standalone <strong><code>galaxy</code></strong> CLI. See the <a href="#galaxy">Galaxy Package Manager</a> section above. You can also invoke galaxy through Nova:</p>
@@ -802,11 +803,11 @@ galaxy install pkg</code></pre>
             <p>Drop directly into native assembly anywhere in your code. This is Nova's escape hatch for low-level optimization and hardware access.</p>
             <pre><code><span class="nv-kw">def</span> <span class="nv-fn">fast_inv_sqrt</span>(number: <span class="nv-type">float</span>) -&gt; <span class="nv-type">float</span> {
     <span class="nv-kw">@raw</span> {
-        mov eax, dword [ebp+8]
-        shr eax, 1
-        mov ecx, 0x5f3759df
-        sub ecx, eax
-        mov dword [ebp-4], ecx
+        mov rax, dword [rbp+8]
+        shr rax, 1
+        mov rcx, 0x5f3759df
+        sub rcx, rax
+        mov dword [rbp-4], rcx
     }
 }</code></pre>
 
@@ -876,7 +877,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 <li><strong>Lexer</strong> — tokenizes source into structured <code>Token</code> objects</li>
                 <li><strong>Parser</strong> — recursive-descent parser that builds an AST with constant folding</li>
                 <li><strong>Type Checker</strong> — static type inference and validation</li>
-                <li><strong>Code Generator</strong> — emits native assembly (dynamically selected for your target architecture like x86, x86_64) with bounds-checking and variable-to-register promotion</li>
+                <li><strong>Code Generator</strong> — emits native assembly (dynamically selected for your target architecture like x86_64, arm64) with bounds-checking and variable-to-register promotion</li>
                 <li><strong>Tree Shaker</strong> — builds a call-graph dependency map and removes unused stdlib functions (up to 70% binary size reduction)</li>
                 <li><strong>Assembler</strong> — encodes assembly mnemonics to native machine code in-process</li>
                 <li><strong>Linker</strong> — packages machine code into a valid Windows PE binary</li>

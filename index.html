@@ -654,7 +654,7 @@ cd my-lib</code></pre>
                 <p>Add Nova source files to <code>src/</code>. The main file is <code>src/main.nv</code> (or the file specified in <code>galaxy.json</code> under <code>"main"</code>).</p>
 
                 <h2 style="font-size:1.25rem;">4. Compile your project</h2>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova build src/main.nv [-arch x86_64|arm64|x86]
+                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova build src/main.nv [-arch x86_64|arm64]
 ./main</code></pre>
                 <p>Compiles Nova source to a native executable using the self-hosted compiler (assembles + links automatically). Outputs an <code>.exe</code> with debug info preserved for troubleshooting. Defaults to the host architecture if <code>-arch</code> is omitted.</p>
 

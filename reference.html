@@ -491,9 +491,11 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>len</code></td><td><code>(value) -> int</code></td><td>Length of string, list, or dict</td></tr>
                 <tr><td><code>str</code></td><td><code>(value) -> string</code></td><td>Convert value to string representation</td></tr>
                 <tr><td><code>sizeof</code></td><td><code>(expr) -> int</code></td><td>Size of value or type in bytes</td></tr>
+                <tr><td><code>type</code></td><td><code>(val) -> string</code></td><td>Returns type name string: "int", "string", "float", "bool", "list", "dict" — compile-time resolution in native codegen</td></tr>
+                <tr><td><code>call</code></td><td><code>(name, args) -> any</code></td><td>Dynamic function dispatch by name string, args as list[any]; VM only</td></tr>
                 <tr><td><code>alloc</code></td><td><code>(size: int) -> ptr</code></td><td>Allocate heap memory</td></tr>
                 <tr><td><code>free</code></td><td><code>(ptr) -> void</code></td><td>Free heap memory</td></tr>
-                <tr><td><code>open</code></td><td><code>(path, mode) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a"</td></tr>
+                <tr><td><code>open</code></td><td><code>(path, mode) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a", "wb", "rb", "ab", "w+", "r+", "a+", "w+b"</td></tr>
                 <tr><td><code>read</code></td><td><code>(fd: int) -> string</code></td><td>Read entire file into string</td></tr>
                 <tr><td><code>write</code></td><td><code>(fd: int, content: string) -> int</code></td><td>Write string to file</td></tr>
                 <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
@@ -531,7 +533,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             <h2 id="io">File I/O</h2>
             <table>
                 <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
-                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a"</td></tr>
+                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a", "wb", "rb", "ab", "w+", "r+", "a+", "w+b"</td></tr>
                 <tr><td><code>read</code></td><td><code>(fd: int) -> string</code></td><td>Read entire file into string</td></tr>
                 <tr><td><code>write</code></td><td><code>(fd: int, content: string) -> int</code></td><td>Write string to file</td></tr>
                 <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
@@ -570,16 +572,16 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             <h2 id="asm">Inline Assembly</h2>
             <pre><code><span class="nv-cmt"># Insert raw assembly instructions</span>
 <span class="nv-kw">@raw</span> {
-    mov eax, <span class="nv-num">42</span>
+    mov rax, <span class="nv-num">42</span>
     ret
 }
 
 <span class="nv-cmt"># Access Nova variables by name</span>
 x = <span class="nv-num">10</span>
 <span class="nv-kw">@raw</span> {
-    mov eax, [x]    <span class="nv-cmt"># load x into eax</span>
-    add eax, <span class="nv-num">1</span>
-    mov [x], eax    <span class="nv-cmt"># store back</span>
+    mov rax, [x]    <span class="nv-cmt"># load x into rax</span>
+    add rax, <span class="nv-num">1</span>
+    mov [x], rax    <span class="nv-cmt"># store back</span>
 }</code></pre>
 
             <!-- ========== GRAMMAR ========== -->
