@@ -6,7 +6,7 @@ RELEASE_BASE="https://github.com/nova-programming/Nova/releases/download"
 NOVA_REPO_ZIP="https://github.com/nova-programming/Nova/archive/refs/heads/main.zip"
 ZIP_PREFIX="Nova-main"
 INSTALL_DIR="${HOME}/.nova"
-ALLOWED_FILES="_galaxy.py nova.nv"
+ALLOWED_FILES="_galaxy.py nova.nv runtime.c"
 ALLOWED_DIRS="bootstrap stdlib tools galaxy"
 
 info()  { printf "  [..]  %s\n" "$1"; }
@@ -68,13 +68,22 @@ do_install() {
     # Try release tarball first (lean, needs only curl+tar)
     downloaded=0
     if [ "$have_tar" = 1 ]; then
-        info "Fetching release tarball..."
-        tmpdir="/tmp/nova-install-$$"
-        mkdir -p "$tmpdir"
-        curl -fsSL -o "${tmpdir}/nova.tar.gz" "${RELEASE_BASE}/nova-v0.7.0/nova-v0.7.0.tar.gz" 2>/dev/null && \
-        tar xzf "${tmpdir}/nova.tar.gz" -C "$INSTALL_DIR" 2>/dev/null && \
-        downloaded=1 && ok "Extracted release tarball"
-        rm -rf "$tmpdir"
+        info "Looking up latest release..."
+        latest_tag=""
+        if [ "$have_python3" = 1 ]; then
+            latest_tag=$(curl -fsSL -H "Accept: application/json" "https://api.github.com/repos/nova-programming/Nova/releases/latest" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tag_name',''))" 2>/dev/null || echo "")
+        fi
+        if [ -n "$latest_tag" ]; then
+            info "Fetching release ${latest_tag}..."
+            tmpdir="/tmp/nova-install-$$"
+            mkdir -p "$tmpdir"
+            curl -fsSL -o "${tmpdir}/nova.tar.gz" "${RELEASE_BASE}/${latest_tag}/${latest_tag}.tar.gz" 2>/dev/null && \
+            tar xzf "${tmpdir}/nova.tar.gz" -C "$INSTALL_DIR" 2>/dev/null && \
+            downloaded=1 && ok "Extracted release tarball"
+            rm -rf "$tmpdir"
+        else
+            info "No release found, using repo zip..."
+        fi
     fi
 
     # Fallback: repo zip with unzip or python3 -m zipfile
