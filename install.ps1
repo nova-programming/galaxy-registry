@@ -21,7 +21,7 @@ $NovaZipUrl = "https://github.com/nova-programming/Nova/archive/refs/heads/main.
 $ZipPrefix = "Nova-main"
 $InstallDir = Join-Path $env:LOCALAPPDATA "nova"
 $GccDir = Join-Path $InstallDir "gcc"
-$AllowedFiles = @("_galaxy.py", "nova.nv")
+$AllowedFiles = @("_galaxy.py", "nova.nv", "runtime.c")
 $AllowedDirs = @("compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy")
 
 # Portable GCC (winlibs) — only downloaded on Windows if 'gcc' not on PATH

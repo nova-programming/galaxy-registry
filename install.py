@@ -18,9 +18,11 @@ import platform
 
 if sys.version_info < (3, 6):
     sys.exit("ERROR: Python 3.6+ is required. You have " + sys.version)
+import json
 import urllib.request
 import urllib.error
 import zipfile
+import tarfile
 import io
 import time
 
@@ -31,7 +33,7 @@ NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
 NOVA_ZIP_URL = "https://github.com/nova-programming/Nova/archive/refs/heads/main.zip"
 ZIP_PREFIX = "Nova-main"
 
-ALLOWED_ROOT_FILES = {"_galaxy.py", "nova.nv"}
+ALLOWED_ROOT_FILES = {"_galaxy.py", "nova.nv", "runtime.c"}
 ALLOWED_SUBDIRS = {
     "bootstrap", "stdlib", "tools", "galaxy",
 }
@@ -148,13 +150,34 @@ class _ProgressReader(io.RawIOBase):
         return n
 
 
+def _get_latest_release_url():
+    """Query GitHub API for the latest release tag, return download URL or None."""
+    api = "https://api.github.com/repos/nova-programming/Nova/releases/latest"
+    try:
+        req = urllib.request.Request(api, headers={
+            "User-Agent": "nova-installer/1.0",
+            "Accept": "application/json",
+        })
+        rsp = urllib.request.urlopen(req, timeout=15)
+        data = json.loads(rsp.read().decode())
+        tag = data.get("tag_name", "")
+        if tag:
+            is_unix = platform.system() != "Windows"
+            ext = ".tar.gz" if is_unix else ".zip"
+            return f"{NOVA_RELEASE_BASE}/{tag}/{tag}{ext}"
+    except Exception:
+        pass
+    return None
+
+
 def _download_zip():
     is_unix = platform.system() != "Windows"
     ext = ".tar.gz" if is_unix else ".zip"
-    urls_to_try = [
-        f"{NOVA_RELEASE_BASE}/nova-v0.7.0/nova-v0.7.0{ext}",
-        NOVA_ZIP_URL,
-    ]
+    urls_to_try = []
+    release_url = _get_latest_release_url()
+    if release_url:
+        urls_to_try.append(release_url)
+    urls_to_try.append(NOVA_ZIP_URL)
     last_err = None
     for url in urls_to_try:
         info(f"Connecting to GitHub...")
@@ -213,7 +236,6 @@ def _extract_archive(data: bytes) -> int:
     except zipfile.BadZipFile:
         pass
     # Fallback to tar
-    import tarfile
     return _extract_tar(data)
 
 
@@ -235,7 +257,9 @@ def _extract_tar(data: bytes) -> int:
                 rel = name
             if not rel or not _should_extract(rel):
                 continue
-            dst = os.path.join(INSTALL_DIR, rel)
+            dst = os.path.abspath(os.path.join(INSTALL_DIR, rel))
+            if not dst.startswith(os.path.abspath(INSTALL_DIR) + os.sep):
+                continue
             dst_dir = os.path.dirname(dst)
             os.makedirs(dst_dir, exist_ok=True)
             with tf.extractfile(m) as src, open(dst, "wb") as df:
@@ -270,7 +294,9 @@ def _extract_zip(zip_data: bytes) -> int:
             if not _should_extract(rel):
                 continue
 
-            dst = os.path.join(INSTALL_DIR, rel)
+            dst = os.path.abspath(os.path.join(INSTALL_DIR, rel))
+            if not dst.startswith(os.path.abspath(INSTALL_DIR) + os.sep):
+                continue
             dst_dir = os.path.dirname(dst)
             os.makedirs(dst_dir, exist_ok=True)
             with zf.open(name) as src, open(dst, "wb") as df:
@@ -286,9 +312,19 @@ def _extract_zip(zip_data: bytes) -> int:
 
 def _install_gcc_if_missing():
     """Download and bundle a portable MinGW-w64 if GCC is not found on PATH."""
-    if shutil.which("gcc"):
-        info("GCC found on PATH — skipping bundle.")
-        return
+    import subprocess
+    gcc_path = shutil.which("gcc")
+    if gcc_path:
+        try:
+            machine = subprocess.check_output([gcc_path, "-dumpmachine"]).decode().strip()
+            if "x86_64" in machine:
+                info("64-bit GCC found on PATH — skipping bundle.")
+                return
+            else:
+                info(f"GCC found on PATH is 32-bit ({machine}) — Nova requires 64-bit. Will bundle MinGW-w64.")
+        except Exception as e:
+            info(f"Could not verify GCC architecture: {e}. Will bundle MinGW-w64 to be safe.")
+
     gcc_bin = os.path.join(GCC_DIR, "bin", "gcc.exe")
     if os.path.exists(gcc_bin):
         info("Bundled GCC found — skipping download.")
@@ -319,7 +355,9 @@ def _install_gcc_if_missing():
                 if not name.startswith(prefix):
                     continue
                 rel = name[len(prefix):]
-                dst = os.path.join(GCC_DIR, rel)
+                dst = os.path.abspath(os.path.join(GCC_DIR, rel))
+                if not dst.startswith(os.path.abspath(GCC_DIR) + os.sep):
+                    continue
                 dst_dir = os.path.dirname(dst)
                 os.makedirs(dst_dir, exist_ok=True)
                 with zf.open(name) as src, open(dst, "wb") as df:
