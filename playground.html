@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Playground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.css">
+    <style>
+        :root {
+            --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #787878;
+            --border: #e8e8ea; --accent: #0070f3;
+            --nav-bg: rgba(255,255,255,0.85);
+            --code-bg: #0a0a0f;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+        nav {
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border); display: flex;
+            justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px; flex-shrink: 0;
+        }
+        .nav-brand { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        
+        .workspace { display: flex; flex: 1; overflow: hidden; }
+        .editor-container { flex: 1; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        
+        .toolbar { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .btn-run { background: var(--accent); color: white; border: none; padding: 0.4rem 1rem; border-radius: 4px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .btn-run:hover { background: #005bb5; }
+        .btn-run:disabled { background: #ccc; cursor: not-allowed; }
+        
+        #editor { flex: 1; }
+        .console-container { width: 35%; display: flex; flex-direction: column; background: var(--code-bg); color: #e4e4e7; }
+        .console-header { padding: 0.5rem 1rem; border-bottom: 1px solid #333; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
+        #console-output { flex: 1; padding: 1rem; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; }
+        .error { color: #ff79c6; }
+        .success { color: #50fa7b; }
+        .status-bar { padding: 0.4rem 1rem; font-size: 0.75rem; border-top: 1px solid var(--border); background: #f7f7f8; color: var(--text-secondary); display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="nav-brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            Galaxy Registry
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="documentation.html">Documentation</a>
+            <a href="#" class="active">Playground</a>
+        </div>
+    </nav>
+
+    <div class="workspace">
+        <div class="editor-container">
+            <div class="toolbar">
+                <span id="compiler-status">Initializing Pyodide (Downloading ~10MB)...</span>
+                <button id="run-btn" class="btn-run" disabled>Run Code</button>
+            </div>
+            <div id="editor"></div>
+        </div>
+        <div class="console-container">
+            <div class="console-header">Output Console</div>
+            <div id="console-output">Welcome to the Nova Playground!
+The compiler runs entirely in your browser using Pyodide (WebAssembly).
+</div>
+        </div>
+    </div>
+    
+    <div class="status-bar">
+        <span>Nova v1.0.0-web</span>
+        <span>Local compilation (Zero latency)</span>
+    </div>
+
+    <!-- RequireJS & Monaco -->
+    <script>var require = { paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs' } };</script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.js"></script>
+
+    <script>
+        // Monaco Editor Setup
+        monaco.languages.register({ id: 'nova' });
+        monaco.languages.setMonarchTokensProvider('nova', {
+            tokenizer: {
+                root: [
+                    [/\b(?:def|class|data|enum|return|if|else|elif|for|to|downto|step|while|switch|case|break|continue|import|as|try|catch|throw|const)\b/, "keyword"],
+                    [/\b(?:int|float|bool|string|byte|void|list)\b/, "type"],
+                    [/\b(?:true|false|null)\b/, "constant"],
+                    [/"(?:[^"\\\\]|\\\\.)*"/, "string"],
+                    [/#.*/, "comment"],
+                    [/\\b\\d+(\\.\\d+)?\\b/, "number"],
+                ]
+            }
+        });
+        
+        const editor = monaco.editor.create(document.getElementById('editor'), {
+            value: `def calculate_fibonacci(n: int) -> int {\n    if n <= 1 {\n        return n\n    }\n    return calculate_fibonacci(n - 1) + calculate_fibonacci(n - 2)\n}\n\nprint("Calculating Fibonacci(15):")\nprint(calculate_fibonacci(15))\n`,
+            language: 'nova',
+            theme: 'vs',
+            automaticLayout: true,
+            minimap: { enabled: false },
+            fontSize: 14,
+            fontFamily: "JetBrains Mono"
+        });
+
+        // Web Worker Setup
+        const worker = new Worker("nova_worker.js");
+        const statusEl = document.getElementById("compiler-status");
+        const runBtn = document.getElementById("run-btn");
+        const consoleOut = document.getElementById("console-output");
+        
+        let pendingCheckId = 0;
+        let lastCheckTime = 0;
+
+        worker.onmessage = (e) => {
+            const data = e.data;
+            if (data.type === "status") {
+                statusEl.textContent = data.msg;
+                if (data.ready) {
+                    runBtn.disabled = false;
+                }
+            } else if (data.type === "result") {
+                runBtn.textContent = "Run Code";
+                runBtn.disabled = false;
+                let out = "";
+                if (data.error) {
+                    out += `<span class="error">${data.error}</span>\n`;
+                }
+                if (data.output) {
+                    out += data.output;
+                }
+                consoleOut.innerHTML += "\n> " + out;
+                consoleOut.scrollTop = consoleOut.scrollHeight;
+            } else if (data.type === "check_result") {
+                if (data.id === pendingCheckId) {
+                    const model = editor.getModel();
+                    if (data.error) {
+                        // Very basic error parsing: "SyntaxError at line X: Y"
+                        const match = data.error.match(/line (\d+)/);
+                        const line = match ? parseInt(match[1]) : 1;
+                        monaco.editor.setModelMarkers(model, "nova", [{
+                            startLineNumber: line,
+                            startColumn: 1,
+                            endLineNumber: line,
+                            endColumn: 100,
+                            message: data.error,
+                            severity: monaco.MarkerSeverity.Error
+                        }]);
+                    } else {
+                        monaco.editor.setModelMarkers(model, "nova", []);
+                    }
+                }
+            }
+        };
+
+        runBtn.addEventListener("click", () => {
+            runBtn.disabled = true;
+            runBtn.textContent = "Running...";
+            worker.postMessage({ id: 0, action: "run", code: editor.getValue() });
+        });
+
+        editor.onDidChangeModelContent(() => {
+            if (Date.now() - lastCheckTime > 500) {
+                pendingCheckId++;
+                worker.postMessage({ id: pendingCheckId, action: "check", code: editor.getValue() });
+                lastCheckTime = Date.now();
+            }
+        });
+    </script>
+</body>
+</html>
+

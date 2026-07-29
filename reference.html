@@ -183,6 +183,7 @@
             <a href="#" class="active">Reference</a>
             <a href="examples.html">Examples</a>
             <a href="templates.html">Templates</a>
+            <a class="nav-link" href="playground.html">Playground</a>
             <a href="index.html?view=view-contribute">Contribute</a>
         </div>
     </nav>
@@ -585,6 +586,12 @@ x = <span class="nv-num">10</span>
 }</code></pre>
 
             <!-- ========== GRAMMAR ========== -->
+                        <h2 id="python-bridge">Python Bridge (nova_py)</h2>
+            <p>Nova can be seamlessly imported into Python scripts via the <code>nova_py</code> bridge.</p>
+            <pre><code>import nova_py
+import my_nova_script # Compiles and loads .nv natively!</code></pre>
+            <p>This allows using Nova's C-level performance functions directly in Python without writing manual C extensions.</p>
+
             <h2 id="grammar">Grammar (EBNF)</h2>
             <pre><code>program         = { top_level }
 top_level       = function_def | class_def | data_def | enum_def | import_stmt | statement
@@ -675,9 +682,11 @@ type            = "int" | "float" | "string" | "bool" | "list" | id</code></pre>
                 <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
                 <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
                 <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
+            <a class="nav-link" href="playground.html">Playground</a>
                 <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
             </div>
         </div>
     </footer>
 </body>
 </html>
+

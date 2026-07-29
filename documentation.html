@@ -797,6 +797,20 @@ galaxy install pkg</code></pre>
             </div>
 
             <!-- ========== ADVANCED ========== -->
+                        <h2 id="python-bridge">Python Bridge (Seamless Interop)</h2>
+            <p>Nova features a zero-friction Python Bridge (<code>nova_py.py</code>) that allows you to natively import <code>.nv</code> files directly into Python scripts. The bridge automatically compiles the Nova code into high-speed native assembly (<code>.dll</code>/<code>.so</code>), handles SysV ABI translations, maps C-types to Python types, and binds the functions—all transparently on import.</p>
+            <p>To use it, just import <code>nova_py</code> once, then import your Nova modules as if they were standard Python modules:</p>
+            <pre><code>import nova_py
+import math_lib # Automatically compiles math_lib.nv and loads it natively!
+
+# Call Nova's C-speed functions natively from Python
+result = math_lib.calculate_fibonacci(40)
+print(result)</code></pre>
+            <div class="callout tip">
+                <strong>Tip:</strong> The Python bridge is perfect for accelerating heavy computational logic in existing Python applications without writing C extensions.
+            </div>
+
+
             <h2 id="advanced">Advanced Features</h2>
 
             <h3>1. Inline Assembly (<code>@raw</code> Blocks)</h3>
@@ -934,9 +948,11 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
                 <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
                 <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
+            <a class="nav-link" href="playground.html">Playground</a>
                 <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
             </div>
         </div>
     </footer>
 </body>
 </html>
+
