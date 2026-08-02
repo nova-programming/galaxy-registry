@@ -444,30 +444,28 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_system(cmd) -&gt; int</code></td><td>Execute shell command, returns exit code</td></tr>
                 <tr><td><code>sys_exit(code)</code></td><td>Terminate process immediately</td></tr>
                 <tr><td><code>sys_get_tick_count() -&gt; int</code></td><td>System uptime in milliseconds</td></tr>
-<h2 id="classes">Classes &amp; Objects</h2>
-            <p>Nova supports basic object-oriented programming with classes, fields, and methods. Method calls use vtable dynamic dispatch.</p>
-            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Player</span> {
+            <h2 id="classes">Data Structures</h2>
+            <p>Nova supports structured programming with data fields and methods. (Note: constructors like <code>__init__</code> are not supported natively yet, fields must be assigned manually).</p>
+            <pre><code><span class="nv-kw">data</span> <span class="nv-fn">Player</span> {
     health: <span class="nv-type">int</span>
     name: <span class="nv-type">string</span>
+}
 
-    <span class="nv-kw">def</span> <span class="nv-fn">__init__</span>(h: <span class="nv-type">int</span>, n: <span class="nv-type">string</span>) {
-        <span class="nv-kw">self</span>.health = h
-        <span class="nv-kw">self</span>.name = n
-    }
+<span class="nv-kw">def</span> <span class="nv-fn">take_damage</span>(p: <span class="nv-fn">Player</span>, amount: <span class="nv-type">int</span>) {
+    p.health = p.health - amount
+}
 
-    <span class="nv-kw">def</span> <span class="nv-fn">take_damage</span>(amount: <span class="nv-type">int</span>) {
-        <span class="nv-kw">self</span>.health = <span class="nv-kw">self</span>.health - amount
-    }
-
-    <span class="nv-kw">def</span> <span class="nv-fn">is_alive</span>() -&gt; <span class="nv-type">bool</span> {
-        <span class="nv-kw">return</span> <span class="nv-kw">self</span>.health &gt; <span class="nv-num">0</span>
-    }
+<span class="nv-kw">def</span> <span class="nv-fn">is_alive</span>(p: <span class="nv-fn">Player</span>) -&gt; <span class="nv-type">bool</span> {
+    <span class="nv-kw">return</span> p.health &gt; <span class="nv-num">0</span>
 }
 
 <span class="nv-cmt"># Usage</span>
-p = <span class="nv-fn">Player</span>(<span class="nv-num">100</span>, <span class="nv-str">"Hero"</span>)
-p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
-<span class="nv-fn">print</span>(p.<span class="nv-fn">is_alive</span>())   <span class="nv-cmt"># true</span></code></pre>
+p = <span class="nv-fn">Player</span>()
+p.health = <span class="nv-num">100</span>
+p.name = <span class="nv-str">"Hero"</span>
+
+<span class="nv-fn">take_damage</span>(p, <span class="nv-num">25</span>)
+<span class="nv-fn">print</span>(<span class="nv-fn">is_alive</span>(p))   <span class="nv-cmt"># true</span></code></pre>
 
             <!-- ========== STANDARD LIBRARY ========== -->
             <h2 id="stdlib">Standard Library</h2>
@@ -483,6 +481,10 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
             </table>
 
             <h3>OS Interface</h3>
+            <div class="callout callout-warn">
+                <strong>Native only</strong>
+                OS functions like <code>sys_get_args()</code> and <code>sys_system()</code> are only available in compiled executables via <code>nova build</code>, not in the web Playground (VM).
+            </div>
             <table class="doc-table">
                 <tr><th>Function</th><th>Description</th></tr>
                 <tr><td><code>sys_get_args() -&gt; list[string]</code></td><td>Command-line arguments (auto-unquoted)</td></tr>
