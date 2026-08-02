@@ -11,42 +11,118 @@
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.css">
     <style>
         :root {
-            --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #787878;
-            --border: #e8e8ea; --accent: #0070f3;
-            --nav-bg: rgba(255,255,255,0.85);
-            --code-bg: #0a0a0f;
+            --bg: #0d1117; 
+            --text: #c9d1d9; 
+            --text-secondary: #8b949e; 
+            --border: #30363d; 
+            --accent: #2f81f7;
+            --accent-hover: #1f6feb;
+            --nav-bg: rgba(13, 17, 23, 0.7);
+            --code-bg: #161b22;
+            --console-bg: #010409;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            display: flex; flex-direction: column; 
+            height: 100vh; overflow: hidden;
         }
+        
         nav {
-            background: var(--nav-bg); backdrop-filter: blur(14px);
-            border-bottom: 1px solid var(--border); display: flex;
+            background: var(--nav-bg); 
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); 
+            display: flex;
             justify-content: space-between; align-items: center;
             padding: 0 2rem; height: 60px; flex-shrink: 0;
+            z-index: 10;
         }
-        .nav-brand { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; }
+        .nav-brand { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: #fff; }
         .nav-links { display: flex; gap: 1.75rem; }
-        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
-        .nav-links a:hover, .nav-links a.active { color: var(--text); }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
         
-        .workspace { display: flex; flex: 1; overflow: hidden; }
-        .editor-container { flex: 1; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .workspace { 
+            display: flex; flex: 1; overflow: hidden; 
+            flex-direction: row; 
+        }
+        .editor-container { 
+            flex: 1; 
+            border-right: 1px solid var(--border); 
+            display: flex; flex-direction: column; 
+        }
         
-        .toolbar { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
-        .btn-run { background: var(--accent); color: white; border: none; padding: 0.4rem 1rem; border-radius: 4px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-        .btn-run:hover { background: #005bb5; }
-        .btn-run:disabled { background: #ccc; cursor: not-allowed; }
+        .toolbar { 
+            padding: 0.75rem 1rem; 
+            border-bottom: 1px solid var(--border); 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--code-bg); 
+        }
+        #compiler-status { font-size: 0.85rem; color: var(--text-secondary); }
+        .btn-run { 
+            background: linear-gradient(135deg, #2f81f7, #6e40c9);
+            color: white; border: none; padding: 0.5rem 1.2rem; 
+            border-radius: 6px; font-weight: 600; cursor: pointer; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(47, 129, 247, 0.2);
+        }
+        .btn-run:hover:not(:disabled) { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(47, 129, 247, 0.4);
+        }
+        .btn-run:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+        .btn-run:disabled { 
+            background: var(--border); color: var(--text-secondary);
+            cursor: not-allowed; box-shadow: none; 
+        }
         
-        #editor { flex: 1; }
-        .console-container { width: 35%; display: flex; flex-direction: column; background: var(--code-bg); color: #e4e4e7; }
-        .console-header { padding: 0.5rem 1rem; border-bottom: 1px solid #333; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
-        #console-output { flex: 1; padding: 1rem; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; }
-        .error { color: #ff79c6; }
-        .success { color: #50fa7b; }
-        .status-bar { padding: 0.4rem 1rem; font-size: 0.75rem; border-top: 1px solid var(--border); background: #f7f7f8; color: var(--text-secondary); display: flex; justify-content: space-between; }
+        #editor { flex: 1; background: var(--bg); }
+        .console-container { 
+            width: 35%; display: flex; flex-direction: column; 
+            background: var(--console-bg); 
+            border-left: 1px solid var(--border);
+            box-shadow: inset 10px 0 20px rgba(0,0,0,0.2);
+        }
+        .console-header { 
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); 
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
+            letter-spacing: 0.1em; color: var(--text-secondary); 
+            background: var(--code-bg);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .console-header::before {
+            content: ""; display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; background: #3fb950;
+            box-shadow: 0 0 8px #3fb950;
+        }
+        
+        #console-output { 
+            flex: 1; padding: 1.2rem; overflow-y: auto; 
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; 
+            white-space: pre-wrap; line-height: 1.6; color: #e6edf3; 
+        }
+        .error { color: #ff7b72; font-weight: 600; }
+        .success { color: #3fb950; }
+        
+        .status-bar { 
+            padding: 0.4rem 1rem; font-size: 0.75rem; 
+            border-top: 1px solid var(--border); background: var(--code-bg); 
+            color: var(--text-secondary); display: flex; 
+            justify-content: space-between; z-index: 10;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .workspace { flex-direction: column; }
+            .editor-container { border-right: none; border-bottom: 1px solid var(--border); flex: 1; }
+            .console-container { width: 100%; height: 35%; border-left: none; }
+            nav { padding: 0 1rem; }
+            .nav-links { gap: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -108,7 +184,7 @@ The compiler runs entirely in your browser using Pyodide (WebAssembly).
         const editor = monaco.editor.create(document.getElementById('editor'), {
             value: `def calculate_fibonacci(n: int) -> int {\n    if n <= 1 {\n        return n\n    }\n    return calculate_fibonacci(n - 1) + calculate_fibonacci(n - 2)\n}\n\nprint("Calculating Fibonacci(15):")\nprint(calculate_fibonacci(15))\n`,
             language: 'nova',
-            theme: 'vs',
+            theme: 'vs-dark',
             automaticLayout: true,
             minimap: { enabled: false },
             fontSize: 14,
