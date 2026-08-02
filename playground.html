@@ -92,13 +92,21 @@
             font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
             letter-spacing: 0.1em; color: var(--text-secondary); 
             background: var(--code-bg);
-            display: flex; align-items: center; gap: 0.5rem;
+            display: flex; align-items: center; justify-content: space-between;
         }
-        .console-header::before {
+        .console-title { display: flex; align-items: center; gap: 0.5rem; }
+        .console-title::before {
             content: ""; display: inline-block; width: 8px; height: 8px;
             border-radius: 50%; background: #3fb950;
             box-shadow: 0 0 8px #3fb950;
         }
+        .btn-clear {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-secondary); padding: 0.2rem 0.5rem;
+            border-radius: 4px; font-size: 0.7rem; cursor: pointer;
+            transition: all 0.2s ease; font-weight: 600;
+        }
+        .btn-clear:hover { background: var(--border); color: var(--text); }
         
         #console-output { 
             flex: 1; padding: 1.2rem; overflow-y: auto; 
@@ -147,7 +155,10 @@
             <div id="editor"></div>
         </div>
         <div class="console-container">
-            <div class="console-header">Output Console</div>
+            <div class="console-header">
+                <div class="console-title">Output Console</div>
+                <button id="clear-btn" class="btn-clear">Clear</button>
+            </div>
             <div id="console-output">Welcome to the Nova Playground!
 The compiler runs entirely in your browser using Pyodide (WebAssembly).
 </div>
@@ -195,7 +206,12 @@ The compiler runs entirely in your browser using Pyodide (WebAssembly).
         const worker = new Worker("nova_worker.js");
         const statusEl = document.getElementById("compiler-status");
         const runBtn = document.getElementById("run-btn");
+        const clearBtn = document.getElementById("clear-btn");
         const consoleOut = document.getElementById("console-output");
+        
+        clearBtn.addEventListener("click", () => {
+            consoleOut.innerHTML = "";
+        });
         
         let pendingCheckId = 0;
         let lastCheckTime = 0;
