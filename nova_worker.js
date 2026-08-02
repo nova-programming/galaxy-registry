@@ -115,9 +115,10 @@ self.onmessage = async (e) => {
         try {
             const run_func = pyodide.globals.get("run_nova");
             const resultProxy = run_func(code);
-            const result = resultProxy.toJs();
+            const output = resultProxy.get("output");
+            const error = resultProxy.get("error");
             resultProxy.destroy();
-            postMessage({ type: "result", id, ...result });
+            postMessage({ type: "result", id, output, error });
         } catch (err) {
             postMessage({ type: "result", id, error: err.toString() });
         }
@@ -125,9 +126,9 @@ self.onmessage = async (e) => {
         try {
             const check_func = pyodide.globals.get("check_syntax");
             const resultProxy = check_func(code);
-            const result = resultProxy.toJs();
+            const error = resultProxy.get("error");
             resultProxy.destroy();
-            postMessage({ type: "check_result", id, ...result });
+            postMessage({ type: "check_result", id, error });
         } catch (err) {
             postMessage({ type: "check_result", id, error: err.toString() });
         }
