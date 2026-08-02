@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Language Documentation — Galaxy Registry</title>
+    <title>Nova Language Documentation â€” Galaxy Registry</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -211,11 +211,11 @@
                 <li><a href="#intro">Introduction</a></li>
                 <li><a href="#quickstart">Quick Start</a></li>
                 <li class="section-gap"><a href="#philosophy">Why Nova?</a></li>
-                <li><a href="#basics">Language Basics</a></li>
-                <li><a href="#types">Type System</a></li>
-                <li><a href="#operators">Operators</a></li>
-                <li><a href="#control-flow">Control Flow</a></li>
-                <li><a href="#functions">Functions</a></li>
+                <li><a href="#syntax-guide">Syntax Guide (Playground)</a></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
                 <li><a href="#classes">Classes &amp; Objects</a></li>
                 <li><a href="#stdlib">Standard Library</a></li>
                 <li class="section-gap"><a href="#imports">Import System</a></li>
@@ -238,7 +238,7 @@
         <div class="doc-content">
 
             <h1 id="intro" style="margin-top:0;">Nova Language Documentation</h1>
-            <p>Welcome to the official Nova documentation. Nova is a systems programming language that compiles directly to native machine code (x86, x86_64, etc.) — no interpreter, no VM, no gigabytes of build tools. It gives you <strong>C-level performance</strong> with <strong>Python-level readability</strong>.</p>
+            <p>Welcome to the official Nova documentation. Nova is a systems programming language that compiles directly to native machine code (x86, x86_64, etc.) â€” no interpreter, no VM, no gigabytes of build tools. It gives you <strong>C-level performance</strong> with <strong>Python-level readability</strong>.</p>
 
             <!-- ========== QUICK START ========== -->
             <h2 id="quickstart">Quick Start</h2>
@@ -264,188 +264,142 @@ nova build hello.nv
             <p>Developers today face an impossible trade-off: high-level languages (Python, JS) let you iterate fast but run 10-50x slower than C, while low-level languages (C, C++, Rust) give you raw speed but force you through setup hell and manual memory management.</p>
             <p><strong>Nova eliminates this compromise.</strong></p>
             <ul>
-                <li><strong>14x Faster than Python</strong> — direct native compilation, no interpreter overhead</li>
-                <li><strong>Near-C Performance</strong> — competes with GCC <code>-O3</code> on tight integer loops</li>
-                <li><strong>Zero Dependencies</strong> — a single 200 KB binary is the entire toolchain</li>
-                <li><strong>Pythonic Syntax</strong> — reads like Python, runs like C</li>
-                <li><strong>Self-Hosted</strong> — the compiler can compile itself</li>
-                <li><strong>Tree-Shaking</strong> — dead code elimination shrinks binaries by up to 70%</li>
+                <li><strong>14x Faster than Python</strong> â€” direct native compilation, no interpreter overhead</li>
+                <li><strong>Near-C Performance</strong> â€” competes with GCC <code>-O3</code> on tight integer loops</li>
+                <li><strong>Zero Dependencies</strong> â€” a single 200 KB binary is the entire toolchain</li>
+                <li><strong>Pythonic Syntax</strong> â€” reads like Python, runs like C</li>
+                <li><strong>Self-Hosted</strong> â€” the compiler can compile itself</li>
+                <li><strong>Tree-Shaking</strong> â€” dead code elimination shrinks binaries by up to 70%</li>
             </ul>
 
             <!-- ========== BASICS ========== -->
-            <h2 id="basics">Language Basics</h2>
+            <h2 id="syntax-guide">Comprehensive Syntax Guide (Playground Ready)</h2>
+            <p>Nova is strictly typed via static inference and explicit type annotations. Below is a comprehensive guide to all Nova syntax. <strong>All examples can be copied directly into the Playground to test!</strong></p>
 
-            <h3>Hello World</h3>
-            <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello, World!"</span>)</code></pre>
-
-            <h3>Comments</h3>
-            <pre><code><span class="nv-cmt"># This is a single-line comment</span>
-<span class="nv-cmt"># Nova uses the hash symbol, just like Python</span></code></pre>
-
-            <h3>Variables</h3>
-            <p>Variables are declared with <code>name: type = value</code>. Type inference is automatic if you omit the annotation.</p>
-            <pre><code><span class="nv-cmt"># Explicit type annotation</span>
-name: <span class="nv-type">string</span> = <span class="nv-str">"Nova"</span>
-age: <span class="nv-type">int</span> = 42
-
-<span class="nv-cmt"># Type inference — Nova figures it out</span>
-pi = <span class="nv-num">3.14</span>          <span class="nv-cmt"># inferred as float</span>
-is_ready = <span class="nv-kw">true</span>    <span class="nv-cmt"># inferred as bool</span>
-count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred as int</span>
-
-<span class="nv-cmt"># Constants (must be initialized at declaration)</span>
-<span class="nv-kw">const</span> MAX_SIZE = <span class="nv-num">4096</span></code></pre>
-
-            <h3>Basic I/O</h3>
-            <pre><code><span class="nv-fn">print</span>(<span class="nv-str">"Hello"</span>)               <span class="nv-cmt"># Print string (with newline)</span>
-<span class="nv-fn">print</span>(<span class="nv-num">42</span>)                    <span class="nv-cmt"># Print integer</span>
-<span class="nv-fn">print</span>(<span class="nv-num">3.14</span>)                  <span class="nv-cmt"># Print float</span>
-<span class="nv-fn">print</span>(<span class="nv-str">"Value: "</span> + <span class="nv-num">42</span>)        <span class="nv-cmt"># Concatenated output</span></code></pre>
-
-            <!-- ========== TYPE SYSTEM ========== -->
-            <h2 id="types">Type System</h2>
-            <p>Nova is statically typed with type inference. All types are resolved at compile time.</p>
-
-            <table class="doc-table">
-                <tr><th>Type</th><th>Description</th><th>Example</th></tr>
-                <tr><td><code>int</code></td><td>32-bit signed integer</td><td><code>42, -7, 0</code></td></tr>
-                <tr><td><code>float</code></td><td>64-bit IEEE-754</td><td><code>3.14, -0.5, 2.0</code></td></tr>
-                <tr><td><code>string</code></td><td>Immutable UTF-8 text (heap-allocated)</td><td><code>"hello"</code></td></tr>
-                <tr><td><code>bool</code></td><td>Boolean true/false</td><td><code>true, false</code></td></tr>
-                <tr><td><code>list</code></td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
-                <tr><td><code>data</code></td><td>Struct with named fields</td><td><code>data Point { x: int, y: int }</code></td></tr>
-            </table>
-
-            <h3>Lists</h3>
-            <pre><code><span class="nv-cmt"># Declare and initialize</span>
-numbers: <span class="nv-type">list</span> = [<span class="nv-num">1</span>, <span class="nv-num">2</span>, <span class="nv-num">3</span>, <span class="nv-num">4</span>, <span class="nv-num">5</span>]
-
-<span class="nv-cmt"># Access elements (bounds-checked at runtime)</span>
-first = numbers[<span class="nv-num">0</span>]      <span class="nv-cmt"># -> 1</span>
-
-<span class="nv-cmt"># Iterate</span>
-<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> len(numbers) <span class="nv-kw">step</span> <span class="nv-num">1</span> {
-    <span class="nv-fn">print</span>(numbers[i])
+            <h3 id="syntax-variables">1. Variables & Types</h3>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">test_variables</span>() {
+    <span class="nv-cmt"># Implicit typing (Inferred)</span>
+    name = <span class="nv-str">"Nova"</span>
+    age = <span class="nv-num">1</span>
+    is_fast = <span class="nv-kw">true</span>
+    
+    <span class="nv-cmt"># Explicit typing</span>
+    count: <span class="nv-type">int</span> = <span class="nv-num">10</span>
+    pi: <span class="nv-type">float</span> = <span class="nv-num">3.14159</span>
+    message: <span class="nv-type">string</span> = <span class="nv-str">"Hello!"</span>
+    
+    <span class="nv-fn">print</span>(name)
+    <span class="nv-fn">print</span>(pi)
 }
+test_variables()</code></pre>
 
-<span class="nv-cmt"># Nested lists</span>
-matrix = [[<span class="nv-num">1</span>, <span class="nv-num">2</span>], [<span class="nv-num">3</span>, <span class="nv-num">4</span>], [<span class="nv-num">5</span>, <span class="nv-num">6</span>]]
-<span class="nv-fn">print</span>(matrix[<span class="nv-num">1</span>][<span class="nv-num">0</span>])  <span class="nv-cmt"># -> 3</span></code></pre>
-
-            <div class="callout callout-warn">
-                <strong>Bounds checking</strong>
-                All list accesses are bounds-checked at runtime. An out-of-bounds access triggers a runtime assertion and terminates the program. There is zero overhead for bounds checks in release builds that pass static analysis.
-            </div>
-
-            <!-- ========== OPERATORS ========== -->
-            <h2 id="operators">Operators</h2>
-
-            <h3>Arithmetic</h3>
-            <table class="doc-table">
-                <tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
-                <tr><td><code>+</code></td><td>Addition</td><td><code>5 + 3</code></td><td><code>8</code></td></tr>
-                <tr><td><code>-</code></td><td>Subtraction</td><td><code>5 - 3</code></td><td><code>2</code></td></tr>
-                <tr><td><code>*</code></td><td>Multiplication</td><td><code>5 * 3</code></td><td><code>15</code></td></tr>
-                <tr><td><code>/</code></td><td>Integer division</td><td><code>7 / 3</code></td><td><code>2</code></td></tr>
-                <tr><td><code>%</code></td><td>Modulo (remainder)</td><td><code>7 % 3</code></td><td><code>1</code></td></tr>
-            </table>
-
-            <h3>Comparison</h3>
-            <table class="doc-table">
-                <tr><th>Operator</th><th>Meaning</th></tr>
-                <tr><td><code>==</code></td><td>Equal to</td></tr>
-                <tr><td><code>!=</code></td><td>Not equal to</td></tr>
-                <tr><td><code>&lt;</code></td><td>Less than</td></tr>
-                <tr><td><code>&gt;</code></td><td>Greater than</td></tr>
-                <tr><td><code>&lt;=</code></td><td>Less than or equal</td></tr>
-                <tr><td><code>&gt;=</code></td><td>Greater than or equal</td></tr>
-            </table>
-
-            <h3>Bitwise</h3>
-            <table class="doc-table">
-                <tr><th>Operator</th><th>Meaning</th><th>Example</th></tr>
-                <tr><td><code>&amp;</code></td><td>AND</td><td><code>0b1010 &amp; 0b1100 = 0b1000</code></td></tr>
-                <tr><td><code>|</code></td><td>OR</td><td><code>0b1010 | 0b1100 = 0b1110</code></td></tr>
-                <tr><td><code>^</code></td><td>XOR</td><td><code>0b1010 ^ 0b1100 = 0b0110</code></td></tr>
-                <tr><td><code>~</code></td><td>NOT (one's complement)</td><td><code>~42 = -43</code></td></tr>
-                <tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>1 &lt;&lt; 3 = 8</code></td></tr>
-                <tr><td><code>&gt;&gt;</code></td><td>Right shift (arithmetic)</td><td><code>16 &gt;&gt; 2 = 4</code></td></tr>
-            </table>
-
-            <h3>Logical</h3>
-            <table class="doc-table">
-                <tr><th>Operator</th><th>Meaning</th></tr>
-                <tr><td><code>and</code></td><td>Logical AND (short-circuit)</td></tr>
-                <tr><td><code>or</code></td><td>Logical OR (short-circuit)</td></tr>
-                <tr><td><code>not</code></td><td>Logical NOT</td></tr>
-            </table>
-            <p>Nova uses <code>and</code>, <code>or</code>, <code>not</code> keywords rather than C-style <code>&amp;&amp;</code>, <code>||</code>, <code>!</code>.</p>
-
-            <!-- ========== CONTROL FLOW ========== -->
-            <h2 id="control-flow">Control Flow</h2>
-
-            <h3>If / Else</h3>
-            <pre><code><span class="nv-kw">if</span> score &gt;= <span class="nv-num">90</span> {
-    <span class="nv-fn">print</span>(<span class="nv-str">"Grade A"</span>)
-} <span class="nv-kw">elif</span> score &gt;= <span class="nv-num">80</span> {
-    <span class="nv-fn">print</span>(<span class="nv-str">"Grade B"</span>)
-} <span class="nv-kw">else</span> {
-    <span class="nv-fn">print</span>(<span class="nv-str">"Grade C"</span>)
-}</code></pre>
-
-            <h3>While Loops</h3>
-            <pre><code>i = <span class="nv-num">0</span>
-<span class="nv-kw">while</span> i &lt; <span class="nv-num">10</span> {
-    <span class="nv-fn">print</span>(i)
-    i = i + <span class="nv-num">1</span>
-}</code></pre>
-
-            <h3>For Loops</h3>
-            <pre><code><span class="nv-cmt"># Ascending</span>
-<span class="nv-kw">for</span> i = <span class="nv-num">1</span> <span class="nv-kw">to</span> <span class="nv-num">10</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
-    <span class="nv-fn">print</span>(i)
-}
-
-<span class="nv-cmt"># Descending</span>
-<span class="nv-kw">for</span> i = <span class="nv-num">10</span> <span class="nv-kw">downto</span> <span class="nv-num">1</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
-    <span class="nv-fn">print</span>(i)
-}
-
-<span class="nv-cmt"># Custom step</span>
-<span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">100</span> <span class="nv-kw">step</span> <span class="nv-num">10</span> {
-    <span class="nv-fn">print</span>(i)
-}</code></pre>
-
-            <!-- ========== FUNCTIONS ========== -->
-            <h2 id="functions">Functions</h2>
-
-            <h3>Definition</h3>
-            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">add</span>(a: <span class="nv-type">int</span>, b: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
-    <span class="nv-kw">return</span> a + b
-}
-
-<span class="nv-cmt"># Type inference on return type</span>
-<span class="nv-kw">def</span> <span class="nv-fn">greet</span>(name: <span class="nv-type">string</span>) {
-    <span class="nv-fn">print</span>(<span class="nv-str">"Hello, "</span> + name)
-}</code></pre>
-
-            <h3>Early Return</h3>
-            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">factorial</span>(n: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
-    <span class="nv-kw">if</span> n &lt;= <span class="nv-num">1</span> {
-        <span class="nv-kw">return</span> <span class="nv-num">1</span>
+            <h3 id="syntax-control">2. Control Flow (If / Elif / Else)</h3>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">check_status</span>(code: <span class="nv-type">int</span>) {
+    <span class="nv-kw">if</span> code == <span class="nv-num">200</span> {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Success"</span>)
+    } <span class="nv-kw">elif</span> code == <span class="nv-num">404</span> {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Not Found"</span>)
+    } <span class="nv-kw">else</span> {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Unknown Error"</span>)
     }
-    <span class="nv-kw">return</span> n * <span class="nv-fn">factorial</span>(n - <span class="nv-num">1</span>)
-}</code></pre>
+}
+check_status(404)</code></pre>
 
-            <h3>Imports</h3>
-            <pre><code><span class="nv-kw">import</span> math_utils
-<span class="nv-kw">import</span> io
+            <h3 id="syntax-loops">3. Loops (For & While)</h3>
+            <p>Nova provides multiple looping constructs.</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">test_loops</span>() {
+    <span class="nv-cmt"># Upward counting</span>
+    <span class="nv-fn">print</span>(<span class="nv-str">"Counting up:"</span>)
+    <span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">5</span> {
+        <span class="nv-fn">print</span>(i)
+    }
 
-result = <span class="nv-fn">math_utils.square</span>(<span class="nv-num">5</span>)
-<span class="nv-fn">io.println</span>(result)</code></pre>
+    <span class="nv-cmt"># Downward counting with step</span>
+    <span class="nv-fn">print</span>(<span class="nv-str">"Counting down by 2:"</span>)
+    <span class="nv-kw">for</span> x = <span class="nv-num">10</span> <span class="nv-kw">downto</span> <span class="nv-num">0</span> <span class="nv-kw">step</span> <span class="nv-num">2</span> {
+        <span class="nv-fn">print</span>(x)
+    }
 
-            <!-- ========== CLASSES ========== -->
-            <h2 id="classes">Classes &amp; Objects</h2>
+    <span class="nv-cmt"># Iterating over a list</span>
+    <span class="nv-fn">print</span>(<span class="nv-str">"List iteration:"</span>)
+    items = [<span class="nv-str">"A"</span>, <span class="nv-str">"B"</span>, <span class="nv-str">"C"</span>]
+    <span class="nv-kw">for</span> item <span class="nv-kw">in</span> items {
+        <span class="nv-fn">print</span>(item)
+    }
+
+    <span class="nv-cmt"># While loops</span>
+    <span class="nv-fn">print</span>(<span class="nv-str">"While loop:"</span>)
+    count = <span class="nv-num">0</span>
+    <span class="nv-kw">while</span> count &lt; <span class="nv-num">3</span> {
+        <span class="nv-fn">print</span>(count)
+        count = count + <span class="nv-num">1</span>
+    }
+}
+test_loops()</code></pre>
+
+            <h3 id="syntax-switch">4. Switch / Case</h3>
+            <p>Use switch statements for clean multi-branch logic.</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">get_name</span>(id: <span class="nv-type">int</span>) -&gt; <span class="nv-type">string</span> {
+    <span class="nv-kw">switch</span> id {
+        <span class="nv-kw">case</span> <span class="nv-num">1</span>: { <span class="nv-kw">return</span> <span class="nv-str">"Alice"</span> }
+        <span class="nv-kw">case</span> <span class="nv-num">2</span>: { <span class="nv-kw">return</span> <span class="nv-str">"Bob"</span> }
+        <span class="nv-kw">default</span>: { <span class="nv-kw">return</span> <span class="nv-str">"Unknown"</span> }
+    }
+}
+<span class="nv-fn">print</span>(get_name(1))
+<span class="nv-fn">print</span>(get_name(99))</code></pre>
+
+            <h3 id="syntax-classes">5. Data Classes</h3>
+            <p>Define structures using the <code>class</code> keyword.</p>
+            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Vector2D</span> {
+    x: <span class="nv-type">int</span>
+    y: <span class="nv-type">int</span>
+}
+
+<span class="nv-kw">def</span> <span class="nv-fn">test_vector</span>() {
+    v = <span class="nv-fn">Vector2D</span>()
+    v.x = <span class="nv-num">10</span>
+    v.y = <span class="nv-num">20</span>
+    <span class="nv-fn">print</span>(<span class="nv-str">"Vector Sum: "</span>)
+    <span class="nv-fn">print</span>(v.x + v.y)
+}
+test_vector()</code></pre>
+
+            <h3 id="syntax-enums">6. Enums</h3>
+            <p>Define enumerations for state management.</p>
+            <pre><code><span class="nv-kw">enum</span> <span class="nv-fn">State</span> {
+    IDLE,
+    RUNNING,
+    ERROR
+}
+
+<span class="nv-kw">def</span> <span class="nv-fn">test_enum</span>() {
+    current = <span class="nv-fn">State.RUNNING</span>
+    <span class="nv-fn">print</span>(<span class="nv-str">"Current State (Integer Value):"</span>)
+    <span class="nv-fn">print</span>(current)
+}
+test_enum()</code></pre>
+
+            <h3 id="syntax-try">7. Try / Catch / Throw</h3>
+            <p>Nova supports structured exception handling.</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">divide</span>(a: <span class="nv-type">int</span>, b: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
+    <span class="nv-kw">if</span> b == <span class="nv-num">0</span> {
+        <span class="nv-kw">throw</span> <span class="nv-str">"Division by zero!"</span>
+    }
+    <span class="nv-kw">return</span> a / b
+}
+
+<span class="nv-kw">def</span> <span class="nv-fn">test_math</span>() {
+    <span class="nv-kw">try</span> {
+        result = <span class="nv-fn">divide</span>(<span class="nv-num">10</span>, <span class="nv-num">0</span>)
+        <span class="nv-fn">print</span>(result)
+    } <span class="nv-kw">catch</span> e {
+        <span class="nv-fn">print</span>(<span class="nv-str">"Error caught: "</span> + e)
+    }
+}
+test_math()</code></pre>
+
+<h2 id="classes">Classes &amp; Objects</h2>
             <p>Nova supports basic object-oriented programming with classes, fields, and methods. Method calls use vtable dynamic dispatch.</p>
             <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Player</span> {
     health: <span class="nv-type">int</span>
@@ -534,7 +488,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <!-- ========== GALAXY ========== -->
             <h2 id="galaxy">Galaxy Package Manager</h2>
-            <p>Galaxy is the official package manager for Nova. It is a fully static, Git-backed registry — no database, no backend server. The CLI is a single-file Python script (<code>_galaxy.py</code>) that you install once.</p>
+            <p>Galaxy is the official package manager for Nova. It is a fully static, Git-backed registry â€” no database, no backend server. The CLI is a single-file Python script (<code>_galaxy.py</code>) that you install once.</p>
 
             <div class="callout callout-tip">
                 <strong>Try it now</strong>
@@ -543,7 +497,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <!-- ===== INSTALL ===== -->
             <h3 id="galaxy-install">Installing Galaxy CLI</h3>
-            <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command — no <code>python -m</code> prefix needed after installation.</p>
+            <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command â€” no <code>python -m</code> prefix needed after installation.</p>
 
             <h4>One-Click Install (No Python Required)</h4>
             <p><strong>Windows (PowerShell, pre-installed):</strong></p>
@@ -558,7 +512,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
             <ul>
                 <li>Downloads the Nova compiler (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>) and Galaxy CLI (<code>_galaxy.py</code>, <code>galaxy/</code>) to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
                 <li>Creates <code>nova.bat</code>, <code>galaxy.bat</code>, and <code>use_nova.bat</code> helper (Windows) or shell scripts (Unix) launchers</li>
-                <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
+                <li>Adds the install directory to your <strong>user PATH</strong> â€” no admin privileges needed</li>
                 <li>Verifies SHA-256 integrity of the downloaded archive</li>
             </ul>
             <p><strong>To use <code>nova</code> and <code>galaxy</code> immediately without restarting your terminal:</strong></p>
@@ -636,7 +590,7 @@ galaxy search nova-team
             <p>Displays the current Galaxy CLI version.</p>
 
             <h4>galaxy update</h4>
-            <p><strong>Self-update — updates Galaxy CLI itself.</strong> Checks the registry for a newer version of Galaxy, prompts before downloading, and replaces the installed files. Works the same way as <code>nova update</code>.</p>
+            <p><strong>Self-update â€” updates Galaxy CLI itself.</strong> Checks the registry for a newer version of Galaxy, prompts before downloading, and replaces the installed files. Works the same way as <code>nova update</code>.</p>
             <pre><code><span class="nv-cmt"># Update Galaxy CLI to the latest version</span>
 galaxy update
 <span class="nv-cmt"># Galaxy v0.6.1
@@ -666,7 +620,7 @@ galaxy upgrade nova-math</code></pre>
                 <tr><th>Command</th><th>Files Created</th></tr>
                 <tr><td><code>galaxy init library my-lib</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td></tr>
             </table>
-            <p>For full template documentation — generated file contents, customization guide, galaxy.json manifest reference, and extending the template system — see the <a href="templates.html"><strong>Templates reference page</strong></a>.</p>
+            <p>For full template documentation â€” generated file contents, customization guide, galaxy.json manifest reference, and extending the template system â€” see the <a href="templates.html"><strong>Templates reference page</strong></a>.</p>
 
             <!-- ===== MANIFEST ===== -->
             <h3 id="galaxy-manifest">galaxy.json Manifest Reference</h3>
@@ -698,13 +652,13 @@ galaxy upgrade nova-math</code></pre>
 
             <!-- ===== PUBLISHING ===== -->
             <h3 id="galaxy-publish">Publishing a Package</h3>
-            <p>All publishing goes through a <strong>GitHub Issue</strong> workflow — there is no direct write access to the registry. This ensures every submission is reviewed.</p>
+            <p>All publishing goes through a <strong>GitHub Issue</strong> workflow â€” there is no direct write access to the registry. This ensures every submission is reviewed.</p>
 
             <h4>Using galaxy publish (Recommended)</h4>
             <ol>
                 <li>Write your Nova library and host it on <strong>GitHub</strong></li>
                 <li>Run <code>galaxy init library my-lib</code> to scaffold the project</li>
-                <li>Edit <code>galaxy.json</code> — set <code>author</code>, <code>repository</code>, <code>license</code>, <code>keywords</code></li>
+                <li>Edit <code>galaxy.json</code> â€” set <code>author</code>, <code>repository</code>, <code>license</code>, <code>keywords</code></li>
                 <li>Run <code>galaxy publish</code> from the project root</li>
             </ol>
             <p><code>galaxy publish</code> does the following:</p>
@@ -730,7 +684,7 @@ galaxy upgrade nova-math</code></pre>
 
             <div class="callout callout-warn">
                 <strong>Naming rules</strong>
-                Package names are globally unique across all three tiers. Once a name is taken, it cannot be reused. Versions must increase monotonically — no downgrades, no repeats.
+                Package names are globally unique across all three tiers. Once a name is taken, it cannot be reused. Versions must increase monotonically â€” no downgrades, no repeats.
             </div>
 
             <!-- ========== IMPORTS ========== -->
@@ -745,7 +699,7 @@ galaxy upgrade nova-math</code></pre>
 <span class="nv-kw">import</span> math_utils
 
 result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</span>)   <span class="nv-cmt">// -> 42</span></code></pre>
-            <p>The import system uses module prefixing — you call imported functions as <code>module_name.function_name()</code>.</p>
+            <p>The import system uses module prefixing â€” you call imported functions as <code>module_name.function_name()</code>.</p>
 
             <!-- ========== COMPILER CLI ========== -->
             <h2 id="compiler-cli">Compiler Command-Line Reference</h2>
@@ -768,7 +722,7 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
             <p>Displays the current Nova compiler version.</p>
 
             <h4>nova update</h4>
-            <p><strong>Self-update — updates the Nova compiler itself.</strong> Checks the version endpoint on the registry, prompts before downloading, and replaces only the compiler files.</p>
+            <p><strong>Self-update â€” updates the Nova compiler itself.</strong> Checks the version endpoint on the registry, prompts before downloading, and replaces only the compiler files.</p>
             <pre><code><span class="nv-cmt"># Update Nova to the latest version</span>
 nova update
 <span class="nv-cmt"># Nova v0.7.0
@@ -798,7 +752,7 @@ galaxy install pkg</code></pre>
 
             <!-- ========== ADVANCED ========== -->
                         <h2 id="python-bridge">Python Bridge (Seamless Interop)</h2>
-            <p>Nova features a zero-friction Python Bridge (<code>nova_py.py</code>) that allows you to natively import <code>.nv</code> files directly into Python scripts. The bridge automatically compiles the Nova code into high-speed native assembly (<code>.dll</code>/<code>.so</code>), handles SysV ABI translations, maps C-types to Python types, and binds the functions�all transparently on import.</p>
+            <p>Nova features a zero-friction Python Bridge (<code>nova_py.py</code>) that allows you to natively import <code>.nv</code> files directly into Python scripts. The bridge automatically compiles the Nova code into high-speed native assembly (<code>.dll</code>/<code>.so</code>), handles SysV ABI translations, maps C-types to Python types, and binds the functions—all transparently on import.</p>
             <p>To use it, just import <code>nova_py</code> once, then import your Nova modules as if they were standard Python modules:</p>
             <pre><code>import nova_py
 import math_lib # Automatically compiles math_lib.nv and loads it natively!
@@ -888,28 +842,28 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
             <h2 id="architecture">Compiler Architecture</h2>
             <p>When you run <code>nova build hello.nv</code>, the compiler processes your source through a single in-process pipeline:</p>
             <ol>
-                <li><strong>Lexer</strong> — tokenizes source into structured <code>Token</code> objects</li>
-                <li><strong>Parser</strong> — recursive-descent parser that builds an AST with constant folding</li>
-                <li><strong>Type Checker</strong> — static type inference and validation</li>
-                <li><strong>Code Generator</strong> — emits native assembly (dynamically selected for your target architecture like x86_64, arm64) with bounds-checking and variable-to-register promotion</li>
-                <li><strong>Tree Shaker</strong> — builds a call-graph dependency map and removes unused stdlib functions (up to 70% binary size reduction)</li>
-                <li><strong>Assembler</strong> — encodes assembly mnemonics to native machine code in-process</li>
-                <li><strong>Linker</strong> — packages machine code into a valid Windows PE binary</li>
+                <li><strong>Lexer</strong> â€” tokenizes source into structured <code>Token</code> objects</li>
+                <li><strong>Parser</strong> â€” recursive-descent parser that builds an AST with constant folding</li>
+                <li><strong>Type Checker</strong> â€” static type inference and validation</li>
+                <li><strong>Code Generator</strong> â€” emits native assembly (dynamically selected for your target architecture like x86_64, arm64) with bounds-checking and variable-to-register promotion</li>
+                <li><strong>Tree Shaker</strong> â€” builds a call-graph dependency map and removes unused stdlib functions (up to 70% binary size reduction)</li>
+                <li><strong>Assembler</strong> â€” encodes assembly mnemonics to native machine code in-process</li>
+                <li><strong>Linker</strong> â€” packages machine code into a valid Windows PE binary</li>
             </ol>
             <p>The entire pipeline runs in a single process. No external tools are invoked.</p>
 
             <h3>Self-Hosting</h3>
-            <p>The Nova compiler is self-hosted — the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself.</p>
+            <p>The Nova compiler is self-hosted â€” the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself.</p>
 
             <!-- ========== PERFORMANCE ========== -->
             <h2 id="performance">Performance Tips</h2>
             <p>Nova is already fast out of the box, but here are ways to get the most out of it:</p>
             <ul>
-                <li><strong>Prefer local variables</strong> — Nova maps locals to CPU registers (esi/edi). The fewer memory accesses, the faster your code.</li>
-                <li><strong>Use <code>for</code> loops</strong> — they compile to tight <code>cmp/jl</code> sequences. Avoid unnecessary function calls inside hot loops.</li>
-                <li><strong>Avoid recursion for deep iterations</strong> — Nova's function calls have standard call/ret overhead. Use iterative loops for performance-critical paths.</li>
-                <li><strong>Use <code>@raw</code> blocks for hot paths</strong> — if you know the exact assembly sequence, inline it directly to skip the compiler's generic codegen.</li>
-                <li><strong>Release builds only</strong> — never ship a debug binary (<code>--debug</code> enables <code>printd</code> which adds overhead).</li>
+                <li><strong>Prefer local variables</strong> â€” Nova maps locals to CPU registers (esi/edi). The fewer memory accesses, the faster your code.</li>
+                <li><strong>Use <code>for</code> loops</strong> â€” they compile to tight <code>cmp/jl</code> sequences. Avoid unnecessary function calls inside hot loops.</li>
+                <li><strong>Avoid recursion for deep iterations</strong> â€” Nova's function calls have standard call/ret overhead. Use iterative loops for performance-critical paths.</li>
+                <li><strong>Use <code>@raw</code> blocks for hot paths</strong> â€” if you know the exact assembly sequence, inline it directly to skip the compiler's generic codegen.</li>
+                <li><strong>Release builds only</strong> â€” never ship a debug binary (<code>--debug</code> enables <code>printd</code> which adds overhead).</li>
             </ul>
 
             <div class="callout callout-tip">
