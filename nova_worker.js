@@ -12,20 +12,22 @@ async function fetchPythonFile(path) {
 async function loadNovaFiles() {
     // We need to create directories and write files in Pyodide FS
     const files = [
-        "lexer/__init__.py", "lexer/lexer.py", "lexer/tokens.py",
+        "lexer/__init__.py", "lexer/tokenizer.py", "lexer/tokens.py",
         "parser/__init__.py", "parser/parser.py",
-        "nova_ast/__init__.py", "nova_ast/nodes.py", "nova_ast/visitor.py",
+        "nova_ast/__init__.py", "nova_ast/nodes.py",
         "modules/__init__.py", "modules/resolver.py",
-        "vm/__init__.py", "vm/vm.py", "vm/opcodes.py", "vm/compiler.py",
-        "compiler/__init__.py", "compiler/types.py", "compiler/type_checker.py"
+        "vm/__init__.py", "vm/machine.py", "vm/opcodes.py", "vm/compiler.py",
+        "compiler/types.py", "compiler/type_checker.py"
     ];
 
     for (const f of ["lexer", "parser", "nova_ast", "modules", "vm", "compiler"]) {
         try { pyodide.FS.mkdir(f); } catch(e) {}
     }
 
+    // Fetch directly from GitHub main branch
+    const BASE_URL = "https://raw.githubusercontent.com/nova-programming/Nova/main/bootstrap/";
     for (const file of files) {
-        const content = await fetchPythonFile("nova_compiler/" + file);
+        const content = await fetchPythonFile(BASE_URL + file);
         pyodide.FS.writeFile(file, content);
     }
 }
@@ -44,38 +46,44 @@ async function init() {
 import sys
 import io
 import traceback
-from lexer.lexer import Lexer
+from lexer.tokenizer import tokenize
 from parser.parser import Parser
-from compiler.type_checker import TypeChecker
-from vm.compiler import VMCompiler
-from vm.vm import VM
+from compiler.type_checker import TypeInferer
+from vm.compiler import Compiler
+from vm.machine import VirtualMachine
 
 def run_nova(source_code):
-    # Redirect stdout to capture print() output
     old_stdout = sys.stdout
     sys.stdout = io.StringIO()
     
     output = ""
     error = ""
     try:
-        lexer = Lexer(source_code)
-        tokens = lexer.tokenize()
+        tokens = tokenize(source_code)
         parser = Parser(tokens)
         ast = parser.parse()
         
-        checker = TypeChecker()
-        checker.check(ast)
+        # Handle bare expressions as prints for REPL-like behavior in playground
+        is_bare_expr = False
+        if len(ast) == 1:
+            from nova_ast.nodes import Print, Assignment, Function, ClassDef, While, ForLoop, ForIn, IfElse, Return, Break, Continue, Data, EnumDef, Import, RawBlock, Try, Throw
+            stmt = ast[0]
+            if not isinstance(stmt, (Assignment, Function, ClassDef, Data, EnumDef, Import, RawBlock, Print, While, ForLoop, ForIn, IfElse, Return, Break, Continue, Try, Throw)):
+                is_bare_expr = True
+                ast = [Print(stmt)]
         
-        vm_compiler = VMCompiler()
-        vm_compiler.compile(ast)
+        checker = TypeInferer()
+        checker.infer(ast)
         
-        vm = VM(vm_compiler.instructions, vm_compiler.constants)
+        vm_compiler = Compiler()
+        program = vm_compiler.compile(ast)
+        
+        vm = VirtualMachine(program)
         vm.run()
         
         output = sys.stdout.getvalue()
     except Exception as e:
         error = str(e)
-        # error = traceback.format_exc()
     finally:
         sys.stdout = old_stdout
         
@@ -83,8 +91,7 @@ def run_nova(source_code):
 
 def check_syntax(source_code):
     try:
-        lexer = Lexer(source_code)
-        tokens = lexer.tokenize()
+        tokens = tokenize(source_code)
         parser = Parser(tokens)
         parser.parse()
         return {"error": ""}

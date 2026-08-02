@@ -492,12 +492,9 @@ count = <span class="nv-num">42</span>
                 <div class="example-body">
                     <pre><code><span class="nv-kw">enum</span> Color { Red, Green, Blue }
 
-<span class="nv-kw">def</span> <span class="nv-fn">main</span>() -&gt; <span class="nv-type">int</span> {
-    <span class="nv-fn">print</span>(Color_Red)    <span class="nv-cmt">// 0</span>
-    <span class="nv-fn">print</span>(Color_Green)  <span class="nv-cmt">// 1</span>
-    <span class="nv-fn">print</span>(Color_Blue)   <span class="nv-cmt">// 2</span>
-    <span class="nv-kw">return</span> <span class="nv-num">0</span>
-}</code></pre>
+<span class="nv-fn">print</span>(Color_Red)    <span class="nv-cmt">// 0</span>
+<span class="nv-fn">print</span>(Color_Green)  <span class="nv-cmt">// 1</span>
+<span class="nv-fn">print</span>(Color_Blue)   <span class="nv-cmt">// 2</span></code></pre>
                     <div class="output-box">
                         <div class="output-label">Output</div>
                         0<br>1<br>2
@@ -536,17 +533,14 @@ count = <span class="nv-num">42</span>
                     <div class="desc">Key-value store with literal syntax and built-in methods.</div>
                 </div>
                 <div class="example-body">
-                    <pre><code><span class="nv-kw">def</span> <span class="nv-fn">main</span>() -&gt; <span class="nv-type">int</span> {
-    config = {<span class="nv-str">"host"</span>: <span class="nv-str">"localhost"</span>, <span class="nv-str">"port"</span>: <span class="nv-num">8080</span>}
-    <span class="nv-fn">print</span>(config.<span class="nv-fn">get</span>(<span class="nv-str">"host"</span>))
-  
-    config.<span class="nv-fn">set</span>(<span class="nv-str">"host"</span>, <span class="nv-str">"0.0.0.0"</span>)
-    <span class="nv-fn">print</span>(config.<span class="nv-fn">get</span>(<span class="nv-str">"host"</span>))
-  
-    <span class="nv-fn">print</span>(<span class="nv-fn">len</span>(config))
-    <span class="nv-fn">print</span>(config.<span class="nv-fn">has</span>(<span class="nv-str">"port"</span>))
-    <span class="nv-kw">return</span> <span class="nv-num">0</span>
-}</code></pre>
+                    <pre><code>config = {<span class="nv-str">"host"</span>: <span class="nv-str">"localhost"</span>, <span class="nv-str">"port"</span>: <span class="nv-num">8080</span>}
+<span class="nv-fn">print</span>(config.<span class="nv-fn">get</span>(<span class="nv-str">"host"</span>))
+
+config.<span class="nv-fn">set</span>(<span class="nv-str">"host"</span>, <span class="nv-str">"0.0.0.0"</span>)
+<span class="nv-fn">print</span>(config.<span class="nv-fn">get</span>(<span class="nv-str">"host"</span>))
+
+<span class="nv-fn">print</span>(<span class="nv-fn">len</span>(config))
+<span class="nv-fn">print</span>(config.<span class="nv-fn">has</span>(<span class="nv-str">"port"</span>))</code></pre>
                     <div class="output-box">
                         <div class="output-label">Output</div>
                         localhost<br>0.0.0.0<br>2<br>true
