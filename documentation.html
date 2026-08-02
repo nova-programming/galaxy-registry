@@ -444,21 +444,64 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_system(cmd) -&gt; int</code></td><td>Execute shell command, returns exit code</td></tr>
                 <tr><td><code>sys_exit(code)</code></td><td>Terminate process immediately</td></tr>
                 <tr><td><code>sys_get_tick_count() -&gt; int</code></td><td>System uptime in milliseconds</td></tr>
+<h2 id="classes">Classes &amp; Objects</h2>
+            <p>Nova supports basic object-oriented programming with classes, fields, and methods. Method calls use vtable dynamic dispatch.</p>
+            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Player</span> {
+    health: <span class="nv-type">int</span>
+    name: <span class="nv-type">string</span>
+
+    <span class="nv-kw">def</span> <span class="nv-fn">__init__</span>(h: <span class="nv-type">int</span>, n: <span class="nv-type">string</span>) {
+        <span class="nv-kw">self</span>.health = h
+        <span class="nv-kw">self</span>.name = n
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">take_damage</span>(amount: <span class="nv-type">int</span>) {
+        <span class="nv-kw">self</span>.health = <span class="nv-kw">self</span>.health - amount
+    }
+
+    <span class="nv-kw">def</span> <span class="nv-fn">is_alive</span>() -&gt; <span class="nv-type">bool</span> {
+        <span class="nv-kw">return</span> <span class="nv-kw">self</span>.health &gt; <span class="nv-num">0</span>
+    }
+}
+
+<span class="nv-cmt"># Usage</span>
+p = <span class="nv-fn">Player</span>(<span class="nv-num">100</span>, <span class="nv-str">"Hero"</span>)
+p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
+<span class="nv-fn">print</span>(p.<span class="nv-fn">is_alive</span>())   <span class="nv-cmt"># true</span></code></pre>
+
+            <!-- ========== STANDARD LIBRARY ========== -->
+            <h2 id="stdlib">Standard Library</h2>
+            <p>Nova ships with a built-in standard library covering file I/O, OS interaction, math, and cryptography. All functions compile to efficient native machine code.</p>
+
+            <h3>File I/O</h3>
+            <table class="doc-table">
+                <tr><th>Function</th><th>Signature</th><th>Description</th></tr>
+                <tr><td><code>open</code></td><td><code>(path: string, mode: string) -&gt; int</code></td><td>Open file. Returns file descriptor. Mode: <code>"r"</code>, <code>"w"</code>, <code>"a"</code>, <code>"wb"</code>, <code>"rb"</code>, <code>"ab"</code>, <code>"w+"</code>, <code>"r+"</code>, <code>"a+"</code>, <code>"w+b"</code></td></tr>
+                <tr><td><code>read</code></td><td><code>(fd: int) -&gt; string</code></td><td>Read entire file into a string</td></tr>
+                <tr><td><code>write</code></td><td><code>(fd: int, content: string) -&gt; int</code></td><td>Write string to file</td></tr>
+                <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
+            </table>
+
+            <h3>OS Interface</h3>
+            <table class="doc-table">
+                <tr><th>Function</th><th>Description</th></tr>
+                <tr><td><code>sys_get_args() -&gt; list[string]</code></td><td>Command-line arguments (auto-unquoted)</td></tr>
+                <tr><td><code>sys_system(cmd) -&gt; int</code></td><td>Execute shell command, returns exit code</td></tr>
+                <tr><td><code>sys_exit(code)</code></td><td>Terminate process immediately</td></tr>
+                <tr><td><code>sys_get_tick_count() -&gt; int</code></td><td>System uptime in milliseconds</td></tr>
                 <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns <code>"windows"</code>, <code>"linux"</code>, or <code>"macos"</code></td></tr>
             </table>
 
-            <h3>Math &amp; Cryptography</h3>
+            <h3>Math</h3>
             <table class="doc-table">
                 <tr><th>Function</th><th>Description</th></tr>
-                <tr><td><code>random() -&gt; int</code></td><td>CSPRNG value via ChaCha20 (auto-seeded)</td></tr>
+                <tr><td><code>random() -&gt; int</code></td><td>CSPRNG value (auto-seeded)</td></tr>
                 <tr><td><code>square(x) -&gt; int</code></td><td>x * x</td></tr>
                 <tr><td><code>cube(x) -&gt; int</code></td><td>x * x * x</td></tr>
                 <tr><td><code>abs_val(x) -&gt; int</code></td><td>Absolute value</td></tr>
                 <tr><td><code>max_of(a, b) -&gt; int</code></td><td>Maximum of two values</td></tr>
                 <tr><td><code>min_of(a, b) -&gt; int</code></td><td>Minimum of two values</td></tr>
                 <tr><td><code>factorial(n) -&gt; int</code></td><td>n! (recursive)</td></tr>
-                <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 state</td></tr>
-                <tr><td><code>chacha20_block(state)</code></td><td>Generate next 64-byte block</td></tr>
             </table>
 
             <div class="callout callout-warn">
@@ -598,7 +641,7 @@ galaxy update
 # Update to v0.7.0? (Y/n): y
 # Updated 2 files.
 # Galaxy has been updated to v0.7.0.</span></code></pre>
-            <p>Uses the same installation directory detected during <code>install.py</code> setup. Only Galaxy-related files are replaced (<code>_galaxy.py</code> and <code>galaxy/</code>).</p>
+            <p>Uses the installation directory detected during <code>install.py</code> setup. Only Galaxy-related files are replaced (<code>_galaxy.py</code> and <code>galaxy/</code>).</p>
 
             <h4>galaxy upgrade</h4>
             <p><strong>Updates installed packages.</strong> Checks the registry for newer versions of your dependencies and prompts before reinstalling.</p>
@@ -765,53 +808,6 @@ print(result)</code></pre>
             </div>
 
 
-            <h2 id="advanced">Advanced Features</h2>
-
-            <h3>1. Inline Assembly (<code>@raw</code> Blocks)</h3>
-            <p>Drop directly into native assembly anywhere in your code. This is Nova's escape hatch for low-level optimization and hardware access.</p>
-            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">fast_inv_sqrt</span>(number: <span class="nv-type">float</span>) -&gt; <span class="nv-type">float</span> {
-    <span class="nv-kw">@raw</span> {
-        mov rax, dword [rbp+8]
-        shr rax, 1
-        mov rcx, 0x5f3759df
-        sub rcx, rax
-        mov dword [rbp-4], rcx
-    }
-}</code></pre>
-
-            <h3>2. Zero-Cost Debug Printing (<code>printd</code>)</h3>
-            <p>The <code>printd</code> keyword acts as a native debug assertion. In release builds, it emits zero assembly instructions. In <code>--debug</code> mode, it prints the line and value.</p>
-            <pre><code><span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">1000000</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
-    <span class="nv-cmt"># Zero cost in release builds</span>
-    <span class="nv-fn">printd</span>(i)
-}</code></pre>
-
-            <h3>3. Field Existence Check (<code>has</code> Keyword)</h3>
-            <p>Check at runtime if an object or struct has a field.</p>
-            <pre><code><span class="nv-kw">class</span> <span class="nv-fn">Entity</span> {
-    name: <span class="nv-type">string</span>
-    score: <span class="nv-type">int</span>
-}
-
-<span class="nv-kw">def</span> <span class="nv-fn">check_score</span>(entity) {
-    <span class="nv-kw">if</span> entity <span class="nv-kw">has</span> score {
-        <span class="nv-fn">print</span>(<span class="nv-str">"Score: "</span> + entity.score)
-    }
-}</code></pre>
-
-            <h3>4. CSPRNG (ChaCha20)</h3>
-            <p>Nova embeds a cryptographically secure random number generator. Auto-seeded at startup from the OS tick count.</p>
-            <pre><code><span class="nv-cmt"># Generate a secure random value</span>
-salt = <span class="nv-fn">random</span>()
-
-<span class="nv-cmt"># Full ChaCha20 control</span>
-state = <span class="nv-fn">chacha20_init</span>(key, counter)
-block = <span class="nv-fn">chacha20_block</span>(state)</code></pre>
-
-            <h3>5. Pointer Suffix Directives</h3>
-            <p>Read and write arbitrary memory sizes from raw pointer addresses using explicit suffix properties.</p>
-            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">write_header</span>(ptr: <span class="nv-type">int</span>, size: <span class="nv-type">int</span>) {
-    ptr.<span class="nv-kw">value_dword</span> = size     <span class="nv-cmt"># Write 4 bytes</span>
     flag = ptr + <span class="nv-num">4</span>
     flag.<span class="nv-kw">value_byte</span> = <span class="nv-num">1</span>      <span class="nv-cmt"># Write 1 byte</span>
 }</code></pre>
