@@ -5,6 +5,8 @@ from nova_ast.nodes import *
 # different offsets and type info is unavailable (AnyType), use this struct's offset.
 _FIELD_PREFERRED = {
     "params": "AstNode",
+    "name": "Type",
+    "inferred_type": "AstNode",
 }
 
 class Arm64Codegen:
@@ -1328,10 +1330,10 @@ class Arm64Codegen:
                 self.assembly.append(f"    str {inst_reg}, [sp, #-16]!")
                 self._free_reg(inst_reg)
                 self.assembly.append("    ldr x0, [sp], #16")
-                if len(node.args) >= 1:
-                    self.assembly.append("    ldr x1, [sp], #16")
                 if len(node.args) >= 2:
                     self.assembly.append("    ldr x2, [sp], #16")
+                if len(node.args) >= 1:
+                    self.assembly.append("    ldr x1, [sp], #16")
                 self.assembly.append(f"    bl _dict_{node.method_name}")
                 self.assembly.append("    str x0, [sp, #-16]!")
             else:

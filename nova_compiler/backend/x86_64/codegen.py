@@ -5,6 +5,8 @@ from nova_ast.nodes import *
 # different offsets and type info is unavailable (AnyType), use this struct's offset.
 _FIELD_PREFERRED = {
     "params": "AstNode",
+    "name": "Type",
+    "inferred_type": "AstNode",
 }
 
 class X86_64Codegen:
@@ -1407,10 +1409,10 @@ class X86_64Codegen:
                     self.compile_expr(arg)
                 self.compile_expr(node.instance)
                 self.assembly.append("    pop rdi")
-                if len(node.args) >= 1:
-                    self.assembly.append("    pop rsi")
                 if len(node.args) >= 2:
                     self.assembly.append("    pop rdx")
+                if len(node.args) >= 1:
+                    self.assembly.append("    pop rsi")
                 self.assembly.append(f"    call _dict_{node.method_name}")
                 self.assembly.append("    push rax")
             else:
