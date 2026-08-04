@@ -277,11 +277,15 @@ class Arm64Codegen:
             self.assembly.append(f"    ldr {reg}, [sp], #8")
             return reg
         elif node.op == "+" and (self._is_string_expr(node.left) or self._is_string_expr(node.right)):
+            # Push left immediately: compiling the right operand can clobber
+            # any register (ArrayIndex hardcodes x0/x1, fallback saves x0),
+            # losing the left operand's value. Reproduced as `0_printf` extern
+            # lines in the macOS self-hosted stage1 (list header bytes + name).
             left_reg = self._compile_expr_to_reg(node.left)
-            right_reg = self._compile_expr_to_reg(node.right)
             self.assembly.append(f"    str {left_reg}, [sp, #-16]!")
-            self.assembly.append(f"    str {right_reg}, [sp, #-16]!")
             self._free_reg(left_reg)
+            right_reg = self._compile_expr_to_reg(node.right)
+            self.assembly.append(f"    str {right_reg}, [sp, #-16]!")
             self._free_reg(right_reg)
             self.assembly.append("    ldr x1, [sp], #16")
             self.assembly.append("    ldr x0, [sp], #16")
