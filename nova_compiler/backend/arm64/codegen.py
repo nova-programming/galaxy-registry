@@ -1270,6 +1270,8 @@ class Arm64Codegen:
                 self.assembly.append("    ldr x1, [sp], #16")        # restore list_ptr
                 self.assembly.append("    ldr x0, [sp], #16")        # restore value
                 self.assembly.append("    str x2, [x1, #8]")         # update data_ptr in header
+                self.assembly.append("    ldr w4, [x1, #4]")         # reload old capacity (x4 clobbered by call)
+                self.assembly.append("    lsl x4, x4, #1")           # new capacity = old * 2
                 self.assembly.append("    str w4, [x1, #4]")         # update capacity in header (32-bit)
                 # Common store path (post-increment count)
                 self.assembly.append(f"{no_realloc}:")
