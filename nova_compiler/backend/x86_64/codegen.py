@@ -172,7 +172,7 @@ class X86_64Codegen:
                 return False
             return str(base_type) == 'string' or self._is_string_expr(node.base)
         if isinstance(node, DataFieldAccess):
-            if node.field_name in ["val", "kind", "val_str", "str_val", "name", "op", "file_name"]: return True
+            if node.field_name in ["kind", "val_str", "str_val", "name", "op", "file_name"]: return True
             inferred = getattr(node, 'inferred_type', None)
             if str(inferred) == 'string': return True
             if node.instance and hasattr(node.instance, 'inferred_type') and str(node.instance.inferred_type) == 'string':
