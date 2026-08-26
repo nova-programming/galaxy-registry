@@ -251,12 +251,15 @@
 
             <table>
                 <tr><th>Type</th><th>Size</th><th>Description</th><th>Example Literal</th></tr>
-                <tr><td><code>int</code></td><td>4 bytes</td><td>32-bit signed integer</td><td><code>42, 0xFF</code> (hex), <code>0b1010</code> (binary)</td></tr>
+                <tr><td><code>int</code></td><td>8 bytes</td><td>64-bit signed integer</td><td><code>42, 0xFF</code> (hex), <code>0b1010</code> (binary)</td></tr>
+                <tr><td><code>byte</code></td><td>1 byte</td><td>8-bit unsigned (alias for int, masked to 0-255)</td><td><code>255: byte</code></td></tr>
                 <tr><td><code>float</code></td><td>8 bytes</td><td>64-bit IEEE-754</td><td><code>3.14, -0.5</code></td></tr>
                 <tr><td><code>string</code></td><td>heap</td><td>Immutable UTF-8 text</td><td><code>"hello"</code></td></tr>
                 <tr><td><code>bool</code></td><td>1 byte</td><td>Boolean</td><td><code>true, false</code></td></tr>
-                <tr><td><code>list</code></td><td>heap</td><td>Dynamic array of type T</td><td><code>[1, 2, 3]</code></td></tr>
-                <tr><td><code>data</code></td><td>heap</td><td>Struct with named fields</td><td><code>data Point { x: int, y: int }</code></td></tr>
+                <tr><td><code>list</code></td><td>heap (16-byte header: len 4, cap 4, data ptr 8)</td><td>Dynamic array of T</td><td><code>[1, 2, 3]</code></td></tr>
+                <tr><td><code>dict</code></td><td>heap (24 bytes)</td><td>HashMap string→any</td><td><code>{"k": 1}</code></td></tr>
+                <tr><td><code>data</code></td><td>heap (fields × 8, aligned)</td><td>Struct with named fields</td><td><code>data Point { x: int, y: int }</code></td></tr>
+                <tr><td><code>class</code></td><td>heap (same as data)</td><td>Struct + methods (fields + def)</td><td><code>class Pt { x: int; def get() { return self.x } }</code></td></tr>
             </table>
 
             <div class="callout callout-info">
@@ -284,6 +287,20 @@ d.remove("name")          # delete key
 print(d.keys())           # list of keys
 print(d.values())         # list of values
 print(d.items())          # [key1, val1, key2, val2]</code></pre>
+
+            <h3 id="lists">Lists</h3>
+            <p>Dynamic arrays with heap header <code>[len 4][cap 4][data ptr 8]</code> + separate buffer. Methods available on any list value:</p>
+            <table>
+                <tr><th>Method</th><th>Signature</th><th>Description</th></tr>
+                <tr><td><code>append</code></td><td><code>(value) -> list</code></td><td>Append value, grows capacity 2× when full</td></tr>
+                <tr><td><code>pop</code></td><td><code>() -> value</code></td><td>Remove and return last element</td></tr>
+                <tr><td><code>insert</code></td><td><code>(idx, value) -> void</code></td><td>Insert value at idx (clamped to [0,len])</td></tr>
+                <tr><td><code>clear</code></td><td><code>() -> void</code></td><td>Set length to 0 (keeps capacity)</td></tr>
+            </table>
+            <pre><code>a = [1, 2, 3]
+a.insert(1, 99)   # [1, 99, 2, 3]
+a.clear()         # []
+a.append(5)        # [5]</code></pre>
 
             <!-- ========== OPERATORS ========== -->
             <h2 id="operators">Operators</h2>
@@ -491,9 +508,11 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>printd</code></td><td><code>(value) -> void</code></td><td>Debug print (zero-cost in release builds)</td></tr>
                 <tr><td><code>len</code></td><td><code>(value) -> int</code></td><td>Length of string, list, or dict</td></tr>
                 <tr><td><code>str</code></td><td><code>(value) -> string</code></td><td>Convert value to string representation</td></tr>
-                <tr><td><code>sizeof</code></td><td><code>(expr) -> int</code></td><td>Size of value or type in bytes</td></tr>
+                <tr><td><code>sizeof</code></td><td><code>(expr) -> int</code></td><td>Size of value or type in bytes (heap structs: fields×8, scalars: 8)</td></tr>
                 <tr><td><code>type</code></td><td><code>(val) -> string</code></td><td>Returns type name string: "int", "string", "float", "bool", "list", "dict" — compile-time resolution in native codegen</td></tr>
                 <tr><td><code>call</code></td><td><code>(name, args) -> any</code></td><td>Dynamic function dispatch by name string, args as list[any]; VM only</td></tr>
+                <tr><td><code>random</code></td><td><code>() -> int<br>(lo, hi) -> int</code></td><td>PRNG xorshift64 (VM + native), `random()` 0..2^31-1, `random(lo,hi)` in [lo,hi]</td></tr>
+                <tr><td><code>chacha20_init</code></td><td><code>(seed1, seed2) -> void</code></td><td>Seed PRNG with ((seed1<<32)|seed2) for deterministic sequences</td></tr>
                 <tr><td><code>alloc</code></td><td><code>(size: int) -> ptr</code></td><td>Allocate heap memory</td></tr>
                 <tr><td><code>free</code></td><td><code>(ptr) -> void</code></td><td>Free heap memory</td></tr>
                 <tr><td><code>open</code></td><td><code>(path, mode) -> int</code></td><td>Open file, returns fd. Modes: "r", "w", "a", "wb", "rb", "ab", "w+", "r+", "a+", "w+b"</td></tr>
@@ -501,7 +520,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>write</code></td><td><code>(fd: int, content: string) -> int</code></td><td>Write string to file</td></tr>
                 <tr><td><code>close</code></td><td><code>(fd: int)</code></td><td>Close file descriptor</td></tr>
                 <tr><td><code>openf</code></td><td><code>(path, mode?)</code></td><td>Open file with auto-read (returns file struct)</td></tr>
-                <tr><td><code>api</code></td><td><code>(url: string) -> string</code></td><td>Make HTTP request (Windows only, uses WinHTTP)</td></tr>
+                <tr><td><code>api</code></td><td><code>(url: string) -> string</code></td><td>HTTP stub (returns 0); link-safe, not yet fetching</td></tr>
                 <tr><td><code>sys_get_args</code></td><td><code>() -> list[string]</code></td><td>Command-line arguments (native only)</td></tr>
                 <tr><td><code>sys_system</code></td><td><code>(cmd) -> int</code></td><td>Execute shell command, returns exit code (native only)</td></tr>
                 <tr><td><code>sys_get_tick_count</code></td><td><code>() -> int</code></td><td>System uptime in milliseconds (native only)</td></tr>
@@ -547,7 +566,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns "windows", "linux", or "macos"</td></tr>
             </table>
 
-            <h2 id="math">Math &amp; Cryptography</h2>
+            <h2 id="math">Math &amp; PRNG</h2>
             <table>
                 <tr><th>Function</th><th>Description</th><th>Availability</th></tr>
                 <tr><td><code>square(x) -> int</code></td><td>x * x</td><td>Native only</td></tr>
@@ -556,9 +575,9 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>max_of(a, b) -> int</code></td><td>Maximum of two values</td><td>Native only</td></tr>
                 <tr><td><code>min_of(a, b) -> int</code></td><td>Minimum of two values</td><td>Native only</td></tr>
                 <tr><td><code>factorial(n) -> int</code></td><td>n!</td><td>Native only</td></tr>
-                <tr><td><code>random() -> int</code></td><td>CSPRNG via ChaCha20 (auto-seeded)</td><td>Native only</td></tr>
-                <tr><td><code>chacha20_init(key, counter)</code></td><td>Initialize ChaCha20 PRNG state</td><td>Native only</td></tr>
-                <tr><td><code>chacha20_block(state)</code></td><td>Generate next block (deprecated, use <code>random()</code>)</td><td>Native only</td></tr>
+                <tr><td><code>random() -> int</code></td><td>xorshift64 PRNG (VM + native) auto-seeded via tick count</td><td>VM + Native</td></tr>
+                <tr><td><code>random(lo, hi) -> int</code></td><td>xorshift64 in [lo, hi]</td><td>VM + Native</td></tr>
+                <tr><td><code>chacha20_init(s1, s2)</code></td><td>Seed PRNG with ((s1<<32)|s2) (compat name, seeds xorshift)</td><td>VM + Native</td></tr>
             </table>
 
             <!-- ========== COMPILER DIRECTIVES ========== -->
@@ -645,7 +664,8 @@ string_literal  = '"' { char | interpolation } '"'
 interpolation   = "{" expr "}"
 int_literal     = decimal | "0x" hex_digit+ | "0b" binary_digit+
 
-type            = "int" | "float" | "string" | "bool" | "list" | id</code></pre>
+type            = "int" | "byte" | "float" | "string" | "bool" | "void" | "list" | "dict" | id
+                | "list" "[" type "]" | "dict"</code></pre>
 
             <div class="callout callout-tip">
                 <strong>See also</strong>
