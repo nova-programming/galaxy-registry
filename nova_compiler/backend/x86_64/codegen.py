@@ -221,6 +221,13 @@ class X86_64Codegen:
             self.assembly.append(f".extern {b_sym}")
 
         self.assembly.append(".extern _slice_list")
+        self.assembly.append(".extern _list_insert")
+        self.assembly.append(".extern _list_clear")
+        self.assembly.append(".extern _sys_awrite_c")
+        self.assembly.append(".extern _random")
+        self.assembly.append(".extern _random_range")
+        self.assembly.append(".extern _chacha20_init")
+        self.assembly.append(".extern _api_open_internal")
         self.assembly.append(".extern _try_catch_sp")
         self.assembly.append(".extern _catch_ip")
         self.assembly.append(".extern _exception_val")
@@ -249,6 +256,16 @@ class X86_64Codegen:
             self.data_section.append(f"    .byte 0")
 
         functions = [node for node in self.ast if isinstance(node, Function)]
+        # Collect class methods as functions (mangled as Class_method for asm)
+        class_method_list = []
+        for node in self.ast:
+            if isinstance(node, ClassDef):
+                for m in node.methods:
+                    m._mangled = f"{node.name}_{m.name}"
+                    m._class_name = node.name
+                    class_method_list.append(m)
+                    functions.append(m)
+
         top_level = [node for node in self.ast if not isinstance(node, Function) and not isinstance(node, Import) and not isinstance(node, ClassDef) and not isinstance(node, Data)]
 
         self.func_returns = {}
@@ -259,11 +276,21 @@ class X86_64Codegen:
                 self.struct_defs[n.name] = n
             elif isinstance(n, Function):
                 self.func_returns[n.name] = n.return_type
+        for m in class_method_list:
+            self.func_returns[m._mangled] = m.return_type
+            self.func_returns[f"{m._class_name}.{m.name}"] = m.return_type
 
         self.assembly.append(".text")
 
         for fn in functions:
-            self.compile_function(fn)
+            # Class methods use mangled name for asm label
+            if hasattr(fn, '_mangled'):
+                orig = fn.name
+                fn.name = fn._mangled
+                self.compile_function(fn)
+                fn.name = orig
+            else:
+                self.compile_function(fn)
 
         entry = "_main" if self.target_os != "linux" else "main"
         self.assembly.append(f"{entry}:")
@@ -891,6 +918,18 @@ class X86_64Codegen:
             else:
                 self.assembly.append(f"    mov rax, [rbp - {offset}]")
             self.assembly.append("    push rax")
+        elif isinstance(node, Self):
+            if "self" in self.local_vars:
+                offset = self.local_vars["self"]
+                if isinstance(offset, str):
+                    self.assembly.append(f"    mov rax, {offset}")
+                elif offset < 0:
+                    self.assembly.append(f"    mov rax, [rbp + {-offset}]")
+                else:
+                    self.assembly.append(f"    mov rax, [rbp - {offset}]")
+                self.assembly.append("    push rax")
+            else:
+                self.assembly.append("    push 0")
         elif isinstance(node, BinOp):
             if node.op == "and":
                 label_false = self.next_label("and_false")
@@ -1132,6 +1171,42 @@ class X86_64Codegen:
                 label = self.add_string_literal(arg_type)
                 self.assembly.append(f"    lea rax, [rip + {label}]")
                 self.assembly.append("    push rax")
+            elif node.name == "random":
+                if len(node.args) == 2:
+                    self.compile_expr(node.args[1])
+                    self.compile_expr(node.args[0])
+                    self.assembly.append("    pop rdi")
+                    self.assembly.append("    pop rsi")
+                    self.assembly.append("    sub rsp, 32")
+                    self.assembly.append("    call _random_range")
+                    self.assembly.append("    add rsp, 32")
+                    self.assembly.append("    push rax")
+                elif len(node.args) == 1:
+                    self.compile_expr(node.args[0])
+                    self.assembly.append("    pop rdi")
+                    self.assembly.append("    mov rsi, rdi")
+                    self.assembly.append("    mov rdi, 0")
+                    self.assembly.append("    sub rsp, 32")
+                    self.assembly.append("    call _random_range")
+                    self.assembly.append("    add rsp, 32")
+                    self.assembly.append("    push rax")
+                else:
+                    self.assembly.append("    sub rsp, 32")
+                    self.assembly.append("    call _random")
+                    self.assembly.append("    add rsp, 32")
+                    self.assembly.append("    push rax")
+            elif node.name == "chacha20_init":
+                for arg in reversed(node.args):
+                    self.compile_expr(arg)
+                n = len(node.args)
+                if n > 0:
+                    self.assembly.append("    pop rdi")
+                if n > 1:
+                    self.assembly.append("    pop rsi")
+                self.assembly.append("    sub rsp, 32")
+                self.assembly.append("    call _chacha20_init")
+                self.assembly.append("    add rsp, 32")
+                self.assembly.append("    push 0")
             elif node.name in self.struct_defs:
                 struct_size = len(self.struct_defs[node.name].fields) * 8
                 struct_size = max(struct_size, 16)
@@ -1404,6 +1479,24 @@ class X86_64Codegen:
                 self.assembly.append("    sub rsp, 32")
                 self.assembly.append("    call _fflush")
                 self.assembly.append("    add rsp, 32")
+            elif node.method_name == "insert":
+                self.compile_expr(node.args[1])
+                self.compile_expr(node.args[0])
+                self.compile_expr(node.instance)
+                self.assembly.append("    pop rdi")
+                self.assembly.append("    pop rsi")
+                self.assembly.append("    pop rdx")
+                self.assembly.append("    sub rsp, 32")
+                self.assembly.append("    call _list_insert")
+                self.assembly.append("    add rsp, 32")
+                self.assembly.append("    push 0")
+            elif node.method_name == "clear":
+                self.compile_expr(node.instance)
+                self.assembly.append("    pop rdi")
+                self.assembly.append("    sub rsp, 32")
+                self.assembly.append("    call _list_clear")
+                self.assembly.append("    add rsp, 32")
+                self.assembly.append("    push 0")
             elif node.method_name in ("get", "has", "set", "remove", "keys", "values", "items"):
                 for arg in node.args:
                     self.compile_expr(arg)
@@ -1419,6 +1512,14 @@ class X86_64Codegen:
                 call_node = Call(node.method_name, node.args)
                 call_node.line = node.line
                 self.compile_expr(call_node)
+        elif isinstance(node, SizeOf):
+            sz = 8
+            t = getattr(node.target, 'inferred_type', None)
+            if t and getattr(t, 'name', None) and t.name in self.struct_defs:
+                sz = max(len(self.struct_defs[t.name].fields) * 8, 8)
+            elif isinstance(node.target, Variable) and node.target.name in self.struct_defs:
+                sz = max(len(self.struct_defs[node.target.name].fields) * 8, 8)
+            self.assembly.append(f"    push {sz}")
         elif isinstance(node, Len):
             if self._is_string_expr(node.target):
                 self.compile_expr(node.target)

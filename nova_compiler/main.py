@@ -24,7 +24,32 @@ NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
 ALLOWED_UPDATE_FILES = {"main.py", "_galaxy.py", "nova.nv", "runtime.c"}
 ALLOWED_UPDATE_DIRS = {"compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy"}
 
-BUNDLED_GCC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "gcc")
+BUNDLED_GCC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcc")
+
+
+def _bundled_gcc_dirs(host):
+    """Candidate dirs that may contain a bundled gcc/bin/gcc[.exe]."""
+    dirs = [BUNDLED_GCC_DIR]
+    if host == "windows":
+        app = os.environ.get("LOCALAPPDATA", "")
+        if app:
+            dirs.append(os.path.join(app, "nova", "gcc"))
+    else:
+        home = os.path.expanduser("~")
+        if home:
+            dirs.append(os.path.join(home, ".nova", "gcc"))
+    return dirs
+
+
+def _gcc_machine(gcc_path):
+    """Return the target machine string reported by gcc -dumpmachine, or None."""
+    try:
+        res = subprocess.run([gcc_path, "-dumpmachine"], capture_output=True, text=True, timeout=15)
+        if res.returncode == 0:
+            return res.stdout.strip()
+    except Exception:
+        pass
+    return None
 
 def _host_os():
     """Detect the host operating system."""
@@ -55,10 +80,11 @@ def _find_gcc(target_os=None, target_arch="x86_64"):
         if clang:
             return clang
 
-    # Native: bundled dir first
-    bundled = os.path.join(BUNDLED_GCC_DIR, "bin", gcc_name)
-    if os.path.exists(bundled):
-        return bundled
+    # Bundled compiler dirs (install location or repo checkout)
+    for bdir in _bundled_gcc_dirs(host):
+        bundled = os.path.join(bdir, "bin", gcc_name)
+        if os.path.exists(bundled):
+            return bundled
 
     # If cross-compiling, look for a cross-GCC toolchain on PATH
     if target_os and target_os != host:
@@ -69,13 +95,18 @@ def _find_gcc(target_os=None, target_arch="x86_64"):
             if cross:
                 return cross
         # Fallback: check bundled gcc dir for cross-GCC
-        bundled_cross = os.path.join(BUNDLED_GCC_DIR, "bin", cross_name if cross_name else gcc_name)
-        if os.path.exists(bundled_cross):
-            return bundled_cross
+        for bdir in _bundled_gcc_dirs(host):
+            bundled_cross = os.path.join(bdir, "bin", cross_name if cross_name else gcc_name)
+            if os.path.exists(bundled_cross):
+                return bundled_cross
 
-    # Native system GCC
+    # Native system GCC (must match host bitness to avoid 32-bit gas errors)
     system = shutil.which(gcc_name)
     if system:
+        if target_os is None or target_os == host:
+            machine = _gcc_machine(system)
+            if machine and "64" not in machine.lower():
+                return None
         return system
 
     # Last resort: try cross-GCC even without explicit target_os
