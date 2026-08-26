@@ -1321,7 +1321,36 @@ class Arm64Codegen:
                 self.assembly.append("    str x0, [sp, #-16]!")
                 self.assembly.append("    bl _dict_set")
         elif isinstance(node, MethodCall):
-            if node.method_name == "append":
+            inst_t = getattr(node.instance, 'inferred_type', None)
+            cname = getattr(inst_t, 'name', None) if inst_t else None
+            mangled = f"{cname}_{node.method_name}" if cname else None
+            is_class_method = False
+            if cname and cname in self.struct_defs and isinstance(self.struct_defs[cname], ClassDef):
+                if mangled in self.func_returns or f"{cname}.{node.method_name}" in self.func_returns:
+                    is_class_method = True
+            if is_class_method:
+                regs = []
+                for arg in reversed(node.args):
+                    r = self._compile_expr_to_reg(arg)
+                    regs.append(r)
+                inst_reg = self._compile_expr_to_reg(node.instance)
+                regs.append(inst_reg)
+                for r in regs:
+                    self.assembly.append(f"    str {r}, [sp, #-16]!")
+                    self._free_reg(r)
+                # Pop into x0 = instance (self), x1 = arg0, ...
+                self.assembly.append("    ldr x0, [sp], #16")
+                if len(node.args) >= 1:
+                    self.assembly.append("    ldr x1, [sp], #16")
+                if len(node.args) >= 2:
+                    self.assembly.append("    ldr x2, [sp], #16")
+                if len(node.args) >= 3:
+                    self.assembly.append("    ldr x3, [sp], #16")
+                if len(node.args) >= 4:
+                    self.assembly.append("    ldr x4, [sp], #16")
+                self.assembly.append(f"    bl _{mangled}")
+                self.assembly.append("    str x0, [sp, #-16]!")
+            elif node.method_name == "append":
                 no_realloc = self.next_label("L_append_no_realloc")
                 arg_reg = self._compile_expr_to_reg(node.args[0])
                 inst_reg = self._compile_expr_to_reg(node.instance)

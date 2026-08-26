@@ -196,7 +196,7 @@ nova/
 - **Self-Hosted Assembler & Linker** — fully integrated in-process x86 assembler and PE executable linker, entirely eliminating the GCC dependency.
 - **Variable-to-Register Promotion** — greedily maps local variables to CPU registers (`esi`/`edi`), massively boosting runtime performance.
 - **Native Standard Library Injection** — standard library functions (from `os_windows`, `os_unix`, and built-in runtime helpers) are automatically injected and natively compiled into all executables, removing the need for manual imports of core modules.
-- **Automatic CSPRNG Initialization** — the built-in ChaCha20 random number generator automatically seeds itself at runtime using the Windows tick count (`sys_get_tick_count()`), removing the need for manual seeding initialization.
+- **Automatic PRNG Initialization** — the built-in xorshift64 PRNG automatically seeds itself at runtime via `sys_get_tick_count()`. `chacha20_init(seed1, seed2)` seeds the same state (name retained for compatibility).
 - **HashMap/Dictionary** — `{"key": value}` literals with native codegen for `get()`, `set()`, `has()`, `remove()`, `keys()`, `values()`, `items()`, `len()`
 - **Switch/match** — `switch expr { case val { body } else { body } }` desugars to if-elif chain at parse time
 - **List comprehensions** — `[expr for x in list if cond]` desugars to Block + ForIn + append at parse time

@@ -1405,7 +1405,35 @@ class X86_64Codegen:
                 self.assembly.append("    call _dict_set")
                 self.assembly.append("    add rsp, 32")
         elif isinstance(node, MethodCall):
-            if node.method_name == "append":
+            inst_t = getattr(node.instance, 'inferred_type', None)
+            cname = getattr(inst_t, 'name', None) if inst_t else None
+            mangled = f"{cname}_{node.method_name}" if cname else None
+            is_class_method = False
+            if cname and cname in self.struct_defs and isinstance(self.struct_defs[cname], ClassDef):
+                if mangled in self.func_returns or f"{cname}.{node.method_name}" in self.func_returns:
+                    is_class_method = True
+            if is_class_method:
+                for arg in reversed(node.args):
+                    self.compile_expr(arg)
+                self.compile_expr(node.instance)
+                n_call = 1 + len(node.args)
+                if n_call > 0:
+                    self.assembly.append("    pop rdi")
+                if n_call > 1:
+                    self.assembly.append("    pop rsi")
+                if n_call > 2:
+                    self.assembly.append("    pop rdx")
+                if n_call > 3:
+                    self.assembly.append("    pop rcx")
+                if n_call > 4:
+                    self.assembly.append("    pop r8")
+                if n_call > 5:
+                    self.assembly.append("    pop r9")
+                self.assembly.append("    sub rsp, 32")
+                self.assembly.append(f"    call _{mangled}")
+                self.assembly.append("    add rsp, 32")
+                self.assembly.append("    push rax")
+            elif node.method_name == "append":
                 self.compile_expr(node.args[0])
                 self.compile_expr(node.instance)
                 self.assembly.append("    pop rbx")

@@ -117,6 +117,9 @@ class TypeInferer:
                 struct_type = StructType(stmt.name)
                 # We can't fully resolve field types yet until all structs are registered
                 self.structs[stmt.name] = struct_type
+            elif isinstance(stmt, ClassDef):
+                struct_type = StructType(stmt.name)
+                self.structs[stmt.name] = struct_type
             elif isinstance(stmt, Function):
                 params = []
                 for p_name, p_type_str in stmt.params:
@@ -128,6 +131,10 @@ class TypeInferer:
         # Pass 1.5: Resolve struct fields
         for stmt in ast:
             if isinstance(stmt, Data):
+                struct_type = self.structs[stmt.name]
+                for f_name, f_type_str in stmt.fields:
+                    struct_type.fields[f_name] = resolve_type_annotation(f_type_str)
+            elif isinstance(stmt, ClassDef):
                 struct_type = self.structs[stmt.name]
                 for f_name, f_type_str in stmt.fields:
                     struct_type.fields[f_name] = resolve_type_annotation(f_type_str)
@@ -513,6 +520,8 @@ class TypeInferer:
         return FileType
 
     def visit_Self(self, node):
+        if self.current_class and self.current_class in self.structs:
+            return self.structs[self.current_class]
         return AnyType()
 
     def visit_Break(self, node):
