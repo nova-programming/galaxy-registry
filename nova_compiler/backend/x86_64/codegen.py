@@ -930,6 +930,16 @@ class X86_64Codegen:
                 self.assembly.append("    push rax")
             else:
                 self.assembly.append("    push 0")
+        elif isinstance(node, Comptime):
+            if isinstance(node.target, Block):
+                for stmt in node.target.stmts[:-1]:
+                    self.compile_stmt(stmt)
+                if node.target.stmts:
+                    self.compile_expr(node.target.stmts[-1])
+                else:
+                    self.assembly.append("    push 0")
+            else:
+                self.compile_expr(node.target)
         elif isinstance(node, BinOp):
             if node.op == "and":
                 label_false = self.next_label("and_false")

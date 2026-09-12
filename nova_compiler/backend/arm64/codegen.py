@@ -1079,6 +1079,17 @@ class Arm64Codegen:
             else:
                 self.assembly.append("    mov x0, #0")
                 self.assembly.append("    str x0, [sp, #-16]!")
+        elif isinstance(node, Comptime):
+            if isinstance(node.target, Block):
+                for stmt in node.target.stmts[:-1]:
+                    self.compile_stmt(stmt)
+                if node.target.stmts:
+                    self.compile_expr(node.target.stmts[-1])
+                else:
+                    self.assembly.append("    mov x0, #0")
+                    self.assembly.append("    str x0, [sp, #-16]!")
+            else:
+                self.compile_expr(node.target)
         elif isinstance(node, BinOp):
             reg = self._compile_binop_to_reg(node)
             self.assembly.append(f"    str {reg}, [sp, #-16]!")

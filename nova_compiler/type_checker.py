@@ -487,6 +487,9 @@ class TypeInferer:
         self.visit(node.target)
         return IntType
 
+    def visit_Comptime(self, node):
+        return self.visit(node.target)
+
     def visit_Len(self, node):
         self.visit(node.target)
         return IntType
