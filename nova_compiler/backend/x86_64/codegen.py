@@ -233,6 +233,7 @@ class X86_64Codegen:
         self.assembly.append(".extern _exception_val")
         self.assembly.append(".extern _oob_file_ptr")
         self.assembly.append(".extern _oob_line")
+        self.assembly.append(".extern _out_of_bounds")
 
         self.data_section.append('fmt_int: .asciz "%d\\n"')
         self.data_section.append('fmt_int_pure: .asciz "%d"')
@@ -440,34 +441,55 @@ class X86_64Codegen:
                 self.local_offset += 8
                 self.local_vars[name] = self.local_offset
 
-    def scan_vars(self, node):
+    def scan_vars(self, node, visited=None):
+        """Register all local variables by walking the AST."""
+        if node is None:
+            return
+        if visited is None:
+            visited = set()
+        node_id = id(node)
+        if node_id in visited:
+            return
+        visited.add(node_id)
+        
+        # Handle nodes that introduce new variables
         if isinstance(node, Assignment):
             self.register_var(node.name)
-            self.scan_vars(node.value)
-        elif isinstance(node, IfElse):
-            for s in node.if_body:
-                self.scan_vars(s)
-            for s in node.else_body:
-                self.scan_vars(s)
-        elif isinstance(node, While):
-            for s in node.body:
-                self.scan_vars(s)
-        elif isinstance(node, ForLoop):
+            self.scan_vars(node.value, visited)
+            return
+        if isinstance(node, ForLoop):
             self.register_var(node.var_name)
+            self.scan_vars(node.start, visited)
+            self.scan_vars(node.end, visited)
+            self.scan_vars(node.step, visited)
             for s in node.body:
-                self.scan_vars(s)
-        elif isinstance(node, ForIn):
+                self.scan_vars(s, visited)
+            return
+        if isinstance(node, ForIn):
             self.register_var(node.var_name)
+            self.scan_vars(node.collection, visited)
             for s in node.body:
-                self.scan_vars(s)
-        elif isinstance(node, RawBlock):
-            for s in node.body:
-                self.scan_vars(s)
-        elif isinstance(node, Block):
-            for s in node.stmts:
-                self.scan_vars(s)
-        elif isinstance(node, (Print, Return, Throw)):
-            self.scan_vars(node.value)
+                self.scan_vars(s, visited)
+            return
+        
+        # Recursively visit all child attributes that could be nodes
+        for attr in dir(node):
+            if attr.startswith('_'):
+                continue
+            try:
+                child = getattr(node, attr)
+            except Exception:
+                continue
+            
+            if child is None:
+                continue
+            
+            if isinstance(child, list):
+                for item in child:
+                    if hasattr(item, '__dict__'):  # AST node
+                        self.scan_vars(item, visited)
+            elif hasattr(child, '__dict__'):  # AST node
+                self.scan_vars(child, visited)
 
     def compile_function(self, fn):
         old_local_vars = self.local_vars.copy()
@@ -820,6 +842,7 @@ class X86_64Codegen:
                 self.assembly.append("    call _dict_set")
                 self.assembly.append("    add rsp, 32")
             else:
+                self.assembly.append("    push rax")
                 self.assembly.append(f"    lea rax, [rip + _oob_line]")
                 self.assembly.append(f"    mov qword ptr [rax], {node.line}")
                 self.assembly.append("    cmp rcx, 0")
@@ -827,6 +850,7 @@ class X86_64Codegen:
                 self.assembly.append("    mov eax, [rbx]")
                 self.assembly.append("    cmp rcx, rax")
                 self.assembly.append("    jge _out_of_bounds")
+                self.assembly.append("    pop rax")
                 self.assembly.append("    mov rdi, [rbx + 8]")
                 self.assembly.append("    mov [rdi + rcx*8], rax")
         elif isinstance(node, WriteFile):

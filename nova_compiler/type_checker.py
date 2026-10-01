@@ -30,6 +30,7 @@ BUILTIN_SIGS = {
     "len":           (IntType, [AnyType()]),
     "char_code":     (IntType, [StringType, IntType]),
     "str_sub":       (StringType, [StringType, IntType, IntType]),
+    "tc_find_field": (AnyType(), [AnyType(), StringType]),
 }
 
 class StaticTypeError(Exception):
@@ -139,9 +140,54 @@ class TypeInferer:
                 for f_name, f_type_str in stmt.fields:
                     struct_type.fields[f_name] = resolve_type_annotation(f_type_str)
 
+        # Pass 1.6: Link struct references.
+        # resolve_type_annotation() creates a fresh, field-less StructType stub
+        # for every struct annotation it sees (function params/returns, struct
+        # fields, variable declarations). Without linking, a parameter typed
+        # `tok: Token` points at an empty stub instead of the registered
+        # Token struct, so `tok.val` infers AnyType instead of string and
+        # downstream codegen (e.g. _is_string_expr) miscompiles string indexing
+        # as list indexing -- a fatal native crash (see 53966c9 follow-up).
+        for fname in list(self.functions):
+            self.functions[fname] = self._link_struct_type(self.functions[fname])
+        for sname in list(self.structs):
+            self._link_struct_type(self.structs[sname])
+
         # Pass 2: Infer everything
         for stmt in ast:
             self.visit(stmt)
+
+    def _link_struct_type(self, t, seen=None):
+        """Replace field-less StructType stubs with the registered structs.
+
+        Recurses into FuncType params/returns, ListType elements and struct
+        fields so nested references (e.g. list[Token], struct holding a
+        struct) are linked too. `seen` guards against self-referential
+        structs (e.g. `data Node { next: Node }`)."""
+        if seen is None:
+            seen = set()
+        if t is None or id(t) in seen:
+            return t
+        seen.add(id(t))
+        if isinstance(t, StructType):
+            if t.name in self.structs:
+                reg = self.structs[t.name]
+                if reg is not t:
+                    return self._link_struct_type(reg, seen)
+                for k, v in list(reg.fields.items()):
+                    reg.fields[k] = self._link_struct_type(v, seen)
+                return reg
+            for k, v in list(t.fields.items()):
+                t.fields[k] = self._link_struct_type(v, seen)
+            return t
+        if isinstance(t, ListType):
+            t.element_type = self._link_struct_type(t.element_type, seen)
+            return t
+        if isinstance(t, FuncType):
+            t.params = [self._link_struct_type(p, seen) for p in t.params]
+            t.ret = self._link_struct_type(t.ret, seen)
+            return t
+        return t
 
     # --- Node Visitors ---
 
@@ -426,12 +472,16 @@ class TypeInferer:
     def visit_DataFieldAssign(self, node):
         inst_t = self.visit(node.instance)
         val_t = self.visit(node.value)
+        if isinstance(inst_t, StructType) and not inst_t.fields and inst_t.name in self.structs:
+            inst_t = self.structs[inst_t.name]
         if isinstance(inst_t, StructType) and node.field_name in inst_t.fields:
             self.unify(inst_t.fields[node.field_name], val_t, node)
         return val_t
 
     def visit_DataFieldAccess(self, node):
         inst_t = self.visit(node.instance)
+        if isinstance(inst_t, StructType) and not inst_t.fields and inst_t.name in self.structs:
+            inst_t = self.structs[inst_t.name]
         if isinstance(inst_t, StructType) and node.field_name in inst_t.fields:
             return inst_t.fields[node.field_name]
         return AnyType()

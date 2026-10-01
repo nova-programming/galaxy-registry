@@ -489,6 +489,7 @@ class Arm64Codegen:
         self.assembly.append(".extern _exception_val")
         self.assembly.append(".extern _oob_file_ptr")
         self.assembly.append(".extern _oob_line")
+        self.assembly.append(".extern _out_of_bounds")
 
         self.data_section.append(".align 3")
         self.data_section.append('fmt_int: .asciz "%d\\n"')

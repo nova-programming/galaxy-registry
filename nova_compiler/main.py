@@ -343,15 +343,18 @@ def expand_imports(ast, base_dir, resolver=None, visited=None, target_arch="x86_
     return expanded_ast
 
 
-def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None):
+def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None, output=None):
     """Compile a Nova program to a native executable (build mode)."""
     file_path = os.path.abspath(file_path)
     base_dir = os.path.dirname(file_path)
     if target_os is None:
         target_os = "macos" if sys.platform == "darwin" else ("windows" if sys.platform == "win32" else "linux")
 
-    output_ext = ".exe" if target_os == "windows" else ""
-    exe_file = file_path.rsplit(".", 1)[0] + output_ext
+    if output:
+        exe_file = output if os.path.isabs(output) else os.path.join(base_dir, output)
+    else:
+        output_ext = ".exe" if target_os == "windows" else ""
+        exe_file = file_path.rsplit(".", 1)[0] + output_ext
 
     # Build cache: skip if source unchanged and output exists
     if not debug_mode and os.path.exists(exe_file) and _check_cache(base_dir, file_path):
@@ -743,10 +746,15 @@ def cmd_update():
             print(f"Corrupted archive: {bad}")
             return
         for name in zf.namelist():
-            parts = name.split("/")
+            rel = name
+            if rel.startswith(ZIP_PREFIX + "/"):
+                rel = rel[len(ZIP_PREFIX) + 1:]
+            if not rel or rel.endswith("/"):
+                continue
+            parts = rel.split("/")
             top = parts[0]
             if top in ALLOWED_UPDATE_FILES or top in ALLOWED_UPDATE_DIRS:
-                dst = os.path.join(install_dir, name)
+                dst = os.path.join(install_dir, rel)
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 with zf.open(name) as src, open(dst, "wb") as df:
                     shutil.copyfileobj(src, df)
@@ -797,7 +805,8 @@ def main():
     bench_mode = 0
     target_arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x86_64"
     file_path = None
-    
+    output_file = None
+
     i = 2
     while i < len(sys.argv):
         arg = sys.argv[i]
@@ -805,6 +814,13 @@ def main():
             debug_mode = 1
         elif arg in ("-b", "--bench"):
             bench_mode = 1
+        elif arg == "-o":
+            if i + 1 < len(sys.argv):
+                output_file = sys.argv[i+1]
+                i += 1
+            else:
+                print("Error: -o requires an argument (output file)")
+                return
         elif arg == "-arch":
             if i + 1 < len(sys.argv):
                 target_arch = sys.argv[i+1]
@@ -837,7 +853,7 @@ def main():
         run_native(file_path, target_arch=target_arch, target_os=target_os_arg)
     elif command == "build":
         target_os_arg = locals().get("target_os")
-        compile_native(file_path, debug_mode, target_arch=target_arch, target_os=target_os_arg)
+        compile_native(file_path, debug_mode, target_arch=target_arch, target_os=target_os_arg, output=output_file)
     else:
         print(f"Unknown command: {command}")
         print_usage()
