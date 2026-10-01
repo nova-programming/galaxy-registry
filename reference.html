@@ -244,6 +244,10 @@
                 <tr><td>Try/Catch</td><td><code>try { ... } catch e { ... }</code></td><td>Exception handling with setjmp/longjmp</td></tr>
                 <tr><td>Throw</td><td><code>throw expr</code></td><td><code>throw "error"</code></td></tr>
                 <tr><td>Dict literal</td><td><code>{"key": value}</code></td><td><code>d = {"name": "Alice", "age": 10}</code></td></tr>
+                <tr><td>Defer</td><td><code>defer expr</code> / <code>defer { ... }</code></td><td><code>defer sys_close(f)</code> (runs at scope exit in LIFO order)</td></tr>
+                <tr><td>Direct FFI</td><td><code>extern def name(...) -&gt; ret</code></td><td><code>extern def puts(s: string) -&gt; int</code></td></tr>
+                <tr><td>Typed Alloc</td><td><code>alloc[T](count)</code></td><td><code>p = alloc[int](10)</code> (scales by sizeof(T))</td></tr>
+                <tr><td>Data Bridge</td><td><code>lst.ptr</code> / <code>ptr.as_list(n)</code></td><td>Zero-copy high-low pointer bridge</td></tr>
             </table>
 
             <!-- ========== TYPE SYSTEM ========== -->
@@ -436,6 +440,26 @@ try {
 } catch(e) {
     print(-1)
 }</code></pre>
+
+            <h3 id="defer">Deferred Execution</h3>
+            <p>The <code>defer</code> keyword schedules statements to execute in LIFO order immediately before exiting the enclosing scope or function (via return, break, or closing brace). Supports single-line and block forms.</p>
+            <pre><code>def process_file(path: string) {
+    f = sys_open(path, "r")
+    defer sys_close(f)
+
+    buf = alloc[int](1024)
+    defer free(buf)
+
+    # Work with f and buf...
+    # sys_close(f) and free(buf) are guaranteed to run upon return
+}</code></pre>
+
+            <h3 id="extern-def">Direct C FFI (extern def)</h3>
+            <p>Declare external C symbols directly in Nova without C wrapper files or dynamic loader boilerplate. Arguments automatically map to host C ABI calling conventions, and strings automatically pass as null-terminated pointers.</p>
+            <pre><code>extern def puts(s: string) -> int
+extern def sqlite3_open(path: string, db: int) -> int
+
+puts("Hello directly from C!")</code></pre>
 
             <h3 id="list-comp">List Comprehensions</h3>
             <p>Syntax: <code>[expr for x in list if cond]</code>. Desugars at parse time to a ForIn loop with append. The <code>if</code> clause is optional.</p>
