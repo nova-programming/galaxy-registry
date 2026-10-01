@@ -1,6 +1,6 @@
 export default async (req) => {
   const url = new URL(req.url);
-  const query = url.searchParams.get('q') || '';
+  const query = (url.searchParams.get('q') || '').trim().slice(0, 100);
 
   const indexUrl = new URL('/packages/index.json', url.origin);
   const res = await fetch(indexUrl);
@@ -17,7 +17,11 @@ export default async (req) => {
   });
 
   return new Response(JSON.stringify({ count: results.length, packages: results }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'public, max-age=60, s-maxage=300',
+      'X-Content-Type-Options': 'nosniff',
+    },
   });
 };
 

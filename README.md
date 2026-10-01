@@ -26,7 +26,7 @@ This installs both the Nova compiler and Galaxy package manager globally.
 
 ## Status
 
-The Nova compiler is fully self-hosted (June 2026) — `nova.exe` successfully compiles itself. Supports x86_64 (primary) and ARM64 (secondary) backends. 190+ tests passing.
+The Nova compiler is fully self-hosted — `nova.exe` successfully compiles itself. The current release is v0.8.0, with x86_64 as the primary backend and ARM64 as a secondary backend. See the Nova repository for the current test and platform matrix.
 
 ## Repository Structure
 

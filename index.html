@@ -543,7 +543,7 @@
                         </div>
                         <div class="term-body" id="term-body">
                             <div class="term-line" id="line1">
-                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>nova --version &amp;&amp; galaxy --version</span>  <span class=comment># Nova v0.7.0 / Galaxy v0.7.0</span>"></span>
+                                <span class="term-line-text" data-text="<span class=prompt>$</span> <span class=cmd>nova --version &amp;&amp; galaxy --version</span>  <span class=comment># Nova v0.8.0 / Galaxy v0.8.0</span>"></span>
                                 <button class="term-copy" onclick="copyText('nova --version && galaxy --version', this)" title="Copy command"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                             </div>
                             <div class="term-line" id="line2">
@@ -933,6 +933,16 @@ galaxy remove nova-math   # Uninstall</code></pre>
 
         function filterPackages() { renderGrid(); }
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
+        }
+
+        function safeRepo(repo) {
+            return typeof repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(repo) ? repo : '';
+        }
+
         function makeTierBadge(tier, label) {
             const l = label || (tier.charAt(0).toUpperCase() + tier.slice(1));
             return `<span class="tier-badge ${tier}">${l}</span>`;
@@ -954,18 +964,28 @@ galaxy remove nova-math   # Uninstall</code></pre>
                 return;
             }
             grid.innerHTML = filtered.map(p => `
-                <div class="card" onclick="showPackageDetails('${p.name}')">
-                    <div class="card-header"><h3>${p.name}</h3>${makeTierBadge(p.tier)}</div>
-                    <p>${p.description}</p>
+                <div class="card package-card" tabindex="0" role="button" data-package="${escapeHtml(p.name)}">
+                    <div class="card-header"><h3>${escapeHtml(p.name)}</h3>${makeTierBadge(escapeHtml(p.tier))}</div>
+                    <p>${escapeHtml(p.description)}</p>
                     <div class="card-footer">
-                        <div class="card-tags">${(p.keywords||[]).slice(0,3).map(t => `<span class="badge">${t}</span>`).join('')}</div>
+                        <div class="card-tags">${(p.keywords||[]).slice(0,3).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('')}</div>
                         <div class="card-stats">
                             ${p.tier === 'community' ? `<span class="stat"><span style="color:var(--upvote);">&#9650;</span>${p.upvotes||0}</span>` : ''}
-                            <span class="stat">v${p.version}</span>
+                            <span class="stat">v${escapeHtml(p.version)}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
+            grid.querySelectorAll('.package-card').forEach(card => {
+                const open = () => showPackageDetails(card.dataset.package);
+                card.addEventListener('click', open);
+                card.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        open();
+                    }
+                });
+            });
         }
 
         function switchDocTab(tabId) {
@@ -998,26 +1018,27 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     document.getElementById('detail-license').innerText = data.license || 'MIT';
                     document.getElementById('detail-upvotes').innerText = data.upvotes || 0;
 
-                    document.getElementById('detail-version-display').innerHTML = '<strong>Version:</strong> ' + data.version;
-                    document.getElementById('detail-author-display').innerHTML = '<strong>Author:</strong> ' + data.author;
-                    document.getElementById('detail-license-display').innerHTML = '<strong>License:</strong> ' + (data.license || 'MIT');
-                    document.getElementById('detail-upvotes-display').innerHTML = '<strong>&#9650;</strong> ' + (data.upvotes || 0) + ' upvotes';
+                    document.getElementById('detail-version-display').innerHTML = '<strong>Version:</strong> ' + escapeHtml(data.version);
+                    document.getElementById('detail-author-display').innerHTML = '<strong>Author:</strong> ' + escapeHtml(data.author);
+                    document.getElementById('detail-license-display').innerHTML = '<strong>License:</strong> ' + escapeHtml(data.license || 'MIT');
+                    document.getElementById('detail-upvotes-display').innerHTML = '<strong>&#9650;</strong> ' + escapeHtml(data.upvotes || 0) + ' upvotes';
 
                     const kw = document.getElementById('detail-keywords');
                     kw.innerHTML = '';
-                    (data.keywords||[]).forEach(k => { kw.innerHTML += `<span class="keyword">${k}</span>`; });
+                    (data.keywords||[]).forEach(k => { kw.innerHTML += `<span class="keyword">${escapeHtml(k)}</span>`; });
 
-                    document.getElementById('detail-repo').href = `https://github.com/${data.github_repo}`;
-                    document.getElementById('detail-github-issues').href = `https://github.com/${data.github_repo}/issues`;
+                    const repo = safeRepo(data.github_repo);
+                    document.getElementById('detail-repo').href = repo ? `https://github.com/${repo}` : '#';
+                    document.getElementById('detail-github-issues').href = repo ? `https://github.com/${repo}/issues` : '#';
 
                     const tc = document.getElementById('detail-tags');
                     tc.innerHTML = '';
-                    (data.keywords||[]).forEach(t => { tc.innerHTML += `<span class="badge">${t}</span>`; });
+                    (data.keywords||[]).forEach(t => { tc.innerHTML += `<span class="badge">${escapeHtml(t)}</span>`; });
 
                     const vb = document.getElementById('version-table-body');
                     vb.innerHTML = '';
                     (data.versions||[]).slice().reverse().forEach(v => {
-                        vb.innerHTML += `<tr><td>v${v.version}</td><td style="font-size:0.7rem;">${v.sha256}</td></tr>`;
+                        vb.innerHTML += `<tr><td>v${escapeHtml(v.version)}</td><td style="font-size:0.7rem;">${escapeHtml(v.sha256)}</td></tr>`;
                     });
 
                     const commentsLink = document.getElementById('detail-comments-link');
@@ -1072,8 +1093,8 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     if (data.examples && data.examples.length > 0) {
                         exContainer.innerHTML = '<div class="prose">' + data.examples.map(ex => `
                             <div class="example-card">
-                                <div class="example-title">${ex.title}</div>
-                                <pre><code>${DOMPurify.sanitize(ex.code)}</code></pre>
+                                <div class="example-title">${escapeHtml(ex.title)}</div>
+                                <pre><code>${escapeHtml(ex.code)}</code></pre>
                             </div>
                         `).join('') + '</div>';
                     } else {
@@ -1175,7 +1196,7 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     const termBody = document.getElementById('term-body');
                     const final = document.createElement('span');
                     final.style.cssText = 'display:block;margin-top:0.5rem;color:#666;font-style:italic;';
-                    final.textContent = '> Nova v0.7.0 + Galaxy v0.7.0 — choose your OS above to install';
+                    final.textContent = '> Nova v0.8.0 + Galaxy v0.8.0 — choose your OS above to install';
                     termBody.appendChild(final);
                 });
             }, 800);

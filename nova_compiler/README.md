@@ -56,7 +56,7 @@ python install.py --uninstall   # Remove Nova, Galaxy, and PATH entries
 ### Primary — `nova` commands (self-hosted bootstrap)
 
 ```bash
-# Build to native executable (GCC-free, uses self-hosted assembler+linker)
+# Build to native executable (uses the self-hosted compiler; GCC-free when the internal linker supports the target)
 nova.exe build program.nv
 
 # Assemble .s file and link directly
@@ -99,7 +99,7 @@ print(result)
 The compiler is written in Nova and bootstraps in three stages:
 
 1. **Stage 0** — Python compiler (`main.py`) compiles `nova.nv` → `nova.s` → GCC → `nova.exe`
-2. **Stage 1** — `nova.exe` (self-hosted compiler) compiles `nova.nv` → `nova.s` → GCC `nova.exe`. Non-self builds use the GCC-free `assemble-link` path: `.s` → `assembler.nv` → `linker.nv` → `.exe` (no external toolchain).
+2. **Stage 1** — `nova.exe` (self-hosted compiler) compiles `nova.nv` → `nova.s` → executable. Windows targets can use the internal assembler/linker; Unix targets currently use GCC for final linking.
 3. **Stage 2** — The Nova-compiled executable can now recompile itself, proving the bootstrap is self-sustaining
 
 The compiler pipeline within a single invocation:
@@ -192,7 +192,7 @@ nova/
 - Bare-metal flat binary output (`build-bare` / `assemble-bare`, no PE headers)
 - `@raw` block assembly passthrough (lines starting with x86 mnemonics emit raw assembly; others compile as normal Nova)
 - `@export { name1, name2 }` inside `@raw` blocks for `.global` symbol export
-- **Tree-Shaking Dead Code Elimination** — the compiler natively builds dependency graphs of function calls and slices out unused standard library functions, reducing final binary sizes by up to 70%.
+- **Tree-Shaking Dead Code Elimination** — the compiler natively builds dependency graphs of function calls and slices out unused standard library functions where supported.
 - **Self-Hosted Assembler & Linker** — fully integrated in-process x86 assembler and PE executable linker, entirely eliminating the GCC dependency.
 - **Variable-to-Register Promotion** — greedily maps local variables to CPU registers (`esi`/`edi`), massively boosting runtime performance.
 - **Native Standard Library Injection** — standard library functions (from `os_windows`, `os_unix`, and built-in runtime helpers) are automatically injected and natively compiled into all executables, removing the need for manual imports of core modules.

@@ -238,7 +238,7 @@
         <div class="doc-content">
 
             <h1 id="intro" style="margin-top:0;">Nova Language Documentation</h1>
-            <p>Welcome to the official Nova documentation. Nova is a systems programming language that compiles directly to native machine code (x86, x86_64, etc.) â€” no interpreter, no VM, no gigabytes of build tools. It gives you <strong>C-level performance</strong> with <strong>Python-level readability</strong>.</p>
+            <p>Welcome to the official Nova documentation. Nova is a systems programming language with a self-hosted compiler, VM execution mode, and native x86_64 and ARM64 targets. It combines C-like control with Python-like readability.</p>
 
             <!-- ========== QUICK START ========== -->
             <h2 id="quickstart">Quick Start</h2>
@@ -264,12 +264,12 @@ nova build hello.nv
             <p>Developers today face an impossible trade-off: high-level languages (Python, JS) let you iterate fast but run 10-50x slower than C, while low-level languages (C, C++, Rust) give you raw speed but force you through setup hell and manual memory management.</p>
             <p><strong>Nova eliminates this compromise.</strong></p>
             <ul>
-                <li><strong>14x Faster than Python</strong> â€” direct native compilation, no interpreter overhead</li>
-                <li><strong>Near-C Performance</strong> â€” competes with GCC <code>-O3</code> on tight integer loops</li>
-                <li><strong>Zero Dependencies</strong> â€” a single 200 KB binary is the entire toolchain</li>
-                <li><strong>Pythonic Syntax</strong> â€” reads like Python, runs like C</li>
-                <li><strong>Self-Hosted</strong> â€” the compiler can compile itself</li>
-                <li><strong>Tree-Shaking</strong> â€” dead code elimination shrinks binaries by up to 70%</li>
+                <li><strong>Native execution</strong> — direct compilation is available alongside the VM development workflow</li>
+                <li><strong>Native compilation</strong> — produces native executables for supported targets</li>
+                <li><strong>VM development mode</strong> — iterate without a native toolchain</li>
+                <li><strong>Pythonic syntax</strong> — readable syntax with static type checking</li>
+                <li><strong>Self-hosted</strong> — the Nova compiler can compile itself</li>
+                <li><strong>Tree-shaking</strong> — removes unused standard-library code where supported</li>
             </ul>
 
             <!-- ========== BASICS ========== -->
@@ -552,7 +552,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <!-- ========== GALAXY ========== -->
             <h2 id="galaxy">Galaxy Package Manager</h2>
-            <p>Galaxy is the official package manager for Nova. It is a fully static, Git-backed registry â€” no database, no backend server. The CLI is a single-file Python script (<code>_galaxy.py</code>) that you install once.</p>
+            <p>Galaxy is the official package manager for Nova. It is a Git-backed registry with static package metadata and a small search API. The CLI is a single-file Python script (<code>_galaxy.py</code>) that you install once.</p>
 
             <div class="callout callout-tip">
                 <strong>Try it now</strong>
@@ -650,7 +650,7 @@ galaxy search nova-team
 
             <h4>galaxy --version</h4>
             <pre><code>galaxy --version
-<span class="nv-cmt"># Galaxy v0.7.0</span></code></pre>
+<span class="nv-cmt"># Galaxy v0.8.0</span></code></pre>
             <p>Displays the current Galaxy CLI version.</p>
 
             <h4>galaxy update</h4>
@@ -658,10 +658,10 @@ galaxy search nova-team
             <pre><code><span class="nv-cmt"># Update Galaxy CLI to the latest version</span>
 galaxy update
 <span class="nv-cmt"># Galaxy v0.6.1
-# Latest version: v0.7.0  (current: v0.6.1)
-# Update to v0.7.0? (Y/n): y
+# Latest version: v0.8.0  (current: v0.8.0)
+# Update to v0.8.0? (Y/n): y
 # Updated 2 files.
-# Galaxy has been updated to v0.7.0.</span></code></pre>
+# Galaxy has been updated to v0.8.0.</span></code></pre>
             <p>Uses the installation directory detected during <code>install.py</code> setup. Only Galaxy-related files are replaced (<code>_galaxy.py</code> and <code>galaxy/</code>).</p>
 
             <h4>galaxy upgrade</h4>
@@ -787,18 +787,18 @@ nova run main.nv arg1 arg2</code></pre>
 
             <h4>nova --version</h4>
             <pre><code>nova --version
-<span class="nv-cmt"># Nova v0.7.0</span></code></pre>
+<span class="nv-cmt"># Nova v0.8.0</span></code></pre>
             <p>Displays the current Nova compiler version.</p>
 
             <h4>nova update</h4>
             <p><strong>Self-update â€” updates the Nova compiler itself.</strong> Checks the version endpoint on the registry, prompts before downloading, and replaces only the compiler files.</p>
             <pre><code><span class="nv-cmt"># Update Nova to the latest version</span>
 nova update
-<span class="nv-cmt"># Nova v0.7.0
-# Latest version: v0.7.0  (current: v0.6.1)
-# Update to v0.7.0? (Y/n): y
+<span class="nv-cmt"># Nova v0.8.0
+# Latest version: v0.8.0  (current: v0.8.0)
+# Update to v0.8.0? (Y/n): y
 # Updated 3 files.
-# Nova has been updated to v0.7.0.</span></code></pre>
+# Nova has been updated to v0.8.0.</span></code></pre>
             <p>Uses the installation directory detected from the script location or standard paths (<code>%LOCALAPPDATA%\nova\</code> on Windows, <code>~/.nova/</code> on Unix). Only compiler-related files are replaced (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>).</p>
 
             <p>Package management is handled by the standalone <strong><code>galaxy</code></strong> CLI. See the <a href="#galaxy">Galaxy Package Manager</a> section above. You can also invoke galaxy through Nova:</p>
@@ -868,7 +868,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 <li><strong>Parser</strong> â€” recursive-descent parser that builds an AST with constant folding</li>
                 <li><strong>Type Checker</strong> â€” static type inference and validation</li>
                 <li><strong>Code Generator</strong> â€” emits native assembly (dynamically selected for your target architecture like x86_64, arm64) with bounds-checking and variable-to-register promotion</li>
-                <li><strong>Tree Shaker</strong> â€” builds a call-graph dependency map and removes unused stdlib functions (up to 70% binary size reduction)</li>
+                <li><strong>Tree Shaker</strong> â€” builds a call-graph dependency map and removes unused stdlib functions</li>
                 <li><strong>Assembler</strong> â€” encodes assembly mnemonics to native machine code in-process</li>
                 <li><strong>Linker</strong> â€” packages machine code into a valid Windows PE binary</li>
             </ol>
@@ -890,7 +890,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
 
             <div class="callout callout-tip">
                 <strong>Benchmarking note</strong>
-                In heavy computation benchmarks, Nova runs 14x faster than Python and within 2x of GCC <code>-O3</code>. Integer-heavy loops are the strongest use case.
+                Benchmark results depend on workload, compiler version, target, and build settings. Measure your own workload before making performance claims.
             </div>
 
         </div>
@@ -931,4 +931,3 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
     </footer>
 </body>
 </html>
-

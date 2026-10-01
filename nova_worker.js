@@ -4,7 +4,7 @@ let pyodide = null;
 let initialized = false;
 
 async function fetchPythonFile(path) {
-    const res = await fetch(path);
+    const res = await fetch(path, { cache: "no-cache" });
     if (!res.ok) throw new Error("Failed to fetch " + path);
     return await res.text();
 }
@@ -109,7 +109,11 @@ self.onmessage = async (e) => {
         return;
     }
     
-    const { id, action, code } = e.data;
+    const { id, action, code } = e.data || {};
+    if (typeof code !== "string" || code.length > 200000) {
+        postMessage({ type: "error", id, msg: "Source must be text under 200 KB." });
+        return;
+    }
     
     if (action === "run") {
         try {
@@ -138,4 +142,3 @@ self.onmessage = async (e) => {
 init().catch(err => {
     postMessage({ type: "error", msg: "Initialization failed: " + err });
 });
-
