@@ -1205,6 +1205,10 @@ class X86_64Codegen:
                     self.assembly.append("    mov rax, rdx")
                 elif node.op == "&":
                     self.assembly.append("    and rax, rbx")
+                elif node.op == "|":
+                    self.assembly.append("    or rax, rbx")
+                elif node.op == "^":
+                    self.assembly.append("    xor rax, rbx")
                 elif node.op == "<<":
                     self.assembly.append("    mov rcx, rbx")
                     self.assembly.append("    shl rax, cl")
@@ -1239,6 +1243,10 @@ class X86_64Codegen:
                     self.assembly.append("    mov rax, rdx")
                 elif node.op == "&":
                     self.assembly.append("    and rax, rbx")
+                elif node.op == "|":
+                    self.assembly.append("    or rax, rbx")
+                elif node.op == "^":
+                    self.assembly.append("    xor rax, rbx")
                 elif node.op == "<<":
                     self.assembly.append("    mov rcx, rbx")
                     self.assembly.append("    shl rax, cl")
@@ -1251,6 +1259,8 @@ class X86_64Codegen:
             self.assembly.append("    pop rax")
             if node.op == "-":
                 self.assembly.append("    neg rax")
+            elif node.op == "~":
+                self.assembly.append("    not rax")
             elif node.op == "not":
                 self.assembly.append("    cmp rax, 0")
                 self.assembly.append("    sete al")

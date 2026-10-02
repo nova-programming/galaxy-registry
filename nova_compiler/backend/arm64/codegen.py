@@ -249,6 +249,8 @@ class Arm64Codegen:
             in_reg = self._compile_expr_to_reg(node.value)
             if node.op == "-":
                 self.assembly.append(f"    neg {in_reg}, {in_reg}")
+            elif node.op == "~":
+                self.assembly.append(f"    mvn {in_reg}, {in_reg}")
             elif node.op == "not":
                 self.assembly.append(f"    cmp {in_reg}, #0")
                 self.assembly.append(f"    cset {in_reg}, eq")
@@ -367,6 +369,10 @@ class Arm64Codegen:
                 self._free_reg(tmp)
             elif node.op == "&":
                 self.assembly.append(f"    and {left_reg}, {left_reg}, {right_reg}")
+            elif node.op == "|":
+                self.assembly.append(f"    orr {left_reg}, {left_reg}, {right_reg}")
+            elif node.op == "^":
+                self.assembly.append(f"    eor {left_reg}, {left_reg}, {right_reg}")
             elif node.op == "<<":
                 self.assembly.append(f"    lsl {left_reg}, {left_reg}, {right_reg}")
             elif node.op == ">>":
