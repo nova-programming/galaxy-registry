@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Language Documentation â€” Galaxy Registry</title>
+    <title>Nova Language Documentation — Galaxy Registry</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -195,12 +195,13 @@
             Galaxy
         </a>
         <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="index.html?view=view-libraries">Libraries</a>
-            <a href="#" class="active">Documentation</a>
+            <a href="index.html?view=view-libraries">Packages</a>
+            <a href="documentation.html" class="active">Documentation</a>
             <a href="reference.html">Reference</a>
             <a href="examples.html">Examples</a>
-            <a href="index.html?view=view-contribute">Contribute</a>
+            <a href="templates.html">Templates</a>
+            <a href="playground.html">Playground</a>
+            <a href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
 
@@ -211,11 +212,11 @@
                 <li><a href="#intro">Introduction</a></li>
                 <li><a href="#quickstart">Quick Start</a></li>
                 <li class="section-gap"><a href="#philosophy">Why Nova?</a></li>
-                <li><a href="#syntax-guide">Syntax Guide (Playground)</a></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
+                <li><a href="#syntax-guide">Syntax Guide</a></li>
+                <li><a href="#syntax-variables">&#8627; Variables &amp; Types</a></li>
+                <li><a href="#syntax-control">&#8627; Control Flow</a></li>
+                <li><a href="#syntax-loops">&#8627; Loops (For &amp; While)</a></li>
+                <li><a href="#syntax-switch">&#8627; Switch / Case</a></li>
                 <li><a href="#classes">Classes &amp; Objects</a></li>
                 <li><a href="#stdlib">Standard Library</a></li>
                 <li class="section-gap"><a href="#imports">Import System</a></li>
@@ -444,6 +445,8 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_system(cmd) -&gt; int</code></td><td>Execute shell command, returns exit code</td></tr>
                 <tr><td><code>sys_exit(code)</code></td><td>Terminate process immediately</td></tr>
                 <tr><td><code>sys_get_tick_count() -&gt; int</code></td><td>System uptime in milliseconds</td></tr>
+            </table>
+
             <h2 id="classes">Data Structures</h2>
             <p>Nova supports structured programming with data fields and methods. (Note: constructors like <code>__init__</code> are not supported natively yet, fields must be assigned manually).</p>
             <pre><code><span class="nv-kw">data</span> <span class="nv-fn">Player</span> {
@@ -561,7 +564,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
 
             <!-- ===== INSTALL ===== -->
             <h3 id="galaxy-install">Installing Galaxy CLI</h3>
-            <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command â€” no <code>python -m</code> prefix needed after installation.</p>
+            <p>The Galaxy CLI runs as a standalone <code>galaxy</code> command — no <code>python -m</code> prefix needed after installation.</p>
 
             <h4>One-Click Install (No Python Required)</h4>
             <p><strong>Windows (PowerShell, pre-installed):</strong></p>
@@ -576,7 +579,7 @@ salt = <span class="nv-fn">random</span>()</code></pre>
             <ul>
                 <li>Downloads the Nova compiler (<code>main.py</code>, <code>compiler/</code>, <code>parser/</code>, <code>lexer/</code>, <code>nova_ast/</code>, <code>vm/</code>, <code>stdlib/</code>, <code>modules/</code>, <code>tools/</code>) and Galaxy CLI (<code>_galaxy.py</code>, <code>galaxy/</code>) to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix)</li>
                 <li>Creates <code>nova.bat</code>, <code>galaxy.bat</code>, and <code>use_nova.bat</code> helper (Windows) or shell scripts (Unix) launchers</li>
-                <li>Adds the install directory to your <strong>user PATH</strong> â€” no admin privileges needed</li>
+                <li>Adds the install directory to your <strong>user PATH</strong> — no admin privileges needed</li>
                 <li>Verifies SHA-256 integrity of the downloaded archive</li>
             </ul>
             <p><strong>To use <code>nova</code> and <code>galaxy</code> immediately without restarting your terminal:</strong></p>
@@ -654,7 +657,7 @@ galaxy search nova-team
             <p>Displays the current Galaxy CLI version.</p>
 
             <h4>galaxy update</h4>
-            <p><strong>Self-update â€” updates Galaxy CLI itself.</strong> Checks the registry for a newer version of Galaxy, prompts before downloading, and replaces the installed files. Works the same way as <code>nova update</code>.</p>
+            <p><strong>Self-update — updates Galaxy CLI itself.</strong> Checks the registry for a newer version of Galaxy, prompts before downloading, and replaces the installed files. Works the same way as <code>nova update</code>.</p>
             <pre><code><span class="nv-cmt"># Update Galaxy CLI to the latest version</span>
 galaxy update
 <span class="nv-cmt"># Galaxy v0.6.1
@@ -684,7 +687,7 @@ galaxy upgrade nova-math</code></pre>
                 <tr><th>Command</th><th>Files Created</th></tr>
                 <tr><td><code>galaxy init library my-lib</code></td><td><code>galaxy.json</code>, <code>src/main.nv</code>, <code>tests/test_main.nv</code>, <code>README.md</code></td></tr>
             </table>
-            <p>For full template documentation â€” generated file contents, customization guide, galaxy.json manifest reference, and extending the template system â€” see the <a href="templates.html"><strong>Templates reference page</strong></a>.</p>
+            <p>For full template documentation — generated file contents, customization guide, galaxy.json manifest reference, and extending the template system — see the <a href="templates.html"><strong>Templates reference page</strong></a>.</p>
 
             <!-- ===== MANIFEST ===== -->
             <h3 id="galaxy-manifest">galaxy.json Manifest Reference</h3>
@@ -716,13 +719,13 @@ galaxy upgrade nova-math</code></pre>
 
             <!-- ===== PUBLISHING ===== -->
             <h3 id="galaxy-publish">Publishing a Package</h3>
-            <p>All publishing goes through a <strong>GitHub Issue</strong> workflow â€” there is no direct write access to the registry. This ensures every submission is reviewed.</p>
+            <p>All publishing goes through a <strong>GitHub Issue</strong> workflow — there is no direct write access to the registry. This ensures every submission is reviewed.</p>
 
             <h4>Using galaxy publish (Recommended)</h4>
             <ol>
                 <li>Write your Nova library and host it on <strong>GitHub</strong></li>
                 <li>Run <code>galaxy init library my-lib</code> to scaffold the project</li>
-                <li>Edit <code>galaxy.json</code> â€” set <code>author</code>, <code>repository</code>, <code>license</code>, <code>keywords</code></li>
+                <li>Edit <code>galaxy.json</code> — set <code>author</code>, <code>repository</code>, <code>license</code>, <code>keywords</code></li>
                 <li>Run <code>galaxy publish</code> from the project root</li>
             </ol>
             <p><code>galaxy publish</code> does the following:</p>
@@ -748,7 +751,7 @@ galaxy upgrade nova-math</code></pre>
 
             <div class="callout callout-warn">
                 <strong>Naming rules</strong>
-                Package names are globally unique across all three tiers. Once a name is taken, it cannot be reused. Versions must increase monotonically â€” no downgrades, no repeats.
+                Package names are globally unique across all three tiers. Once a name is taken, it cannot be reused. Versions must increase monotonically — no downgrades, no repeats.
             </div>
 
             <!-- ========== IMPORTS ========== -->
@@ -763,7 +766,7 @@ galaxy upgrade nova-math</code></pre>
 <span class="nv-kw">import</span> math_utils
 
 result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</span>)   <span class="nv-cmt">// -> 42</span></code></pre>
-            <p>The import system uses module prefixing â€” you call imported functions as <code>module_name.function_name()</code>.</p>
+            <p>The import system uses module prefixing — you call imported functions as <code>module_name.function_name()</code>.</p>
 
             <!-- ========== COMPILER CLI ========== -->
             <h2 id="compiler-cli">Compiler Command-Line Reference</h2>
@@ -791,7 +794,7 @@ nova run main.nv arg1 arg2</code></pre>
             <p>Displays the current Nova compiler version.</p>
 
             <h4>nova update</h4>
-            <p><strong>Self-update â€” updates the Nova compiler itself.</strong> Checks the version endpoint on the registry, prompts before downloading, and replaces only the compiler files.</p>
+            <p><strong>Self-update — updates the Nova compiler itself.</strong> Checks the version endpoint on the registry, prompts before downloading, and replaces only the compiler files.</p>
             <pre><code><span class="nv-cmt"># Update Nova to the latest version</span>
 nova update
 <span class="nv-cmt"># Nova v0.8.0
@@ -820,7 +823,9 @@ galaxy install pkg</code></pre>
             </div>
 
             <!-- ========== ADVANCED ========== -->
-                        <h2 id="python-bridge">Python Bridge (Seamless Interop)</h2>
+            <h2 id="advanced">Advanced Features</h2>
+
+            <h3 id="python-bridge">Python Bridge (Seamless Interop)</h3>
             <p>Nova features a zero-friction Python Bridge (<code>nova_py.py</code>) that allows you to natively import <code>.nv</code> files directly into Python scripts. The bridge automatically compiles the Nova code into high-speed native assembly (<code>.dll</code>/<code>.so</code>), handles SysV ABI translations, maps C-types to Python types, and binds the functions—all transparently on import.</p>
             <p>To use it, just import <code>nova_py</code> once, then import your Nova modules as if they were standard Python modules:</p>
             <pre><code>import nova_py
@@ -829,11 +834,14 @@ import math_lib # Automatically compiles math_lib.nv and loads it natively!
 # Call Nova's C-speed functions natively from Python
 result = math_lib.calculate_fibonacci(40)
 print(result)</code></pre>
-            <div class="callout tip">
+            <div class="callout callout-tip">
                 <strong>Tip:</strong> The Python bridge is perfect for accelerating heavy computational logic in existing Python applications without writing C extensions.
             </div>
 
-
+            <h3>Raw Memory Operations</h3>
+            <p>Nova supports low-level raw memory manipulation with explicit byte/word/dword sizing:</p>
+            <pre><code><span class="nv-kw">def</span> <span class="nv-fn">test_pointers</span>() {
+    ptr = <span class="nv-num">0x1000</span>
     flag = ptr + <span class="nv-num">4</span>
     flag.<span class="nv-kw">value_byte</span> = <span class="nv-num">1</span>      <span class="nv-cmt"># Write 1 byte</span>
 }</code></pre>
@@ -864,28 +872,28 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
             <h2 id="architecture">Compiler Architecture</h2>
             <p>When you run <code>nova build hello.nv</code>, the compiler processes your source through a single in-process pipeline:</p>
             <ol>
-                <li><strong>Lexer</strong> â€” tokenizes source into structured <code>Token</code> objects</li>
-                <li><strong>Parser</strong> â€” recursive-descent parser that builds an AST with constant folding</li>
-                <li><strong>Type Checker</strong> â€” static type inference and validation</li>
-                <li><strong>Code Generator</strong> â€” emits native assembly (dynamically selected for your target architecture like x86_64, arm64) with bounds-checking and variable-to-register promotion</li>
-                <li><strong>Tree Shaker</strong> â€” builds a call-graph dependency map and removes unused stdlib functions</li>
-                <li><strong>Assembler</strong> â€” encodes assembly mnemonics to native machine code in-process</li>
-                <li><strong>Linker</strong> â€” packages machine code into a valid Windows PE binary</li>
+                <li><strong>Lexer</strong> — tokenizes source into structured <code>Token</code> objects</li>
+                <li><strong>Parser</strong> — recursive-descent parser that builds an AST with constant folding</li>
+                <li><strong>Type Checker</strong> — static type inference and validation</li>
+                <li><strong>Code Generator</strong> — emits native assembly (dynamically selected for your target architecture like x86_64, arm64) with bounds-checking and variable-to-register promotion</li>
+                <li><strong>Tree Shaker</strong> — builds a call-graph dependency map and removes unused stdlib functions</li>
+                <li><strong>Assembler</strong> — encodes assembly mnemonics to native machine code in-process</li>
+                <li><strong>Linker</strong> — packages machine code into a valid Windows PE binary</li>
             </ol>
             <p>The entire pipeline runs in a single process. No external tools are invoked.</p>
 
             <h3>Self-Hosting</h3>
-            <p>The Nova compiler is self-hosted â€” the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself.</p>
+            <p>The Nova compiler is self-hosted — the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself.</p>
 
             <!-- ========== PERFORMANCE ========== -->
             <h2 id="performance">Performance Tips</h2>
             <p>Nova is already fast out of the box, but here are ways to get the most out of it:</p>
             <ul>
-                <li><strong>Prefer local variables</strong> â€” Nova maps locals to CPU registers (esi/edi). The fewer memory accesses, the faster your code.</li>
-                <li><strong>Use <code>for</code> loops</strong> â€” they compile to tight <code>cmp/jl</code> sequences. Avoid unnecessary function calls inside hot loops.</li>
-                <li><strong>Avoid recursion for deep iterations</strong> â€” Nova's function calls have standard call/ret overhead. Use iterative loops for performance-critical paths.</li>
-                <li><strong>Use <code>@raw</code> blocks for hot paths</strong> â€” if you know the exact assembly sequence, inline it directly to skip the compiler's generic codegen.</li>
-                <li><strong>Release builds only</strong> â€” never ship a debug binary (<code>--debug</code> enables <code>printd</code> which adds overhead).</li>
+                <li><strong>Prefer local variables</strong> — Nova maps locals to CPU registers (esi/edi). The fewer memory accesses, the faster your code.</li>
+                <li><strong>Use <code>for</code> loops</strong> — they compile to tight <code>cmp/jl</code> sequences. Avoid unnecessary function calls inside hot loops.</li>
+                <li><strong>Avoid recursion for deep iterations</strong> — Nova's function calls have standard call/ret overhead. Use iterative loops for performance-critical paths.</li>
+                <li><strong>Use <code>@raw</code> blocks for hot paths</strong> — if you know the exact assembly sequence, inline it directly to skip the compiler's generic codegen.</li>
+                <li><strong>Release builds only</strong> — never ship a debug binary (<code>--debug</code> enables <code>printd</code> which adds overhead).</li>
             </ul>
 
             <div class="callout callout-tip">

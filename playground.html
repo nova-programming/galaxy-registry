@@ -3,274 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Playground</title>
+    <title>Nova Playground — Interactive WebAssembly Compiler</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Monaco Editor -->
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.css">
     <style>
         :root {
-            --bg: #0d1117; 
-            --text: #c9d1d9; 
-            --text-secondary: #8b949e; 
-            --border: #30363d; 
+            --bg: #0d1117;
+            --text: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --border: #30363d;
+            --border-subtle: #21262d;
             --accent: #2f81f7;
             --accent-hover: #1f6feb;
-            --nav-bg: rgba(13, 17, 23, 0.7);
+            --nav-bg: rgba(13, 17, 23, 0.85);
             --code-bg: #161b22;
             --console-bg: #010409;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            color: var(--text);
-            display: flex; flex-direction: column; 
-            height: 100vh; overflow: hidden;
-        }
-        
-        nav {
-            background: var(--nav-bg); 
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border); 
-            display: flex;
-            justify-content: space-between; align-items: center;
-            padding: 0 2rem; height: 60px; flex-shrink: 0;
-            z-index: 10;
-        }
-        .nav-brand { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: #fff; }
-        .nav-links { display: flex; gap: 1.75rem; }
-        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover, .nav-links a.active { color: #fff; }
-        
-        .workspace { 
-            display: flex; flex: 1; overflow: hidden; 
-            flex-direction: row; 
-        }
-        .editor-container { 
-            flex: 1; 
-            border-right: 1px solid var(--border); 
-            display: flex; flex-direction: column; 
-        }
-        
-        .toolbar { 
-            padding: 0.75rem 1rem; 
-            border-bottom: 1px solid var(--border); 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: var(--code-bg); 
-        }
-        #compiler-status { font-size: 0.85rem; color: var(--text-secondary); }
-        .btn-run { 
-            background: linear-gradient(135deg, #2f81f7, #6e40c9);
-            color: white; border: none; padding: 0.5rem 1.2rem; 
-            border-radius: 6px; font-weight: 600; cursor: pointer; 
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(47, 129, 247, 0.2);
-        }
-        .btn-run:hover:not(:disabled) { 
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(47, 129, 247, 0.4);
-        }
-        .btn-run:active:not(:disabled) {
-            transform: translateY(1px);
-        }
-        .btn-run:disabled { 
-            background: var(--border); color: var(--text-secondary);
-            cursor: not-allowed; box-shadow: none; 
-        }
-        
-        #editor { flex: 1; background: var(--bg); }
-        .console-container { 
-            width: 35%; display: flex; flex-direction: column; 
-            background: var(--console-bg); 
-            border-left: 1px solid var(--border);
-            box-shadow: inset 10px 0 20px rgba(0,0,0,0.2);
-        }
-        .console-header { 
-            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); 
-            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
-            letter-spacing: 0.1em; color: var(--text-secondary); 
-            background: var(--code-bg);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .console-title { display: flex; align-items: center; gap: 0.5rem; }
-        .console-title::before {
-            content: ""; display: inline-block; width: 8px; height: 8px;
-            border-radius: 50%; background: #3fb950;
-            box-shadow: 0 0 8px #3fb950;
-        }
-        .btn-clear {
-            background: transparent; border: 1px solid var(--border);
-            color: var(--text-secondary); padding: 0.2rem 0.5rem;
-            border-radius: 4px; font-size: 0.7rem; cursor: pointer;
-            transition: all 0.2s ease; font-weight: 600;
-        }
-        .btn-clear:hover { background: var(--border); color: var(--text); }
-        
-        #console-output { 
-            flex: 1; padding: 1.2rem; overflow-y: auto; 
-            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; 
-            white-space: pre-wrap; line-height: 1.6; color: #e6edf3; 
-        }
-        .error { color: #ff7b72; font-weight: 600; }
-        .success { color: #3fb950; }
-        
-        .status-bar { 
-            padding: 0.4rem 1rem; font-size: 0.75rem; 
-            border-top: 1px solid var(--border); background: var(--code-bg); 
-            color: var(--text-secondary); display: flex; 
-            justify-content: space-between; z-index: 10;
+            --card-bg: #161b22;
+            --btn-bg: #21262d;
+            --btn-hover: #30363d;
+            --success: #3fb950;
+            --error: #ff7b72;
+            --warning: #d29922;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
+        body[data-theme="light"] {
+            --bg: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --border: #e2e8f0;
+            --border-subtle: #f1f5f9;
+            --accent: #0070f3;
+            --accent-hover: #005bb5;
+            --nav-bg: rgba(255, 255, 255, 0.9);
+            --code-bg: #f8fafc;
+            --console-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --btn-bg: #f1f5f9;
+            --btn-hover: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex; flex-direction: column;
+            height: 100vh; overflow: hidden;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        /* Top Nav */
+        nav {
+            background: var(--nav-bg);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 1.5rem; height: 56px; flex-shrink: 0;
+            z-index: 100;
+        }
+        .nav-brand {
+            font-weight: 700; font-size: 1.15rem; letter-spacing: -0.03em;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none; color: var(--text);
+        }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-brand span.badge {
+            font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem;
+            background: rgba(47, 129, 247, 0.15); color: var(--accent);
+            border-radius: 4px; letter-spacing: 0.04em;
+        }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-links a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.85rem; font-weight: 500; transition: color 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); font-weight: 600; }
+
+        /* Workspace */
+        .workspace {
+            display: flex; flex: 1; overflow: hidden;
+            flex-direction: row;
+        }
+
+        /* Editor Section */
+        .editor-container {
+            flex: 1; min-width: 0;
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--code-bg); gap: 0.75rem; flex-wrap: wrap;
+        }
+        .toolbar-group { display: flex; align-items: center; gap: 0.5rem; }
+
+        .select-preset {
+            background: var(--btn-bg); color: var(--text);
+            border: 1px solid var(--border); padding: 0.4rem 0.75rem;
+            border-radius: 6px; font-size: 0.8rem; font-family: inherit;
+            font-weight: 500; cursor: pointer; outline: none;
+            transition: all 0.2s ease;
+        }
+        .select-preset:hover, .select-preset:focus { border-color: var(--accent); }
+
+        .btn-tool {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: var(--btn-bg); border: 1px solid var(--border);
+            color: var(--text); padding: 0.4rem 0.75rem;
+            border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-tool:hover { background: var(--btn-hover); border-color: var(--accent); }
+        .btn-tool svg { width: 14px; height: 14px; }
+
+        .compiler-indicator {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            font-size: 0.8rem; color: var(--text-secondary);
+        }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--warning); box-shadow: 0 0 8px var(--warning);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .status-dot.ready { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-dot.running { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
+
+        .btn-run {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: linear-gradient(135deg, #0070f3, #7928ca);
+            color: #ffffff; border: none; padding: 0.45rem 1.15rem;
+            border-radius: 6px; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0, 112, 243, 0.25);
+        }
+        .btn-run:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0, 112, 243, 0.4);
+        }
+        .btn-run:active:not(:disabled) { transform: translateY(1px); }
+        .btn-run:disabled {
+            background: var(--border); color: var(--text-tertiary);
+            cursor: not-allowed; box-shadow: none; transform: none;
+        }
+        .kbd-badge {
+            font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
+            padding: 0.1rem 0.35rem; border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2); color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        #editor { flex: 1; width: 100%; min-height: 0; }
+
+        /* Console Section */
+        .console-container {
+            width: 38%; display: flex; flex-direction: column;
+            background: var(--console-bg);
+            border-left: 1px solid var(--border);
+            min-width: 280px;
+        }
+        .console-header {
+            padding: 0.5rem 1rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--code-bg); min-height: 43px;
+        }
+        .console-title-group { display: flex; align-items: center; gap: 0.6rem; }
+        .console-title {
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-secondary);
+        }
+        .exec-metrics {
+            font-size: 0.72rem; color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace; font-weight: 500;
+        }
+        .console-actions { display: flex; gap: 0.4rem; }
+        .btn-console {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-secondary); padding: 0.2rem 0.55rem;
+            border-radius: 4px; font-size: 0.72rem; cursor: pointer;
+            transition: all 0.15s ease; font-weight: 500;
+        }
+        .btn-console:hover { background: var(--btn-hover); color: var(--text); border-color: var(--accent); }
+
+        #console-output {
+            flex: 1; padding: 1rem 1.25rem; overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            white-space: pre-wrap; line-height: 1.6; color: var(--text);
+            background: var(--console-bg);
+        }
+        .console-line { margin-bottom: 0.2rem; }
+        .console-line.prompt { color: var(--accent); font-weight: 600; }
+        .console-line.error { color: var(--error); font-weight: 600; }
+        .console-line.system { color: var(--text-tertiary); font-style: italic; }
+
+        /* Status Bar */
+        .status-bar {
+            padding: 0.35rem 1.25rem; font-size: 0.75rem;
+            border-top: 1px solid var(--border); background: var(--code-bg);
+            color: var(--text-secondary); display: flex;
+            justify-content: space-between; align-items: center; z-index: 10;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .status-group { display: flex; gap: 1.25rem; align-items: center; }
+
+        /* Toast notification */
+        .toast {
+            position: fixed; bottom: 2.5rem; right: 2rem;
+            background: var(--btn-bg); border: 1px solid var(--border);
+            color: var(--text); padding: 0.6rem 1.2rem; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            opacity: 0; transform: translateY(10px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none; z-index: 1000;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Responsive Layout */
+        @media (max-width: 860px) {
             .workspace { flex-direction: column; }
-            .editor-container { border-right: none; border-bottom: 1px solid var(--border); flex: 1; }
-            .console-container { width: 100%; height: 35%; border-left: none; }
+            .editor-container { border-right: none; border-bottom: 1px solid var(--border); flex: 1.2; }
+            .console-container { width: 100%; height: 40%; border-left: none; }
             nav { padding: 0 1rem; }
             .nav-links { gap: 1rem; }
+            .toolbar { gap: 0.5rem; }
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
+    <!-- Top Navigation -->
     <nav>
         <a href="index.html" class="nav-brand">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-            Galaxy Registry
+            Galaxy <span class="badge">Playground</span>
         </a>
         <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="documentation.html">Documentation</a>
-            <a href="#" class="active">Playground</a>
+            <a href="index.html?view=view-libraries">Packages</a>
+            <a href="documentation.html">Docs</a>
+            <a href="reference.html">Reference</a>
+            <a href="examples.html">Examples</a>
+            <a href="templates.html">Templates</a>
+            <a href="playground.html" class="active">Playground</a>
+            <a href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
 
+    <!-- Workspace -->
     <div class="workspace">
         <div class="editor-container">
             <div class="toolbar">
-                <span id="compiler-status">Initializing Pyodide (Downloading ~10MB)...</span>
-                <button id="run-btn" class="btn-run" disabled>Run Code</button>
+                <div class="toolbar-group">
+                    <label for="example-select" style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);">Examples:</label>
+                    <select id="example-select" class="select-preset" onchange="loadPreset(this.value)">
+                        <option value="fibonacci">Fibonacci (Recursion &amp; Types)</option>
+                        <option value="fizzbuzz">FizzBuzz (Loops &amp; Conditionals)</option>
+                        <option value="primes">Prime Finder (Iterative Loops)</option>
+                        <option value="classes">Data Classes &amp; Structs</option>
+                        <option value="switch">Switch / Pattern Matching</option>
+                        <option value="sort">Bubble Sort (Lists &amp; Mutation)</option>
+                    </select>
+
+                    <button class="btn-tool" onclick="resetCurrentPreset()" title="Reset snippet">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                        Reset
+                    </button>
+                    <button class="btn-tool" onclick="shareSnippet()" title="Copy shareable permalink">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        Share
+                    </button>
+                    <button class="btn-tool" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">
+                        <span id="theme-icon">&#9789;</span>
+                    </button>
+                </div>
+
+                <div class="toolbar-group">
+                    <div class="compiler-indicator">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="compiler-status">Initializing Pyodide (Downloading ~10MB)...</span>
+                    </div>
+                    <button id="run-btn" class="btn-run" onclick="runCode()" disabled>
+                        <span>Run Code</span>
+                        <span class="kbd-badge">Ctrl + Enter</span>
+                    </button>
+                </div>
             </div>
             <div id="editor"></div>
         </div>
+
         <div class="console-container">
             <div class="console-header">
-                <div class="console-title">Output Console</div>
-                <button id="clear-btn" class="btn-clear">Clear</button>
+                <div class="console-title-group">
+                    <span class="console-title">Output Terminal</span>
+                    <span id="exec-metrics" class="exec-metrics"></span>
+                </div>
+                <div class="console-actions">
+                    <button class="btn-console" onclick="copyConsoleOutput()" title="Copy console output">Copy</button>
+                    <button class="btn-console" onclick="clearConsole()" title="Clear console (Ctrl + K)">Clear</button>
+                </div>
             </div>
-            <div id="console-output">Welcome to the Nova Playground!
-The compiler runs entirely in your browser using Pyodide (WebAssembly).
+            <div id="console-output"><span class="console-line system">Welcome to the Nova Playground!</span>
+<span class="console-line system">The self-hosted Nova compiler runs entirely in your browser using WebAssembly.</span>
+<span class="console-line system">Select an example or write custom Nova code, then press Ctrl+Enter to execute.</span>
 </div>
         </div>
     </div>
-    
+
+    <!-- Status Bar -->
     <div class="status-bar">
-        <span>Nova v1.0.0-web</span>
-        <span>Local compilation (Zero latency)</span>
+        <div class="status-group">
+            <span id="cursor-pos">Ln 1, Col 1</span>
+            <span id="char-count">0 chars</span>
+        </div>
+        <div class="status-group">
+            <span>WebAssembly VM (Zero Latency)</span>
+            <span>Nova v0.9.0</span>
+        </div>
     </div>
 
-    <!-- RequireJS & Monaco -->
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Permalink copied to clipboard!</div>
+
+    <!-- RequireJS & Monaco Editor -->
     <script>var require = { paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs' } };</script>
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.nls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.js"></script>
 
     <script>
-        // Monaco Editor Setup
+        // Preset Code Snippets
+        const PRESETS = {
+            fibonacci: `# Fibonacci Calculation in Nova\ndef calculate_fibonacci(n: int) -> int {\n    if n <= 1 {\n        return n\n    }\n    return calculate_fibonacci(n - 1) + calculate_fibonacci(n - 2)\n}\n\nprint("Calculating Fibonacci sequence up to 12:")\nfor i = 0 to 12 {\n    print("fib(" + str(i) + ") = " + str(calculate_fibonacci(i)))\n}\n`,
+            fizzbuzz: `# Classic FizzBuzz in Nova\ndef fizzbuzz(limit: int) {\n    for i = 1 to limit {\n        if i % 15 == 0 {\n            print("FizzBuzz")\n        } elif i % 3 == 0 {\n            print("Fizz")\n        } elif i % 5 == 0 {\n            print("Buzz")\n        } else {\n            print(i)\n        }\n    }\n}\n\nprint("Running FizzBuzz up to 20:")\nfizzbuzz(20)\n`,
+            primes: `# Prime Number Finder in Nova\ndef is_prime(n: int) -> bool {\n    if n <= 1 {\n        return false\n    }\n    for i = 2 to n - 1 {\n        if n % i == 0 {\n            return false\n        }\n    }\n    return true\n}\n\nprint("Prime numbers up to 30:")\ncount = 0\nfor n = 2 to 30 {\n    if is_prime(n) {\n        print(str(n) + " is prime")\n        count = count + 1\n    }\n}\nprint("Total primes found: " + str(count))\n`,
+            classes: `# Data Classes & Structures in Nova\ndata Player {\n    name: string\n    health: int\n    level: int\n}\n\ndef create_hero(name: string) -> Player {\n    p = Player()\n    p.name = name\n    p.health = 100\n    p.level = 1\n    return p\n}\n\nhero = create_hero("Valkyrie")\nprint("Hero created: " + hero.name)\nprint("Health: " + str(hero.health))\nprint("Level: " + str(hero.level))\n`,
+            switch: `# Pattern Evaluation with Switch in Nova\ndef get_http_message(status: int) -> string {\n    switch status {\n        case 200: { return "200 OK: Request succeeded." }\n        case 201: { return "201 Created: Resource provisioned." }\n        case 400: { return "400 Bad Request: Invalid payload." }\n        case 404: { return "404 Not Found: Endpoint does not exist." }\n        case 500: { return "500 Internal Error: Server failure." }\n        default:  { return "Unknown status code: " + str(status) }\n    }\n}\n\ncodes = [200, 201, 404, 500, 418]\nfor code in codes {\n    print(get_http_message(code))\n}\n`,
+            sort: `# Bubble Sort Algorithm in Nova\ndef bubble_sort(arr: list) -> list {\n    n = len(arr)\n    for i = 0 to n - 1 {\n        for j = 0 to n - i - 2 {\n            if arr[j] > arr[j + 1] {\n                temp = arr[j]\n                arr[j] = arr[j + 1]\n                arr[j + 1] = temp\n            }\n        }\n    }\n    return arr\n}\n\nitems = [64, 34, 25, 12, 22, 11, 90]\nprint("Original array:")\nprint(items)\n\nsorted_items = bubble_sort(items)\nprint("Sorted array:")\nprint(sorted_items)\n`
+        };
+
+        // Monaco Language Registration
         monaco.languages.register({ id: 'nova' });
+
+        monaco.languages.setLanguageConfiguration('nova', {
+            comments: { lineComment: '#' },
+            brackets: [
+                ['{', '}'],
+                ['[', ']'],
+                ['(', ')']
+            ],
+            autoClosingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' }
+            ],
+            surroundingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' }
+            ],
+            indentationRules: {
+                increaseIndentPattern: /{$/,
+                decreaseIndentPattern: /^\s*}/
+            }
+        });
+
         monaco.languages.setMonarchTokensProvider('nova', {
             tokenizer: {
                 root: [
                     [/\b(?:def|class|data|enum|return|if|else|elif|for|to|downto|step|while|switch|case|break|continue|import|as|try|catch|throw|const)\b/, "keyword"],
                     [/\b(?:int|float|bool|string|byte|void|list)\b/, "type"],
                     [/\b(?:true|false|null)\b/, "constant"],
-                    [/"(?:[^"\\\\]|\\\\.)*"/, "string"],
+                    [/\b(?:print|len|str|range)\b/, "builtin"],
+                    [/"(?:[^"\\]|\\.)*"/, "string"],
                     [/#.*/, "comment"],
-                    [/\\b\\d+(\\.\\d+)?\\b/, "number"],
+                    [/\b0x[0-9a-fA-F]+\b/, "number.hex"],
+                    [/\b0b[01]+\b/, "number.binary"],
+                    [/\b\d+(\.\d+)?\b/, "number"],
                 ]
             }
         });
-        
+
+        // Initialize Monaco Editor
+        let currentTheme = localStorage.getItem('nova_playground_theme') || 'dark';
+        document.body.setAttribute('data-theme', currentTheme);
+        document.getElementById('theme-icon').innerHTML = currentTheme === 'dark' ? '&#9789;' : '&#9788;';
+
         const editor = monaco.editor.create(document.getElementById('editor'), {
-            value: `def calculate_fibonacci(n: int) -> int {\n    if n <= 1 {\n        return n\n    }\n    return calculate_fibonacci(n - 1) + calculate_fibonacci(n - 2)\n}\n\nprint("Calculating Fibonacci(15):")\nprint(calculate_fibonacci(15))\n`,
+            value: PRESETS.fibonacci,
             language: 'nova',
-            theme: 'vs-dark',
+            theme: currentTheme === 'dark' ? 'vs-dark' : 'vs',
             automaticLayout: true,
             minimap: { enabled: false },
             fontSize: 14,
-            fontFamily: "JetBrains Mono"
+            fontFamily: "JetBrains Mono, monospace",
+            lineNumbers: "on",
+            renderLineHighlight: "all",
+            scrollBeyondLastLine: false,
+            padding: { top: 12, bottom: 12 }
         });
+
+        // Check for URL hash permalink
+        function loadFromHash() {
+            if (window.location.hash.startsWith('#code=')) {
+                try {
+                    const encoded = window.location.hash.slice(6);
+                    const decoded = decodeURIComponent(atob(encoded));
+                    editor.setValue(decoded);
+                    showToast('Loaded shared snippet from URL!');
+                } catch(e) {
+                    console.warn('Could not parse code from URL hash', e);
+                }
+            }
+        }
+        loadFromHash();
+
+        // Status Elements
+        const statusDot = document.getElementById("status-dot");
+        const statusEl = document.getElementById("compiler-status");
+        const runBtn = document.getElementById("run-btn");
+        const consoleOut = document.getElementById("console-output");
+        const execMetrics = document.getElementById("exec-metrics");
+        const cursorPosEl = document.getElementById("cursor-pos");
+        const charCountEl = document.getElementById("char-count");
+
+        // Cursor & Char Count Listeners
+        function updateMetrics() {
+            const pos = editor.getPosition();
+            if (pos) cursorPosEl.textContent = `Ln ${pos.lineNumber}, Col ${pos.column}`;
+            const len = editor.getValue().length;
+            charCountEl.textContent = `${len} chars`;
+        }
+        editor.onDidChangeCursorPosition(updateMetrics);
+        editor.onDidChangeModelContent(updateMetrics);
+        updateMetrics();
 
         // Web Worker Setup
         const worker = new Worker("nova_worker.js");
-        const statusEl = document.getElementById("compiler-status");
-        const runBtn = document.getElementById("run-btn");
-        const clearBtn = document.getElementById("clear-btn");
-        const consoleOut = document.getElementById("console-output");
-        
-        clearBtn.addEventListener("click", () => {
-            consoleOut.innerHTML = "";
-        });
-        
-        let pendingCheckId = 0;
-        let lastCheckTime = 0;
+        let runStartTime = 0;
 
         worker.onmessage = (e) => {
             const data = e.data;
             if (data.type === "status") {
                 statusEl.textContent = data.msg;
                 if (data.ready) {
+                    statusDot.className = "status-dot ready";
+                    statusEl.textContent = "Compiler Ready";
                     runBtn.disabled = false;
                 }
             } else if (data.type === "result") {
-                runBtn.textContent = "Run Code";
+                const duration = Date.now() - runStartTime;
+                statusDot.className = "status-dot ready";
+                statusEl.textContent = "Compiler Ready";
                 runBtn.disabled = false;
+                runBtn.innerHTML = `<span>Run Code</span> <span class="kbd-badge">Ctrl + Enter</span>`;
+
                 let out = "";
+                let lineCount = 0;
                 if (data.error) {
-                    out += `<span class="error">${data.error}</span>\n`;
+                    out += `<span class="console-line error">${escapeHtml(data.error)}</span>\n`;
+                    lineCount++;
                 }
                 if (data.output) {
-                    out += data.output;
+                    const lines = data.output.split('\n');
+                    lineCount += lines.length;
+                    out += escapeHtml(data.output);
                 }
-                consoleOut.innerHTML += "\n> " + out;
+                if (!data.error && !data.output) {
+                    out += `<span class="console-line system">(Program exited cleanly with no output)</span>\n`;
+                }
+
+                consoleOut.innerHTML += `\n<span class="console-line prompt">&gt; Execution output:</span>\n` + out;
                 consoleOut.scrollTop = consoleOut.scrollHeight;
-            } else if (data.type === "check_result") {
-                if (data.id === pendingCheckId) {
-                    const model = editor.getModel();
-                    if (data.error) {
-                        // Very basic error parsing: "SyntaxError at line X: Y"
-                        const match = data.error.match(/line (\d+)/);
-                        const line = match ? parseInt(match[1]) : 1;
-                        monaco.editor.setModelMarkers(model, "nova", [{
-                            startLineNumber: line,
-                            startColumn: 1,
-                            endLineNumber: line,
-                            endColumn: 100,
-                            message: data.error,
-                            severity: monaco.MarkerSeverity.Error
-                        }]);
-                    } else {
-                        monaco.editor.setModelMarkers(model, "nova", []);
-                    }
-                }
+                execMetrics.textContent = `⚡ ${duration}ms (${lineCount} lines)`;
+            } else if (data.type === "error") {
+                statusDot.className = "status-dot";
+                statusEl.textContent = "Execution error";
+                consoleOut.innerHTML += `\n<span class="console-line error">Worker Error: ${escapeHtml(data.msg || '')}</span>\n`;
             }
         };
 
-        runBtn.addEventListener("click", () => {
+        function runCode() {
+            if (runBtn.disabled) return;
             runBtn.disabled = true;
-            runBtn.textContent = "Running...";
+            runBtn.innerHTML = `<span>Running...</span>`;
+            statusDot.className = "status-dot running";
+            statusEl.textContent = "Compiling & executing in WebAssembly VM...";
+            runStartTime = Date.now();
             worker.postMessage({ id: 0, action: "run", code: editor.getValue() });
+        }
+
+        // Ctrl + Enter shortcut to run code
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+            runCode();
         });
 
-        editor.onDidChangeModelContent(() => {
-            if (Date.now() - lastCheckTime > 500) {
-                pendingCheckId++;
-                worker.postMessage({ id: pendingCheckId, action: "check", code: editor.getValue() });
-                lastCheckTime = Date.now();
+        // Global shortcut Ctrl+K to clear console
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                clearConsole();
             }
         });
+
+        function clearConsole() {
+            consoleOut.innerHTML = `<span class="console-line system">Console cleared.</span>\n`;
+            execMetrics.textContent = '';
+        }
+
+        function copyConsoleOutput() {
+            navigator.clipboard.writeText(consoleOut.innerText);
+            showToast('Console output copied!');
+        }
+
+        function loadPreset(name) {
+            if (PRESETS[name]) {
+                editor.setValue(PRESETS[name]);
+                showToast(`Loaded ${name} example!`);
+            }
+        }
+
+        function resetCurrentPreset() {
+            const select = document.getElementById("example-select");
+            loadPreset(select.value);
+        }
+
+        function shareSnippet() {
+            const code = editor.getValue();
+            const encoded = btoa(encodeURIComponent(code));
+            const shareUrl = `${window.location.origin}${window.location.pathname}#code=${encoded}`;
+            window.location.hash = `code=${encoded}`;
+            navigator.clipboard.writeText(shareUrl);
+            showToast('Permalink copied to clipboard!');
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('nova_playground_theme', currentTheme);
+            monaco.editor.setTheme(currentTheme === 'dark' ? 'vs-dark' : 'vs');
+            document.getElementById('theme-icon').innerHTML = currentTheme === 'dark' ? '&#9789;' : '&#9788;';
+            showToast(`Switched to ${currentTheme} theme`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 2400);
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
+        }
     </script>
 </body>
 </html>
-
