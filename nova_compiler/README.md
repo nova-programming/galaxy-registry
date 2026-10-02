@@ -26,7 +26,48 @@ After installation, open a **new** terminal, then:
 ```bash
 nova --version           # Check Nova version
 nova build hello.nv      # Compile a Nova program (requires GCC)
+nova run hello.nv        # Compile, link, and immediately execute
+nova check hello.nv      # Parse and type-check without building
+nova lint hello.nv       # Show advisory style warnings; does not rewrite files
+nova lint --strict hello.nv  # Treat advisory warnings as failures
+nova fmt hello.nv        # Check deterministic formatting
+nova fmt --write hello.nv  # Apply formatting explicitly
 nova dev hello.nv        # Run in VM mode (no GCC needed)
+
+## Portable standard library
+
+The standard library provides small, readable modules for common operations:
+
+```nova
+import path
+import fs
+import time
+
+file_name = path_basename(path_join(["tmp", "notes.txt"]))
+simple_file = path_join2("data", "notes.txt")
+if fs_exists("notes.txt") {
+    print(fs_read("notes.txt"))
+}
+fs_mkdir("data")
+fs_write("data/notes.txt", "Nova is simple and fast.\n")
+fs_copy("data/notes.txt", "data/notes.backup.txt")
+print(time_ticks_ms())
+```
+
+`path`, `fs`, `env`, `process`, and `time` are backed by the existing
+cross-platform runtime boundary. Filesystem helpers return simple status/value
+results instead of hiding operational failures. `process_shell` is explicitly
+named because it invokes a shell. `json_stringify(value)` is available from
+the `json` module for compact serialization; JSON parsing remains pending
+until recursive VM/native conversion is complete.
+`env_get(name)` returns `""` when an environment variable is absent.
+`env_set(name, value)` updates the current process environment and returns
+`1` on success or `0` on failure.
+`fs_copy` overwrites an existing destination, `fs_move` replaces an existing
+destination where the platform supports it, and `fs_delete` removes files
+only; all three return `1` on success or `0` on failure.
+`process_run(["program", "argument"])` executes without a shell and returns
+the child exit code, or `-1` when the process cannot be launched.
 galaxy --version         # Check Galaxy version
 galaxy init my-lib       # Create a library
 galaxy install pkg       # Install a package
@@ -58,6 +99,9 @@ python install.py --uninstall   # Remove Nova, Galaxy, and PATH entries
 ```bash
 # Build to native executable (uses the self-hosted compiler; GCC-free when the internal linker supports the target)
 nova.exe build program.nv
+
+# Compile, link, and immediately execute (args after the file are forwarded)
+nova.exe run program.nv arg1 arg2
 
 # Assemble .s file and link directly
 nova.exe assemble-link input.s output.exe
@@ -116,7 +160,7 @@ Additional standard library modules:
 - `types.nv` — Type system abstraction (scalar, struct, list, func types)
 - `type_checker.nv` — Static type inference and enforcement
 - `errors.nv` — Structured error/warning printer with fix suggestions
-- `assembler.nv` — x86-32 instruction encoder (assembles .s text into byte streams, integrated)
+- `assembler.nv` — target-specific instruction encoder (assembles supported .s text into byte streams)
 - `linker.nv` — Windows PE executable generator (packages bytes into .exe directly, integrated)
 - `memory.nv` — Raw memory byte access utilities
 
@@ -192,8 +236,8 @@ nova/
 - Bare-metal flat binary output (`build-bare` / `assemble-bare`, no PE headers)
 - `@raw` block assembly passthrough (lines starting with x86 mnemonics emit raw assembly; others compile as normal Nova)
 - `@export { name1, name2 }` inside `@raw` blocks for `.global` symbol export
-- **Tree-Shaking Dead Code Elimination** — the compiler natively builds dependency graphs of function calls and slices out unused standard library functions where supported.
-- **Self-Hosted Assembler & Linker** — fully integrated in-process x86 assembler and PE executable linker, entirely eliminating the GCC dependency.
+- **Tree-Shaking Dead Code Elimination** — the compiler natively builds dependency graphs of function calls and slices out unused standard library functions, reducing final binary sizes by up to 70%.
+- **Self-Hosted Assembler & Linker** — integrated in-process x86_64 and ARM64 assembly/linking paths; Unix targets currently use GCC for final linking.
 - **Variable-to-Register Promotion** — greedily maps local variables to CPU registers (`esi`/`edi`), massively boosting runtime performance.
 - **Native Standard Library Injection** — standard library functions (from `os_windows`, `os_unix`, and built-in runtime helpers) are automatically injected and natively compiled into all executables, removing the need for manual imports of core modules.
 - **Automatic PRNG Initialization** — the built-in xorshift64 PRNG automatically seeds itself at runtime via `sys_get_tick_count()`. `chacha20_init(seed1, seed2)` seeds the same state (name retained for compatibility).
@@ -206,6 +250,12 @@ nova/
 - **Frame pointer optimization** — x86_64 and ARM64 use `rsp`/`sp`-relative offsets, saving 1-2 instructions per function call
 - **VM self-hosting** — `stdlib/vm.nv` implements bytecode VM in Nova with 20+ opcodes, stack-based execution
 - Self-hosted lexer, parser, codegen, type checker, assembler, linker, VM
+
+### Compatibility note
+
+`call(name, args)` is supported by the VM but intentionally rejected by native
+builds because native dynamic dispatch is not implemented. Use statically named
+calls when a program must work in both modes.
 
 ## License
 

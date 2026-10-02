@@ -33,6 +33,11 @@ class Arm64Codegen:
         self.string_vars = set()
         self.func_returns = {}
         self._reg_pool = []
+        self.deferred_stack = [[]]
+        self.inline_candidates = set()
+        self.noinline_funcs = set()
+        self.entry_func = None
+        self.extern_decls = {}
 
     def _emit_fp_access(self, f, op, reg, neg_offset):
         """Emit `op reg, [fp, #neg_offset]`, handling ARM64's [-256,255] limit.
@@ -46,6 +51,53 @@ class Arm64Codegen:
             f.append(f"    {op} {reg}, [x16]")
         else:
             f.append(f"    {op} {reg}, [fp, #{neg_offset}]")
+
+    def push_defer_scope(self):
+        self.deferred_stack.append([])
+
+    def pop_defer_scope(self):
+        if len(self.deferred_stack) > 1:
+            return self.deferred_stack.pop()
+        return []
+
+    def add_defer(self, stmt):
+        self.deferred_stack[-1].append(stmt)
+
+    def emit_deferred(self):
+        deferred = self.deferred_stack[-1]
+        for stmt in reversed(deferred):
+            self.compile_stmt(stmt)
+
+    def _sizeof_type(self, type_name):
+        sizes = {"int": 8, "float": 8, "bool": 8, "byte": 1, "string": 8, "void": 0}
+        return sizes.get(type_name, 8)
+
+    def _is_inline_candidate(self, fn):
+        if fn.name in self.noinline_funcs:
+            return False
+        if fn.is_entry or fn.is_extern:
+            return False
+        node_count = self._count_nodes(fn.body)
+        return node_count <= 8
+
+    def _count_nodes(self, body):
+        count = 0
+        for stmt in body:
+            count += 1
+            for attr in dir(stmt):
+                if attr.startswith('_'):
+                    continue
+                try:
+                    child = getattr(stmt, attr)
+                except Exception:
+                    continue
+                if hasattr(child, '__dict__'):
+                    count += 1
+                elif isinstance(child, list):
+                    for item in child:
+                        if hasattr(item, '__dict__'):
+                            count += 1
+        return count
 
     def get_prop_offset(self, name):
         """Fallback: scan ALL known structs for this field name, return per-struct offset.
@@ -434,6 +486,8 @@ class Arm64Codegen:
         self.assembly.append(".text")
         self.assembly.append(".align 2")
         entry = "_main" if self.target_os != "linux" else "main"
+        if self.entry_func:
+            entry = f"_{self.entry_func}"
         self.assembly.append(f".global {entry}")
 
         self.assembly.append(".extern _printf")
@@ -473,6 +527,30 @@ class Arm64Codegen:
         self.assembly.append(".extern _file_exists")
         self.assembly.append(".extern _file_size")
         self.assembly.append(".extern _file_type")
+        self.assembly.append(".extern _value_box_none")
+        self.assembly.append(".extern _value_box_bool")
+        self.assembly.append(".extern _value_box_int")
+        self.assembly.append(".extern _value_box_float")
+        self.assembly.append(".extern _value_box_string")
+        self.assembly.append(".extern _value_box_list")
+        self.assembly.append(".extern _value_box_dict")
+        self.assembly.append(".extern _value_unbox_bool")
+        self.assembly.append(".extern _value_unbox_int")
+        self.assembly.append(".extern _value_unbox_float")
+        self.assembly.append(".extern _value_unbox_string")
+        self.assembly.append(".extern _nova_value_kind")
+        self.assembly.append(".extern _nova_value_list_count")
+        self.assembly.append(".extern _nova_value_list_item")
+        self.assembly.append(".extern _nova_value_dict_count")
+        self.assembly.append(".extern _nova_value_dict_keys")
+        self.assembly.append(".extern _nova_value_dict_values")
+        self.assembly.append(".extern _nova_value_dict_items")
+        self.assembly.append(".extern _nova_json_stringify")
+        self.assembly.append(".extern _nova_value_retain")
+        self.assembly.append(".extern _nova_value_release")
+        self.assembly.append(".extern _nova_value_is_list")
+        self.assembly.append(".extern _nova_value_is_dict")
+        self.assembly.append(".extern _nova_value_is_string")
         self.assembly.append(".extern _now")
         self.assembly.append(".extern _str_sub")
         self.assembly.append(".extern _slice_list")
@@ -514,6 +592,9 @@ class Arm64Codegen:
             self.data_section.append(f"    .byte 0")
 
         functions = [node for node in self.ast if isinstance(node, Function)]
+        for fn in functions:
+            if self._is_inline_candidate(fn):
+                self.inline_candidates.add(fn.name)
         class_method_list = []
         for node in self.ast:
             if isinstance(node, ClassDef):
@@ -676,6 +757,12 @@ class Arm64Codegen:
         self.local_vars = {}
         self.string_vars = set()
         self.local_offset = 0
+        self.push_defer_scope()
+
+        if fn.is_entry:
+            self.entry_func = fn.name
+        if fn.is_noinline:
+            self.noinline_funcs.add(fn.name)
 
         for i, param in enumerate(fn.params):
             param_name = param[0] if isinstance(param, (list, tuple)) else param
@@ -703,9 +790,11 @@ class Arm64Codegen:
 
         if aligned > 0:
             self.assembly.append(f"    add sp, sp, #{aligned}")
+        self.emit_deferred()
         self.assembly.append("    ldp fp, lr, [sp], #16")
         self.assembly.append("    ret")
 
+        self.pop_defer_scope()
         self.local_vars = old_local_vars
         self.string_vars = old_string_vars
 
@@ -805,6 +894,7 @@ class Arm64Codegen:
         elif isinstance(node, Return):
             self.compile_expr(node.value)
             self.assembly.append("    ldr x0, [sp], #16")
+            self.emit_deferred()
             if self.local_aligned > 0:
                 self.assembly.append(f"    add sp, sp, #{self.local_aligned}")
             self.assembly.append("    ldp fp, lr, [sp], #16")
@@ -1022,6 +1112,49 @@ class Arm64Codegen:
             self.assembly.append(f"    add x16, x16, _catch_ip@PAGEOFF")
             self.assembly.append("    ldr x16, [x16]")
             self.assembly.append("    br x16")
+        elif isinstance(node, Defer):
+            self.add_defer(node)
+        elif isinstance(node, ExternDef):
+            self.extern_decls[node.name] = node
+            self.assembly.append(f".extern _{node.name}")
+        elif isinstance(node, MultiReturn):
+            for i, val in enumerate(node.values):
+                self.compile_expr(val)
+                self.assembly.append("    ldr x0, [sp], #16")
+                if i == 0:
+                    self.assembly.append("    mov x1, x0")
+                elif i == 1:
+                    self.assembly.append("    mov x2, x0")
+                elif i == 2:
+                    self.assembly.append("    mov x3, x0")
+            self.assembly.append("    mov x0, x1")
+            self.emit_deferred()
+            self.assembly.append("    ldp fp, lr, [sp], #16")
+            self.assembly.append("    ret")
+        elif isinstance(node, UnpackAssign):
+            self.compile_expr(node.value)
+            self.assembly.append("    ldr x0, [sp], #16")
+            for i, target in enumerate(node.targets):
+                if isinstance(target, Variable) and target.name == '_':
+                    continue
+                if i == 0:
+                    self.assembly.append("    mov x1, x0")
+                    if isinstance(target, Variable):
+                        offset = self.local_vars.get(target.name)
+                        if offset is not None:
+                            self._emit_fp_access(self.assembly, "str", "x1", -offset if isinstance(offset, int) else 0)
+                elif i == 1:
+                    self.assembly.append("    mov x2, x0")
+                    if isinstance(target, Variable):
+                        offset = self.local_vars.get(target.name)
+                        if offset is not None:
+                            self._emit_fp_access(self.assembly, "str", "x2", -offset if isinstance(offset, int) else 0)
+                elif i == 2:
+                    self.assembly.append("    mov x3, x0")
+                    if isinstance(target, Variable):
+                        offset = self.local_vars.get(target.name)
+                        if offset is not None:
+                            self._emit_fp_access(self.assembly, "str", "x3", -offset if isinstance(offset, int) else 0)
         elif isinstance(node, RawBlock):
             for line in node.body:
                 if isinstance(line, str): self.assembly.append(line)
@@ -1207,6 +1340,12 @@ class Arm64Codegen:
         elif isinstance(node, Alloc):
             self.compile_expr(node.size)
             self.assembly.append("    ldr x0, [sp], #16")
+            type_param = getattr(node, 'type_param', None)
+            if type_param:
+                elem_size = self._sizeof_type(type_param)
+                if elem_size > 1:
+                    self.assembly.append(f"    mov x1, #{elem_size}")
+                    self.assembly.append("    mul x0, x0, x1")
             self.assembly.append("    bl _malloc")
             self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, PointerProperty):
@@ -1444,6 +1583,22 @@ class Arm64Codegen:
                 self.compile_expr(node.instance)
                 self.assembly.append("    ldr x0, [sp], #16")
                 self.assembly.append("    bl _fflush")
+            elif node.method_name == "as_list":
+                self.compile_expr(node.instance)
+                self.assembly.append("    ldr x0, [sp], #16")
+                count = 100
+                if hasattr(node, 'kwargs') and 'count' in node.kwargs:
+                    count_node = node.kwargs['count']
+                    if isinstance(count_node, Number):
+                        count = count_node.value
+                self.assembly.append("    mov x0, #16")
+                self.assembly.append("    bl _malloc")
+                self.assembly.append("    mov x1, #0")
+                self.assembly.append("    str w1, [x0]")
+                self.assembly.append(f"    mov x1, #{count}")
+                self.assembly.append("    str w1, [x0, #4]")
+                self.assembly.append("    str x0, [x0, #8]")
+                self.assembly.append("    str x0, [sp, #-16]!")
             elif node.method_name == "insert":
                 val_reg = self._compile_expr_to_reg(node.args[1])
                 idx_reg = self._compile_expr_to_reg(node.args[0])

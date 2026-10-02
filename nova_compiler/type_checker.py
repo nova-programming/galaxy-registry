@@ -1,5 +1,6 @@
 from nova_ast.nodes import *
 from compiler.types import *
+import re
 
 # Built-in FFI function signatures: (return_type, [param_types])
 BUILTIN_SIGS = {
@@ -24,6 +25,30 @@ BUILTIN_SIGS = {
     "sys_system":    (IntType, [StringType]),
     "sys_get_args":  (ListType(AnyType()), []),
     "sys_get_tick_count": (IntType, []),
+    "nova_value_kind": (IntType, [AnyType()]),
+    "nova_value_list_count": (IntType, [AnyType()]),
+    "nova_value_list_item": (AnyType(), [AnyType(), IntType]),
+    "nova_value_dict_count": (IntType, [AnyType()]),
+    "nova_value_dict_keys": (ListType(AnyType()), [AnyType()]),
+    "nova_value_dict_values": (ListType(AnyType()), [AnyType()]),
+    "nova_value_dict_items": (ListType(AnyType()), [AnyType()]),
+    "nova_value_retain": (AnyType(), [AnyType()]),
+    "nova_value_release": (AnyType(), [AnyType()]),
+    "nova_value_is_list": (IntType, [AnyType()]),
+    "nova_value_is_dict": (IntType, [AnyType()]),
+    "nova_value_is_string": (IntType, [AnyType()]),
+    "value_box_none": (AnyType(), []),
+    "value_box_bool": (AnyType(), [BoolType]),
+    "value_box_string": (AnyType(), [StringType]),
+    "value_box_list": (AnyType(), [ListType(AnyType())]),
+    "value_box_dict": (AnyType(), [DictType()]),
+    "value_box_int": (AnyType(), [IntType]),
+    "value_box_float": (AnyType(), [FloatType]),
+    "value_unbox_bool": (BoolType, [AnyType()]),
+    "value_unbox_int": (IntType, [AnyType()]),
+    "value_unbox_float": (FloatType, [AnyType()]),
+    "value_unbox_string": (StringType, [AnyType()]),
+    "nova_json_stringify": (StringType, [AnyType()]),
     "type":          (StringType, [AnyType()]),
     "call":          (AnyType(), [StringType, ListType(AnyType())]),
     "print":         (AnyType(), [AnyType()]),
@@ -32,6 +57,9 @@ BUILTIN_SIGS = {
     "str_sub":       (StringType, [StringType, IntType, IntType]),
     "tc_find_field": (AnyType(), [AnyType(), StringType]),
 }
+
+def _camel_alias(name):
+    return re.sub(r'(?<!^)([A-Z])', r'_\1', name).lower()
 
 class StaticTypeError(Exception):
     def __init__(self, message, line=None, suggestion="", col=None):
@@ -42,6 +70,34 @@ class StaticTypeError(Exception):
             super().__init__(f"{prefix} {message}\n  -> {suggestion}")
         else:
             super().__init__(f"{prefix} {message}")
+
+def levenshtein_distance(s1, s2):
+    if len(s1) < len(s2):
+        return levenshtein_distance(s2, s1)
+    if len(s2) == 0:
+        return len(s1)
+    prev_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        curr_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = prev_row[j + 1] + 1
+            deletions = curr_row[j] + 1
+            substitutions = prev_row[j] + (c1 != c2)
+            curr_row.append(min(insertions, deletions, substitutions))
+        prev_row = curr_row
+    return prev_row[-1]
+
+def did_you_mean(name, candidates, max_distance=3):
+    best = None
+    best_dist = max_distance + 1
+    for candidate in candidates:
+        if candidate == name:
+            continue
+        dist = levenshtein_distance(name, candidate)
+        if dist < best_dist and dist <= max_distance:
+            best = candidate
+            best_dist = dist
+    return best
 
 class TypeInferer:
     def __init__(self):
@@ -202,6 +258,19 @@ class TypeInferer:
 
     def visit_Variable(self, node):
         t = self.get_var_type(node.name)
+        if isinstance(t, AnyType):
+            all_names = set()
+            for env in self.env_stack:
+                all_names.update(env.keys())
+            all_names.update(self.functions.keys())
+            all_names.update(self.structs.keys())
+            all_names.update(BUILTIN_SIGS.keys())
+            if node.name not in all_names:
+                suggestion = did_you_mean(node.name, all_names)
+                if suggestion:
+                    import sys
+                    import re
+                    print(f"  warning: unknown identifier '{node.name}' at line {node.line} — did you mean '{suggestion}'?", file=sys.stderr)
         return t
 
     def visit_BinOp(self, node):
@@ -281,6 +350,14 @@ class TypeInferer:
         return t
 
     def visit_Call(self, node):
+        if (
+            node.name not in self.functions
+            and node.name not in self.structs
+            and node.name not in BUILTIN_SIGS
+        ):
+            alias = _camel_alias(node.name)
+            if alias != node.name:
+                node.name = alias
         if node.name == "random":
             for arg in node.args:
                 self.visit(arg)
@@ -484,6 +561,12 @@ class TypeInferer:
             inst_t = self.structs[inst_t.name]
         if isinstance(inst_t, StructType) and node.field_name in inst_t.fields:
             return inst_t.fields[node.field_name]
+        if isinstance(inst_t, StructType) and inst_t.fields:
+            if node.field_name not in inst_t.fields:
+                suggestion = did_you_mean(node.field_name, inst_t.fields.keys())
+                if suggestion:
+                    import sys
+                    print(f"  warning: unknown field '{node.field_name}' on {inst_t.name} at line {node.line} — did you mean '{suggestion}'?", file=sys.stderr)
         return AnyType()
 
     def visit_LoadLib(self, node):

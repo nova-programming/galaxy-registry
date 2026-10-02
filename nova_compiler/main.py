@@ -7,6 +7,7 @@ import urllib.error
 import zipfile
 import io
 import shutil
+import re
 import subprocess
 
 from lexer.tokenizer import tokenize
@@ -178,29 +179,106 @@ def _update_cache(project_dir, file_path):
     _save_cache(project_dir, cache)
 
 
-def format_error(source, lineno, offset, message):
+def format_error(source, lineno, offset, message, code=None, severity="error"):
     """Format a compiler error with source context.
 
     Shows the offending line with a ^ marker pointing at the column.
     lineno is 1-based, offset is 1-based (Python's SyntaxError convention).
     """
+    label = f"{severity.capitalize()}{f' [{code}]' if code else ''}"
     if not source or not isinstance(lineno, int) or lineno < 1:
-        return f"  Error: {message}\n    |"
+        return f"  {label}: {message}\n    |"
     lines = source.rstrip('\n').split('\n')
     if lineno > len(lines):
-        return f"  Error (line {lineno}): {message}\n    |"
+        return f"  {label} (line {lineno}): {message}\n    |"
     line = lines[lineno - 1]
     marker = ""
     if isinstance(offset, int) and offset > 0 and offset <= len(line) + 1:
         marker = " " * (offset - 1) + "^---"
     return (
-        f"  Error at line {lineno}:\n"
+        f"  {label} at line {lineno}:\n"
         f"    |\n"
         f"  {lineno:4d} | {line}\n"
         f"    | {marker}\n"
         f"    |\n"
         f"  {message}"
     )
+
+
+def emit_diagnostic(message, code, severity="error", file_path=None,
+                    line=None, column=None, json_output=False):
+    """Emit stable diagnostics in human or opt-in JSON form."""
+    if json_output:
+        print(json.dumps({
+            "code": code,
+            "severity": severity,
+            "message": message,
+            "file": file_path,
+            "line": line,
+            "column": column,
+        }, sort_keys=True))
+    else:
+        location = ""
+        if file_path:
+            location = file_path
+            if line is not None:
+                location += f":{line}"
+                if column is not None:
+                    location += f":{column}"
+            location += ": "
+        print(f"{location}{severity.capitalize()} [{code}]: {message}")
+
+
+def _format_source(source):
+    """Return a deterministic, non-semantic source normalization."""
+    lines = [line.rstrip(" \t").replace("\t", "    ") for line in source.splitlines()]
+    result = "\n".join(lines)
+    return result + ("\n" if result or source.endswith(("\n", "\r")) else "")
+
+
+def format_source(file_path, check_only=False):
+    """Format whitespace only; writing requires the explicit --write flag."""
+    try:
+        with open(file_path, "r", encoding="utf-8", newline="") as f:
+            source = f.read()
+    except OSError as e:
+        emit_diagnostic(str(e), "IO001", file_path=file_path)
+        return 1
+    formatted = _format_source(source)
+    if formatted == source:
+        print(f"Formatted {os.path.basename(file_path)} successfully.")
+        return 0
+    if check_only:
+        emit_diagnostic(
+            "file is not canonically formatted; run 'nova fmt --write' to update it",
+            "FMT001", "warning", file_path,
+        )
+        return 1
+    with open(file_path, "w", encoding="utf-8", newline="") as f:
+        f.write(formatted)
+    print(f"Formatted {os.path.basename(file_path)}.")
+    return 0
+
+
+def _contains_dynamic_call(nodes, seen=None):
+    """Return whether an AST contains the VM-only dynamic call() builtin."""
+    from nova_ast.nodes import Call
+    if seen is None:
+        seen = set()
+    if isinstance(nodes, (list, tuple)):
+        return any(_contains_dynamic_call(item, seen) for item in nodes)
+    if nodes is None or isinstance(nodes, (str, int, float, bool)):
+        return False
+    identity = id(nodes)
+    if identity in seen:
+        return False
+    seen.add(identity)
+    if isinstance(nodes, Call) and nodes.name == "call":
+        return True
+    if hasattr(nodes, "__dict__"):
+        return any(_contains_dynamic_call(value, seen)
+                   for value in vars(nodes).values())
+    return False
 
 
 def cmd_repl():
@@ -315,6 +393,90 @@ def run_source(file_path):
     vm.run()
 
 
+def check_source(file_path, target_arch="x86_64", target_os=None, json_output=False):
+    """Parse, resolve imports, and type-check without producing or running code."""
+    file_path = os.path.abspath(file_path)
+    base_dir = os.path.dirname(file_path)
+    if target_os is None:
+        target_os = "macos" if sys.platform == "darwin" else ("windows" if sys.platform == "win32" else "linux")
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            source = f.read()
+    except OSError as e:
+        emit_diagnostic(str(e), "IO001", file_path=file_path, json_output=json_output)
+        return 1
+
+    try:
+        tokens = tokenize(source)
+        ast = Parser(tokens).parse()
+        ast = expand_imports(ast, base_dir, target_arch=target_arch, target_os=target_os)
+        TypeInferer().infer(ast)
+    except SyntaxError as e:
+        line = getattr(e, "lineno", None)
+        column = getattr(e, "offset", None)
+        if json_output:
+            emit_diagnostic(str(e), "PARSE001", file_path=file_path,
+                            line=line, column=column, json_output=True)
+        else:
+            print(format_error(source, line, column, str(e), code="PARSE001"))
+        return 1
+    except StaticTypeError as e:
+        line = getattr(e, "line", None)
+        column = getattr(e, "col", None)
+        if json_output:
+            emit_diagnostic(str(e), "TYPE001", file_path=file_path,
+                            line=line, column=column, json_output=True)
+        else:
+            print(format_error(source, line, column, str(e), code="TYPE001"))
+        return 1
+    except Exception as e:
+        emit_diagnostic(str(e), "CHECK001", file_path=file_path, json_output=json_output)
+        return 1
+
+    print(f"Checked {os.path.basename(file_path)} successfully.")
+    return 0
+
+
+def lint_source(file_path, strict=False, json_output=False):
+    """Run advisory source checks without modifying the file."""
+    file_path = os.path.abspath(file_path)
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except OSError as e:
+        emit_diagnostic(str(e), "IO001", file_path=file_path, json_output=json_output)
+        return 1
+
+    diagnostics = []
+    function_pattern = re.compile(r"^\s*def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+    for line_number, line in enumerate(lines, 1):
+        if line.rstrip(" \t") != line:
+            diagnostics.append((line_number, "FMT002", "trailing whitespace"))
+        if "\t" in line[:len(line) - len(line.lstrip())]:
+            diagnostics.append((line_number, "STYLE001", "tabs used for indentation; use spaces"))
+        match = function_pattern.match(line)
+        if match and not re.fullmatch(r"[a-z][a-z0-9_]*", match.group(1)):
+            diagnostics.append((line_number, "STYLE002",
+                                f"function '{match.group(1)}' should use snake_case"))
+        if re.search(r"\b(?:alloc|free)\s*\(", line):
+            diagnostics.append((line_number, "UNSAFE001",
+                                "raw allocation requires explicit ownership review"))
+
+    if diagnostics:
+        for line_number, code, message in diagnostics:
+            emit_diagnostic(message, code, "warning", file_path, line_number,
+                            json_output=json_output)
+        if strict:
+            return 1
+        if not json_output:
+            print(f"Lint found {len(diagnostics)} advisory issue(s); build behavior was not changed.")
+        return 0
+
+    print(f"Linted {os.path.basename(file_path)} successfully.")
+    return 0
+
+
 def expand_imports(ast, base_dir, resolver=None, visited=None, target_arch="x86_64", target_os=None):
     from modules.resolver import ModuleResolver
     from nova_ast.nodes import Import
@@ -329,12 +491,15 @@ def expand_imports(ast, base_dir, resolver=None, visited=None, target_arch="x86_
     expanded_ast = []
     for node in ast:
         if isinstance(node, Import):
-            if node.module not in visited:
-                visited.add(node.module)
+            module_path = resolver._find_module(node.module, base_dir)
+            visit_key = os.path.realpath(module_path) if module_path else node.module
+            if visit_key not in visited:
+                visited.add(visit_key)
                 try:
                     imported_ast = resolver.resolve(node.module, base_dir)
+                    imported_dir = os.path.dirname(module_path) if module_path else base_dir
                     # Recursively expand imports inside the imported file
-                    expanded_ast.extend(expand_imports(imported_ast, base_dir, resolver, visited, target_arch, target_os))
+                    expanded_ast.extend(expand_imports(imported_ast, imported_dir, resolver, visited, target_arch, target_os))
                 except FileNotFoundError as e:
                     print(e)
                     sys.exit(1)
@@ -380,10 +545,17 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
 
     ast = expand_imports(ast, base_dir, target_arch=target_arch, target_os=target_os)
 
+    if _contains_dynamic_call(ast):
+        print("Nova native build error: call(name, args) is VM-only; "
+              "native dynamic dispatch is not implemented. "
+              "Call a statically named function instead.")
+        sys.exit(1)
+
     try:
         TypeInferer().infer(ast)
     except StaticTypeError as e:
-        print(format_error(source, getattr(e, 'line', None), getattr(e, 'col', None), f"{e} (continuing build)"))
+        print(format_error(source, getattr(e, 'line', None), getattr(e, 'col', None), str(e)))
+        sys.exit(1)
 
     source_path = os.path.basename(file_path)
     if target_arch == "arm64":
@@ -458,17 +630,8 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
     is_macos = target_os == "macos"
     is_windows = target_os == "windows"
     
-    cmd = [gcc_path, "-O3", asm_file, "-o", exe_file]
-    
-    if is_windows:
-        cmd += ["-mconsole", "-lkernel32", "-Wl,--stack,16777216"]
-    elif is_macos:
-        if target_arch == "arm64":
-            cmd += ["-arch", "arm64"]
-        cmd += ["-Wl,-no_compact_unwind"]
-    else:
-        cmd += ["-no-pie"]
-    
+    cmd = [gcc_path, "-O3", asm_file]
+
     if needs_runtime and os.path.exists(runtime_c):
         # Always recompile runtime.c to avoid stale object file issues
         if os.path.exists(runtime_o):
@@ -488,17 +651,28 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
             print(f"  [WARN] runtime.c compilation failed (exit {rt_res.returncode})")
         if os.path.exists(runtime_o):
             cmd += [runtime_o]
-            # Debug: show symbols in runtime.o on macOS
-            if is_macos:
-                try:
-                    nm_res = subprocess.run(["nm", "-g", runtime_o], capture_output=True, text=True, timeout=10)
-                    for line in nm_res.stdout.splitlines():
-                        print(f"  [NM] {line}")
-                    if nm_res.stderr:
-                        for line in nm_res.stderr.splitlines():
-                            print(f"  [NM_ERR] {line}")
-                except Exception as e:
-                    print(f"  [DEBUG] nm failed: {e}")
+
+    cmd += ["-o", exe_file]
+
+    if is_windows:
+        cmd += ["-mconsole", "-Wl,--stack,16777216", "-lkernel32", "-lgdi32", "-luser32"]
+    elif is_macos:
+        if target_arch == "arm64":
+            cmd += ["-arch", "arm64"]
+        cmd += ["-Wl,-no_compact_unwind"]
+    else:
+        cmd += ["-no-pie"]
+    # Debug: show symbols in runtime.o on macOS
+    if is_macos:
+        try:
+            nm_res = subprocess.run(["nm", "-g", runtime_o], capture_output=True, text=True, timeout=10)
+            for line in nm_res.stdout.splitlines():
+                print(f"  [NM] {line}")
+            if nm_res.stderr:
+                for line in nm_res.stderr.splitlines():
+                    print(f"  [NM_ERR] {line}")
+        except Exception as e:
+            print(f"  [DEBUG] nm failed: {e}")
     
     print(f"Running command: {' '.join(cmd)}")
     res = subprocess.run(cmd, capture_output=True, text=True)
@@ -658,6 +832,9 @@ def print_usage():
     print("Usage:")
     print("  nova --version            Show version")
     print("  nova dev <file.nv>       Run in VM (fast, for development)")
+    print("  nova check <file.nv>     Parse and type-check without building")
+    print("  nova lint <file.nv>      Show advisory style warnings (use --strict to fail)")
+    print("  nova fmt <file.nv>       Check formatting; use --write to modify")
     print("  nova build <file.nv>     Compile to native executable")
     print("  nova run <file.nv>       Build native + execute (maximum speed)")
     print("  nova repl                Interactive REPL shell")
@@ -807,6 +984,9 @@ def main():
     file_path = None
     output_file = None
 
+    strict_lint = False
+    json_output = False
+    fmt_write = False
     i = 2
     while i < len(sys.argv):
         arg = sys.argv[i]
@@ -835,6 +1015,12 @@ def main():
             else:
                 print("Error: --os requires an argument (e.g. windows, linux, macos)")
                 return
+        elif arg == "--strict":
+            strict_lint = True
+        elif arg == "--json":
+            json_output = True
+        elif arg == "--write":
+            fmt_write = True
         else:
             file_path = arg
         i += 1
@@ -846,7 +1032,15 @@ def main():
     import time
     start_time = time.time()
 
-    if command in ("dev",):
+    if command == "check":
+        target_os_arg = locals().get("target_os")
+        raise SystemExit(check_source(file_path, target_arch=target_arch,
+                                      target_os=target_os_arg, json_output=json_output))
+    elif command == "lint":
+        raise SystemExit(lint_source(file_path, strict=strict_lint, json_output=json_output))
+    elif command == "fmt":
+        raise SystemExit(format_source(os.path.abspath(file_path), check_only=not fmt_write))
+    elif command in ("dev",):
         run_source(file_path)
     elif command == "run":
         target_os_arg = locals().get("target_os")
