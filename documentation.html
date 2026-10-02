@@ -489,6 +489,18 @@ p.name = <span class="nv-str">"Hero"</span>
 
 <span class="nv-fn">puts</span>(<span class="nv-str">"Hello directly from C!"</span>)</code></pre>
 
+            <h3 id="syntax-modern">10. Modules, range, constructors and dictionaries</h3>
+            <p>Import a module and call it with a dot (<code>fs.read(p)</code>, <code>path.join("a", "b")</code>, <code>text.trim(s)</code>, <code>json.parse(s)</code>); these compile to the flat functions, so there is no runtime cost. Use <code>for i in range(n)</code> for counting loops, <code>Point(1, 2)</code> or <code>Point(x=1, y=2)</code> to build a <code>data</code> value, and <code>d["k"]</code> / <code>"k" in d</code> on dictionaries. Write <code>\{</code> and <code>\}</code> for literal braces in strings. See the <a href="reference.html#modules">reference</a> for every module function.</p>
+            <pre><code>import text
+
+for i in range(3) { print(text.padLeft(str(i), 2, "0")) }
+
+data Point { x: int  y: int }
+p = Point(y=2, x=1)
+ages = {"ada": 36}
+if "ada" in ages { print(ages["ada"] + p.x) }</code></pre>
+
+            
             <!-- ========== STANDARD LIBRARY ========== -->
             <h2 id="stdlib">Standard Library</h2>
             <p>Nova ships with a built-in standard library covering file I/O, OS interaction, math, and cryptography. All functions compile to efficient native machine code.</p>
@@ -616,6 +628,8 @@ python install.py --uninstall</code></pre>
                 <tr><td><code>galaxy init [template] [name]</code></td><td>Scaffold a new package from a template</td></tr>
                 <tr><td><code>galaxy install &lt;pkg&gt;</code></td><td>Install a package from the registry or GitHub</td></tr>
                 <tr><td><code>galaxy list</code></td><td>List locally installed packages</td></tr>
+                <tr><td><code>galaxy verify</code></td><td>Check installed packages against the content hashes in <code>galaxy.lock</code></td></tr>
+                <tr><td><code>galaxy keygen</code></td><td>(Maintainers) create an Ed25519 key for signing registry metadata</td></tr>
                 <tr><td><code>galaxy search &lt;query&gt;</code></td><td>Search the registry by name, keyword, or author</td></tr>
                 <tr><td><code>galaxy info &lt;pkg&gt;</code></td><td>Show detailed package information</td></tr>
                 <tr><td><code>galaxy publish</code></td><td>Submit your package to the registry</td></tr>

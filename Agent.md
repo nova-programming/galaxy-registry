@@ -3,6 +3,9 @@
 ## Project Overview
 - **Name**: Galaxy Registry (`galaxy-registry`)
 - **Purpose**: Official package registry and web portal for the Nova programming language's Galaxy Package Manager.
+- **Language surface the docs cover**: dotted module calls (`fs.read`, `path.join`, `text.trim`, `json.parse`), `for i in range(...)`, data constructors (`Point(1, 2)`), `d["k"]` / `"k" in d`, `\{` `\}` string escapes, inferred `-> string` returns.
+- **Signed metadata**: `tools/sign_registry.py` signs `packages/*.json` (Ed25519, `<file>.sig`); the `sign-metadata` workflow needs the `GALAXY_SIGNING_KEY` secret, and clients verify against `REGISTRY_PUBLIC_KEYS` in Nova's `_galaxy.py`.
+- **Playground compiler source**: `nova_worker.js` loads the Python compiler from GitHub (`NOVA_REF`, default `main`; pin to a tag/commit to freeze). `nova_worker.js?nova=<base-url>` loads from a local checkout for testing.
 - **Compiler Version**: Nova `v0.9.0` (Self-hosted systems programming language compiling to native x86_64/ARM64 machine code with double-buffered Win32 GDI GUI + NSS stylesheets).
 - **Architecture**:
   - Fully static, Git-backed registry hosted on Vercel.

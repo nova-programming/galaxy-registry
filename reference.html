@@ -201,6 +201,7 @@
                 <li><a href="#builtins">Built-in Functions</a></li>
                 <li><a href="#io">File I/O</a></li>
                 <li><a href="#os">OS Interface</a></li>
+                <li><a href="#modules">Standard Modules</a></li>
                 <li><a href="#math">Math &amp; Crypto</a></li>
                 <li class="section-gap"><a href="#directives">Compiler Directives</a></li>
                 <li><a href="#asm">Inline Assembly</a></li>
@@ -291,6 +292,20 @@ d.remove("name")          # delete key
 print(d.keys())           # list of keys
 print(d.values())         # list of values
 print(d.items())          # [key1, val1, key2, val2]</code></pre>
+
+            <p>Index and membership shortcuts: <code>d["k"]</code> reads, <code>d["k"] = v</code> writes, and <code>"k" in d</code> / <code>"k" not in d</code> test for a key. <code>in</code> works on dictionaries only; use <code>text.contains(s, part)</code> for strings.</p>
+            <pre><code>ages = {"ada": 36}
+ages["grace"] = 85
+if "ada" in ages { print(ages["ada"]) }
+if "bob" not in ages { print("bob is missing") }</code></pre>
+
+            <h3 id="data-constructors">Data constructors</h3>
+            <p>Build a <code>data</code> value from its fields in order, or by name. Missing fields are zero. The <code>data</code> declaration must appear earlier in the same file.</p>
+            <pre><code>data Point { x: int  y: int }
+a = Point(3, 4)
+b = Point(y=9, x=1)
+c = Point(7)          # y is 0
+p = Point()           # empty, then assign fields</code></pre>
 
             <h3 id="lists">Lists</h3>
             <p>Dynamic arrays with heap header <code>[len 4][cap 4][data ptr 8]</code> + separate buffer. Methods available on any list value:</p>
@@ -402,6 +417,13 @@ a.append(5)        # [5]</code></pre>
 <span class="nv-kw">for</span> i = <span class="nv-num">0</span> <span class="nv-kw">to</span> <span class="nv-num">100</span> <span class="nv-kw">step</span> <span class="nv-num">10</span> {
     <span class="nv-fn">print</span>(i)
 }</code></pre>
+
+            <h3 id="range">Range loops</h3>
+            <p><code>for i in range(...)</code> is the Python-style counting loop. The end is excluded and the step must be an integer literal (negative counts down). It compiles to the same counted loop as <code>for i = a to b step s</code>, so bounds-check elimination still applies.</p>
+            <pre><code>for i in range(5) { print(i) }            # 0 1 2 3 4
+for i in range(2, 10, 3) { print(i) }     # 2 5 8
+for i in range(5, 0, -2) { print(i) }     # 5 3 1
+for i in range(len(items)) { print(items[i]) }</code></pre>
 
             <h3 id="switch">Switch</h3>
             <p>Multi-branch conditional that desugars to if-elif-else. Works with any comparable type (int, string, bool).</p>
@@ -601,6 +623,37 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>sys_write_raw(fd, bytes) -> void</code></td><td>Write raw byte list to file descriptor</td></tr>
                 <tr><td><code>sys_platform() -&gt; string</code></td><td>Returns "windows", "linux", or "macos"</td></tr>
             </table>
+
+            <h2 id="modules">Standard Modules</h2>
+            <p><code>import</code> a module, then call its functions with a dot. Each call compiles to a plain function call (no runtime cost), and the older flat names such as <code>fs_read</code> keep working. <code>nova lint</code> flags old spellings and <code>nova fmt --write --modernize file.nv</code> rewrites them.</p>
+            <table>
+                <tr><th>Module</th><th>Functions</th></tr>
+                <tr><td><code>fs</code></td><td><code>exists size kind makeDir delete copy move read write</code></td></tr>
+                <tr><td><code>path</code></td><td><code>join</code> (any number of parts, or one list) <code>base dir ext</code></td></tr>
+                <tr><td><code>env</code></td><td><code>get set args platform</code></td></tr>
+                <tr><td><code>process</code></td><td><code>run shell exit</code></td></tr>
+                <tr><td><code>time</code></td><td><code>now ticks</code></td></tr>
+                <tr><td><code>json</code></td><td><code>stringify parse kind asInt asString asBool size at get has keyAt</code></td></tr>
+                <tr><td><code>text</code></td><td><code>toInt trim startsWith endsWith indexOf contains replace split join repeat upper lower words lines padLeft padRight count capitalize</code></td></tr>
+            </table>
+            <pre><code>import path
+import fs
+import text
+
+name = path.base(path.join("tmp", "notes.txt"))
+if fs.exists("notes.txt") { print(text.trim(fs.read("notes.txt"))) }
+print(text.padLeft("7", 3, "0"))      # 007
+print(text.toInt("  42 apples") + 1)   # 43</code></pre>
+
+            <h3 id="json-parse">json.parse</h3>
+            <p><code>json.parse(text)</code> returns a typed tree. <code>json.kind(v)</code> is 0 null, 1 bool, 2 number, 3 string, 4 array, 5 object, or -1 for a parse error (the message is in <code>json.asString(v)</code>). Numbers are truncated to integers.</p>
+            <pre><code>import json
+doc = json.parse("\{\"name\": \"Ada\", \"langs\": [\"nova\", \"c\"]\}")
+print(json.asString(json.get(doc, "name")))        # Ada
+print(json.asString(json.at(json.get(doc, "langs"), 0)))   # nova</code></pre>
+
+            <h3 id="string-escapes">String literals and soft keywords</h3>
+            <p><code>"x = {x}"</code> interpolates. Write <code>\{</code> and <code>\}</code> for literal braces. <code>read</code>, <code>write</code>, <code>close</code>, <code>api</code>, <code>openf</code> and <code>data</code> are keywords only where used as built-ins or declarations, so they are fine as variable names. A function without <code>-&gt; type</code> whose returns are all strings is treated as returning <code>string</code>.</p>
 
             <h2 id="math">Math &amp; PRNG</h2>
             <table>

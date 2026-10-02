@@ -331,6 +331,69 @@ count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred a
                 </div>
             </div>
 
+            <!-- ===== RANGE LOOPS ===== -->
+            <div class="example-card" id="range">
+                <div class="example-header">
+                    <h2>Range Loops</h2>
+                    <div class="desc">Python-style counting loops; the end is excluded.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>for i in range(5) { print(i) }            # 0 1 2 3 4
+for i in range(2, 10, 3) { print(i) }     # 2 5 8
+for i in range(5, 0, -2) { print(i) }     # 5 3 1
+</code></pre>
+                </div>
+            </div>
+
+            <!-- ===== DATA CONSTRUCTORS ===== -->
+            <div class="example-card" id="constructors">
+                <div class="example-header">
+                    <h2>Data Constructors</h2>
+                    <div class="desc">Build a data value by position or by name.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>data Point { x: int  y: int }
+
+a = Point(3, 4)
+b = Point(y=9, x=1)
+print(a.x + b.y)    # 12
+</code></pre>
+                </div>
+            </div>
+
+            <!-- ===== MODULES AND TEXT ===== -->
+            <div class="example-card" id="modules">
+                <div class="example-header">
+                    <h2>Modules and Text</h2>
+                    <div class="desc">Import a module, then call it with a dot.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>import text
+import path
+
+print(path.base(path.join("a", "b", "c.txt")))   # c.txt
+print(text.padLeft("7", 3, "0"))                  # 007
+print(text.upper(text.trim("  nova  ")))          # NOVA
+</code></pre>
+                </div>
+            </div>
+
+            <!-- ===== JSON ===== -->
+            <div class="example-card" id="json">
+                <div class="example-header">
+                    <h2>JSON</h2>
+                    <div class="desc">json.parse builds a typed tree; write literal braces as \{ and \}.</div>
+                </div>
+                <div class="example-body">
+                    <pre><code>import json
+
+doc = json.parse("\{\"name\": \"Ada\", \"age\": 36\}")
+print(json.asString(json.get(doc, "name")))   # Ada
+print(json.asInt(json.get(doc, "age")))       # 36
+</code></pre>
+                </div>
+            </div>
+
             <!-- ===== FIBONACCI ===== -->
             <div class="example-card" id="fibonacci">
                 <div class="example-header">

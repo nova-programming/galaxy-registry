@@ -274,6 +274,11 @@
                         <option value="classes">Data Classes &amp; Structs</option>
                         <option value="switch">Switch / Pattern Matching</option>
                         <option value="sort">Bubble Sort (Lists &amp; Mutation)</option>
+                        <option value="range">range() Counting Loops</option>
+                        <option value="ctor">Data Constructors</option>
+                        <option value="dict">Dictionaries &amp; in</option>
+                        <option value="modules">Modules (text)</option>
+                        <option value="json">json.parse</option>
                     </select>
 
                     <button class="btn-tool" onclick="resetCurrentPreset()" title="Reset snippet">
@@ -350,7 +355,12 @@
             primes: `# Prime Number Finder in Nova\ndef is_prime(n: int) -> bool {\n    if n <= 1 {\n        return false\n    }\n    for i = 2 to n - 1 {\n        if n % i == 0 {\n            return false\n        }\n    }\n    return true\n}\n\nprint("Prime numbers up to 30:")\ncount = 0\nfor n = 2 to 30 {\n    if is_prime(n) {\n        print(str(n) + " is prime")\n        count = count + 1\n    }\n}\nprint("Total primes found: " + str(count))\n`,
             classes: `# Data Classes & Structures in Nova\ndata Player {\n    name: string\n    health: int\n    level: int\n}\n\ndef create_hero(name: string) -> Player {\n    p = Player()\n    p.name = name\n    p.health = 100\n    p.level = 1\n    return p\n}\n\nhero = create_hero("Valkyrie")\nprint("Hero created: " + hero.name)\nprint("Health: " + str(hero.health))\nprint("Level: " + str(hero.level))\n`,
             switch: `# Pattern Evaluation with Switch in Nova\ndef get_http_message(status: int) -> string {\n    switch status {\n        case 200: { return "200 OK: Request succeeded." }\n        case 201: { return "201 Created: Resource provisioned." }\n        case 400: { return "400 Bad Request: Invalid payload." }\n        case 404: { return "404 Not Found: Endpoint does not exist." }\n        case 500: { return "500 Internal Error: Server failure." }\n        default:  { return "Unknown status code: " + str(status) }\n    }\n}\n\ncodes = [200, 201, 404, 500, 418]\nfor code in codes {\n    print(get_http_message(code))\n}\n`,
-            sort: `# Bubble Sort Algorithm in Nova\ndef bubble_sort(arr: list) -> list {\n    n = len(arr)\n    for i = 0 to n - 1 {\n        for j = 0 to n - i - 2 {\n            if arr[j] > arr[j + 1] {\n                temp = arr[j]\n                arr[j] = arr[j + 1]\n                arr[j + 1] = temp\n            }\n        }\n    }\n    return arr\n}\n\nitems = [64, 34, 25, 12, 22, 11, 90]\nprint("Original array:")\nprint(items)\n\nsorted_items = bubble_sort(items)\nprint("Sorted array:")\nprint(sorted_items)\n`
+            sort: `# Bubble Sort Algorithm in Nova\ndef bubble_sort(arr: list) -> list {\n    n = len(arr)\n    for i = 0 to n - 1 {\n        for j = 0 to n - i - 2 {\n            if arr[j] > arr[j + 1] {\n                temp = arr[j]\n                arr[j] = arr[j + 1]\n                arr[j + 1] = temp\n            }\n        }\n    }\n    return arr\n}\n\nitems = [64, 34, 25, 12, 22, 11, 90]\nprint("Original array:")\nprint(items)\n\nsorted_items = bubble_sort(items)\nprint("Sorted array:")\nprint(sorted_items)\n`,
+            range: `# Python-style counting loops\nprint("range(5):")\nfor i in range(5) {\n    print(i)\n}\nprint("range(2, 10, 3):")\nfor i in range(2, 10, 3) {\n    print(i)\n}\nprint("Counting down:")\nfor i in range(5, 0, -2) {\n    print(i)\n}\nitems = [10, 20, 30]\nfor i in range(len(items)) {\n    print("items[" + str(i) + "] = " + str(items[i]))\n}\n`,
+            ctor: `# data constructors: values in field order, or by name\ndata Point {\n    x: int\n    y: int\n}\n\ndata Player {\n    name: string\n    health: int\n}\n\na = Point(3, 4)\nb = Point(y=9, x=1)\nc = Point(7)\nprint("a = (" + str(a.x) + ", " + str(a.y) + ")")\nprint("b = (" + str(b.x) + ", " + str(b.y) + ")")\nprint("c = (" + str(c.x) + ", " + str(c.y) + ")  # missing fields are zero")\nhero = Player("Valkyrie", 100)\nprint(hero.name + " has " + str(hero.health) + " health")\n`,
+            dict: `# Dictionaries: d["key"] and "key" in d\nages = {"ada": 36, "linus": 54}\nages["grace"] = 85\nprint(ages["ada"] + ages["grace"])\nif "linus" in ages {\n    print("linus is in the dictionary")\n}\nif "bob" not in ages {\n    print("bob is missing")\n}\n`,
+            modules: `# Standard modules: import, then call with a dot\nimport text\n\nline = "  nova makes systems programming easy  "\nwords = text.words(line)\nprint("words: " + str(len(words)))\nprint(text.upper(text.trim(line)))\nprint(text.padLeft("7", 3, "0") + " | " + text.padRight("ab", 5, ".") + "|")\nprint(text.replace("a-b-c", "-", "+"))\nprint(text.toInt("  42 apples") + 1)\nprint(text.capitalize("hELLO"))\n`,
+            json: `# json.parse returns a typed tree; write literal braces as \\{ and \\}\nimport json\n\ndoc = json.parse("\\{\\"name\\": \\"Ada\\", \\"langs\\": [\\"nova\\", \\"c\\"], \\"age\\": 36\\}")\nprint(json.asString(json.get(doc, "name")))\nprint(json.asInt(json.get(doc, "age")))\nlangs = json.get(doc, "langs")\nprint(json.size(langs))\nprint(json.asString(json.at(langs, 0)))\n`
         };
 
         // Monaco Language Registration
@@ -384,7 +394,7 @@
         monaco.languages.setMonarchTokensProvider('nova', {
             tokenizer: {
                 root: [
-                    [/\b(?:def|class|data|enum|return|if|else|elif|for|to|downto|step|while|switch|case|break|continue|import|as|try|catch|throw|const)\b/, "keyword"],
+                    [/\b(?:def|class|data|enum|return|if|else|elif|for|in|not|to|downto|step|while|switch|case|break|continue|import|as|try|catch|throw|const)\b/, "keyword"],
                     [/\b(?:int|float|bool|string|byte|void|list)\b/, "type"],
                     [/\b(?:true|false|null)\b/, "constant"],
                     [/\b(?:print|len|str|range)\b/, "builtin"],
