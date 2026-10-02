@@ -36,6 +36,7 @@ class X86_64Codegen:
         self.noinline_funcs = set()
         self.entry_func = None
         self.extern_decls = {}
+        self.linked_libs = []
 
     def get_prop_offset(self, name):
         """Fallback: scan ALL known structs for this field name, return per-struct offset.
@@ -250,6 +251,12 @@ class X86_64Codegen:
         self.assembly.append(".extern _oob_file_ptr")
         self.assembly.append(".extern _oob_line")
         self.assembly.append(".extern _out_of_bounds")
+        for sym in ["_slice_cmp", "_slice_eq", "_slice_find", "_slice_to_str",
+                    "_slice_from_str", "_slice_from_list_data", "_slice_byte_at",
+                    "_ffi_open", "_ffi_sym", "_ffi_close",
+                    "_ffi_call0", "_ffi_call1", "_ffi_call2", "_ffi_call3",
+                    "_ffi_call4", "_ffi_call5", "_ffi_call6"]:
+            self.assembly.append(f".extern {sym}")
 
         self.data_section.append('fmt_int: .asciz "%d\\n"')
         self.data_section.append('fmt_int_pure: .asciz "%d"')
@@ -843,10 +850,11 @@ class X86_64Codegen:
             self.assembly.append(f"{continue_label}:")
             self.compile_expr(step_val)
             self.assembly.append("    pop rax")
+            step_op = "sub" if node.is_downto else "add"
             if isinstance(offset, str):
-                self.assembly.append(f"    add {offset}, rax")
+                self.assembly.append(f"    {step_op} {offset}, rax")
             else:
-                self.assembly.append(f"    add qword ptr [rbp - {offset}], rax")
+                self.assembly.append(f"    {step_op} qword ptr [rbp - {offset}], rax")
             self.assembly.append(f"    jmp {loop_label}")
             self.assembly.append(f"{end_label}:")
             self.loop_labels.pop()
@@ -989,7 +997,12 @@ class X86_64Codegen:
             self.add_defer(node)
         elif isinstance(node, ExternDef):
             self.extern_decls[node.name] = node
-            self.assembly.append(f".extern _{node.name}")
+            if getattr(node, 'lib', None):
+                clean_lib = node.lib.strip('"\'')
+                if clean_lib and clean_lib not in self.linked_libs:
+                    self.linked_libs.append(clean_lib)
+            sym = f"_{node.name}" if self.target_os == "macos" else node.name
+            self.assembly.append(f".extern {sym}")
         elif isinstance(node, MultiReturn):
             for i, val in enumerate(node.values):
                 self.compile_expr(val)
@@ -1416,23 +1429,38 @@ class X86_64Codegen:
                 for arg in reversed(node.args):
                     self.compile_expr(arg)
                 n_args = len(node.args)
-                if n_args > 0:
-                    self.assembly.append("    pop rdi")
-                if n_args > 1:
-                    self.assembly.append("    pop rsi")
-                if n_args > 2:
-                    self.assembly.append("    pop rdx")
-                if n_args > 3:
-                    self.assembly.append("    pop rcx")
-                if n_args > 4:
-                    self.assembly.append("    pop r8")
-                if n_args > 5:
-                    self.assembly.append("    pop r9")
+                is_win_extern = (node.name in self.extern_decls and self.target_os == "windows")
+                if is_win_extern:
+                    if n_args > 0:
+                        self.assembly.append("    pop rcx")
+                    if n_args > 1:
+                        self.assembly.append("    pop rdx")
+                    if n_args > 2:
+                        self.assembly.append("    pop r8")
+                    if n_args > 3:
+                        self.assembly.append("    pop r9")
+                else:
+                    if n_args > 0:
+                        self.assembly.append("    pop rdi")
+                    if n_args > 1:
+                        self.assembly.append("    pop rsi")
+                    if n_args > 2:
+                        self.assembly.append("    pop rdx")
+                    if n_args > 3:
+                        self.assembly.append("    pop rcx")
+                    if n_args > 4:
+                        self.assembly.append("    pop r8")
+                    if n_args > 5:
+                        self.assembly.append("    pop r9")
 
+                self.assembly.append("    xor eax, eax")
                 self.assembly.append("    sub rsp, 32")
                 if hasattr(node, 'module') and node.module:
                     module_prefix = node.module.replace(".", "_")
                     self.assembly.append(f"    call _{module_prefix}_{node.name}")
+                elif node.name in self.extern_decls:
+                    call_sym = f"_{node.name}" if self.target_os == "macos" else node.name
+                    self.assembly.append(f"    call {call_sym}")
                 else:
                     self.assembly.append(f"    call _{node.name}")
                 self.assembly.append("    add rsp, 32")

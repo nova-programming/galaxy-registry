@@ -10,6 +10,10 @@ import shutil
 import re
 import subprocess
 
+# Make the bootstrap sub-packages (lexer, parser, ...) importable when launched
+# as a console-script entry point (bootstrap.main:main) rather than as a script.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from lexer.tokenizer import tokenize
 from parser.parser import Parser
 from vm.compiler import Compiler
@@ -23,7 +27,7 @@ ZIP_PREFIX = "Nova-main"
 NOVA_RELEASE_BASE = "https://github.com/nova-programming/Nova/releases/download"
 
 ALLOWED_UPDATE_FILES = {"main.py", "_galaxy.py", "nova.nv", "runtime.c"}
-ALLOWED_UPDATE_DIRS = {"compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy"}
+ALLOWED_UPDATE_DIRS = {"bootstrap", "compiler", "parser", "lexer", "nova_ast", "vm", "stdlib", "modules", "tools", "galaxy"}
 
 BUNDLED_GCC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcc")
 
@@ -158,12 +162,40 @@ def _file_hash(file_path):
         return None
 
 
+def _build_fingerprint(file_path):
+    """Hash of everything that affects the build output of file_path.
+
+    Covers the source itself, sibling .nv modules it may import, the standard
+    library, runtime.c and the bootstrap compiler, so editing any of them
+    invalidates the cache (previously only the file itself was hashed, which
+    could silently reuse a stale compiler after a stdlib change).
+    """
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    h = hashlib.sha256()
+    paths = [os.path.abspath(file_path), os.path.join(root, "runtime.c")]
+    src_dir = os.path.dirname(os.path.abspath(file_path))
+    try:
+        paths += [os.path.join(src_dir, n) for n in os.listdir(src_dir) if n.endswith(".nv")]
+    except OSError:
+        pass
+    for sub, exts in (("stdlib", (".nv",)), ("bootstrap", (".py",))):
+        for dirpath, dirnames, filenames in os.walk(os.path.join(root, sub)):
+            dirnames[:] = [d for d in dirnames if d != "__pycache__"]
+            paths += [os.path.join(dirpath, n) for n in filenames if n.endswith(exts)]
+    for p in sorted(set(paths)):
+        digest = _file_hash(p)
+        if digest:
+            h.update(os.path.relpath(p, root).encode("utf-8", "replace") if p.startswith(root) else p.encode("utf-8", "replace"))
+            h.update(digest.encode())
+    return h.hexdigest()
+
+
 def _check_cache(project_dir, file_path):
     """Check if a file is unchanged since last build. Returns True if cached."""
     cache = _load_cache(project_dir)
     if cache.get("version") != NOVA_VERSION:
         return False
-    fhash = _file_hash(file_path)
+    fhash = _build_fingerprint(file_path)
     if fhash is None:
         return False
     return cache.get("files", {}).get(file_path) == fhash
@@ -173,7 +205,7 @@ def _update_cache(project_dir, file_path):
     """Update the cache with the current file hash."""
     cache = _load_cache(project_dir)
     cache["version"] = NOVA_VERSION
-    fhash = _file_hash(file_path)
+    fhash = _build_fingerprint(file_path)
     if fhash:
         cache["files"][file_path] = fhash
     _save_cache(project_dir, cache)
@@ -236,15 +268,23 @@ def _format_source(source):
     return result + ("\n" if result or source.endswith(("\n", "\r")) else "")
 
 
-def format_source(file_path, check_only=False):
-    """Format whitespace only; writing requires the explicit --write flag."""
+def format_source(file_path, check_only=False, modernize=False):
+    """Format whitespace only; writing requires the explicit --write flag.
+
+    With modernize=True, old API spellings are also rewritten (see api_tools.modernize_source).
+    """
     try:
         with open(file_path, "r", encoding="utf-8", newline="") as f:
             source = f.read()
     except OSError as e:
         emit_diagnostic(str(e), "IO001", file_path=file_path)
         return 1
-    formatted = _format_source(source)
+    if modernize:
+        import api_tools
+        source_for_format = api_tools.modernize_source(source)
+    else:
+        source_for_format = source
+    formatted = _format_source(source_for_format)
     if formatted == source:
         print(f"Formatted {os.path.basename(file_path)} successfully.")
         return 0
@@ -448,7 +488,9 @@ def lint_source(file_path, strict=False, json_output=False):
         emit_diagnostic(str(e), "IO001", file_path=file_path, json_output=json_output)
         return 1
 
+    import api_tools
     diagnostics = []
+    defined_here = api_tools.defined_functions(chr(10).join(lines))
     function_pattern = re.compile(r"^\s*def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
     for line_number, line in enumerate(lines, 1):
         if line.rstrip(" \t") != line:
@@ -456,9 +498,13 @@ def lint_source(file_path, strict=False, json_output=False):
         if "\t" in line[:len(line) - len(line.lstrip())]:
             diagnostics.append((line_number, "STYLE001", "tabs used for indentation; use spaces"))
         match = function_pattern.match(line)
-        if match and not re.fullmatch(r"[a-z][a-z0-9_]*", match.group(1)):
+        if match and not re.fullmatch(r"[a-z][a-z0-9_]*|[a-z][a-zA-Z0-9]*", match.group(1)):
             diagnostics.append((line_number, "STYLE002",
-                                f"function '{match.group(1)}' should use snake_case"))
+                                f"function '{match.group(1)}' should use camelCase (or snake_case)"))
+        for old_name, new_name in api_tools.old_spellings(line, defined_here):
+            diagnostics.append((line_number, "STYLE003",
+                                f"'{old_name}' is the old spelling; use '{new_name}' "
+                                "(nova fmt --write --modernize rewrites it)"))
         if re.search(r"\b(?:alloc|free)\s*\(", line):
             diagnostics.append((line_number, "UNSAFE001",
                                 "raw allocation requires explicit ownership review"))
@@ -550,6 +596,9 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
               "native dynamic dispatch is not implemented. "
               "Call a statically named function instead.")
         sys.exit(1)
+
+    import infer
+    infer.infer_return_types(ast)
 
     try:
         TypeInferer().infer(ast)
@@ -662,6 +711,13 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
         cmd += ["-Wl,-no_compact_unwind"]
     else:
         cmd += ["-no-pie"]
+
+    for lib in getattr(codegen, "linked_libs", []):
+        clean_lib = lib.strip('"\'')
+        if clean_lib:
+            lib_flag = f"-l{clean_lib}"
+            if lib_flag not in cmd:
+                cmd.append(lib_flag)
     # Debug: show symbols in runtime.o on macOS
     if is_macos:
         try:
@@ -835,6 +891,7 @@ def print_usage():
     print("  nova check <file.nv>     Parse and type-check without building")
     print("  nova lint <file.nv>      Show advisory style warnings (use --strict to fail)")
     print("  nova fmt <file.nv>       Check formatting; use --write to modify")
+    print("                           (--modernize also rewrites old API names, e.g. fs_read -> fs.read)")
     print("  nova build <file.nv>     Compile to native executable")
     print("  nova run <file.nv>       Build native + execute (maximum speed)")
     print("  nova repl                Interactive REPL shell")
@@ -867,6 +924,48 @@ def _detect_install_dir():
         if p and os.path.exists(os.path.join(p, "main.py")):
             return p
     return script_dir
+
+
+MAX_UPDATE_ARCHIVE_BYTES = 50 * 1024 * 1024
+
+
+def extract_update_archive(zip_data, install_dir):
+    """Extract an update zip into install_dir; returns the number of files written.
+
+    Validates every member before writing anything: no absolute or ``..``
+    paths, no symlinks, and the resolved destination must stay inside
+    install_dir. Raises ValueError (without touching disk) on any violation.
+    """
+    if len(zip_data) > MAX_UPDATE_ARCHIVE_BYTES:
+        raise ValueError("archive exceeds size limit")
+    root = os.path.abspath(install_dir)
+    planned = []
+    with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
+        bad = zf.testzip()
+        if bad is not None:
+            raise ValueError(f"corrupted archive: {bad}")
+        for info in zf.infolist():
+            rel = info.filename.replace("\\", "/")
+            if rel.startswith(ZIP_PREFIX + "/"):
+                rel = rel[len(ZIP_PREFIX) + 1:]
+            if not rel or rel.endswith("/"):
+                continue
+            parts = rel.split("/")
+            if parts[0] not in ALLOWED_UPDATE_FILES and parts[0] not in ALLOWED_UPDATE_DIRS:
+                continue
+            if rel.startswith("/") or any(p in ("", ".", "..") or ":" in p for p in parts):
+                raise ValueError(f"unsafe archive path: {info.filename}")
+            if (info.external_attr >> 16) & 0o170000 == 0o120000:
+                raise ValueError(f"archive contains symlink: {info.filename}")
+            dst = os.path.abspath(os.path.join(root, *parts))
+            if not dst.startswith(root + os.sep):
+                raise ValueError(f"unsafe archive path: {info.filename}")
+            planned.append((info, dst))
+        for info, dst in planned:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            with zf.open(info) as src, open(dst, "wb") as df:
+                shutil.copyfileobj(src, df)
+    return len(planned)
 
 
 def cmd_update():
@@ -916,26 +1015,11 @@ def cmd_update():
             return
 
     print("Extracting...")
-    count = 0
-    with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
-        bad = zf.testzip()
-        if bad is not None:
-            print(f"Corrupted archive: {bad}")
-            return
-        for name in zf.namelist():
-            rel = name
-            if rel.startswith(ZIP_PREFIX + "/"):
-                rel = rel[len(ZIP_PREFIX) + 1:]
-            if not rel or rel.endswith("/"):
-                continue
-            parts = rel.split("/")
-            top = parts[0]
-            if top in ALLOWED_UPDATE_FILES or top in ALLOWED_UPDATE_DIRS:
-                dst = os.path.join(install_dir, rel)
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-                with zf.open(name) as src, open(dst, "wb") as df:
-                    shutil.copyfileobj(src, df)
-                count += 1
+    try:
+        count = extract_update_archive(zip_data, install_dir)
+    except ValueError as e:
+        print(f"Update aborted: {e}")
+        return
 
     print(f"Updated {count} files.")
     print(f"Nova has been updated to v{latest}.")
@@ -987,6 +1071,7 @@ def main():
     strict_lint = False
     json_output = False
     fmt_write = False
+    fmt_modernize = False
     i = 2
     while i < len(sys.argv):
         arg = sys.argv[i]
@@ -1021,6 +1106,8 @@ def main():
             json_output = True
         elif arg == "--write":
             fmt_write = True
+        elif arg == "--modernize":
+            fmt_modernize = True
         else:
             file_path = arg
         i += 1
@@ -1039,7 +1126,7 @@ def main():
     elif command == "lint":
         raise SystemExit(lint_source(file_path, strict=strict_lint, json_output=json_output))
     elif command == "fmt":
-        raise SystemExit(format_source(os.path.abspath(file_path), check_only=not fmt_write))
+        raise SystemExit(format_source(os.path.abspath(file_path), check_only=not fmt_write, modernize=fmt_modernize))
     elif command in ("dev",):
         run_source(file_path)
     elif command == "run":

@@ -33,28 +33,49 @@ nova lint --strict hello.nv  # Treat advisory warnings as failures
 nova fmt hello.nv        # Check deterministic formatting
 nova fmt --write hello.nv  # Apply formatting explicitly
 nova dev hello.nv        # Run in VM mode (no GCC needed)
+```
 
 ## Portable standard library
 
-The standard library provides small, readable modules for common operations:
+The standard library is a set of small modules. `import` one, then call its
+functions with a dot: `fs.read(p)`, `path.join("a", "b")`, `text.trim(s)`.
+Each call compiles to a plain function call, so there is no runtime cost, and
+the older flat spellings (`fs_read`, `path_join2`, ...) keep working.
 
 ```nova
 import path
 import fs
+import text
 import time
 
-file_name = path_basename(path_join(["tmp", "notes.txt"]))
-simple_file = path_join2("data", "notes.txt")
-if fs_exists("notes.txt") {
-    print(fs_read("notes.txt"))
+name = path.base(path.join("tmp", "notes.txt"))
+if fs.exists("notes.txt") {
+    print(text.trim(fs.read("notes.txt")))
 }
-fs_mkdir("data")
-fs_write("data/notes.txt", "Nova is simple and fast.\n")
-fs_copy("data/notes.txt", "data/notes.backup.txt")
-print(time_ticks_ms())
+fs.makeDir("data")
+fs.write("data/notes.txt", "Nova is simple and fast.
+")
+fs.copy("data/notes.txt", "data/notes.backup.txt")
+print(time.ticks())
 ```
 
-`path`, `fs`, `env`, `process`, and `time` are backed by the existing
+| Module | Functions |
+|---|---|
+| `fs` | `exists size kind makeDir delete copy move read write` |
+| `path` | `join` (any number of parts, or one list), `base dir ext` |
+| `env` | `get set args platform` |
+| `process` | `run shell exit` |
+| `time` | `now ticks` |
+| `json` | `stringify` |
+| `text` | `toInt trim startsWith endsWith indexOf contains replace split join repeat upper lower words lines padLeft padRight count capitalize` |
+
+Members use camelCase (`makeDir`, `startsWith`, `.asList`, `.valueByte`).
+`nova lint` flags old spellings (`STYLE003`) and
+`nova fmt --write --modernize file.nv` rewrites them for you.
+`read`, `write`, `close`, `api`, `openf` and `data` are only keywords where
+they are used as built-ins or declarations, so they are fine as variable names.
+
+These modules are backed by the existing
 cross-platform runtime boundary. Filesystem helpers return simple status/value
 results instead of hiding operational failures. `process_shell` is explicitly
 named because it invokes a shell. `json_stringify(value)` is available from
@@ -68,10 +89,18 @@ destination where the platform supports it, and `fs_delete` removes files
 only; all three return `1` on success or `0` on failure.
 `process_run(["program", "argument"])` executes without a shell and returns
 the child exit code, or `-1` when the process cannot be launched.
+
+## Galaxy package manager
+
+```bash
 galaxy --version         # Check Galaxy version
 galaxy init my-lib       # Create a library
 galaxy install pkg       # Install a package
+galaxy verify            # Check installed packages against galaxy.lock (content hashes)
+galaxy keygen            # (maintainers) create an Ed25519 key to sign registry metadata
 ```
+
+Registry metadata can be signed (Ed25519): `packages/*.json.sig` is checked against the keys in `REGISTRY_PUBLIC_KEYS` (`_galaxy.py`) or `GALAXY_REGISTRY_KEYS`. With keys configured, missing or invalid signatures stop the install; `GALAXY_ALLOW_UNSIGNED=1` overrides and `GALAXY_REQUIRE_SIGNATURE=1` enforces even without configured keys. Installed packages are also pinned by content hash in `galaxy.lock` (`galaxy verify`).
 
 **To use `nova` and `galaxy` immediately without restarting your terminal:**
 
@@ -162,48 +191,32 @@ Additional standard library modules:
 - `errors.nv` — Structured error/warning printer with fix suggestions
 - `assembler.nv` — target-specific instruction encoder (assembles supported .s text into byte streams)
 - `linker.nv` — Windows PE executable generator (packages bytes into .exe directly, integrated)
-- `memory.nv` — Raw memory byte access utilities
+- `slice.nv`, `ffi.nv`, `fs.nv`, `path.nv`, `env.nv`, `process.nv`, `time.nv`, `json.nv` — portable standard-library modules
 
 ## Project Structure
 
 ```
 nova/
-├── nova_ast/         # AST node definitions (Python)
-├── compiler/         # Compiler pipeline (Python)
-├── vm/               # Python bytecode VM (Python)
-├── modules/          # Module resolver (Python)
-├── lexer/            # Reference tokenizer (Python)
-├── parser/           # Reference parser (Python)
-├── stdlib/           # Self-hosted compiler written in Nova
-│   ├── backend/          # Architecture-specific codegen backends
-│   │   ├── x86_64/       # x86_64 codegen (codegen.nv, codegen_expr.nv, codegen_stmt.nv)
-│   │   └── arm64/        # ARM64 codegen (same file layout)
-│   ├── lexer.nv          # Tokenizer (Nova)
-│   ├── parser.nv         # Recursive-descent parser (Nova)
-│   ├── compiler.nv       # Pipeline orchestrator (Nova)
-│   ├── assembler.nv      # x86 assembler (Nova, integrated via assemble_link_file)
-│   ├── assembler_parse.nv# Assembly line/operand parsing (Nova)
-│   ├── assembler_encode.nv# Instruction encoding (Nova)
-│   ├── assembler_pass.nv # Pass1 + fixup resolution (Nova)
-│   ├── types.nv          # Type system abstraction (Nova)
-│   ├── type_checker.nv   # Static type inference (Nova)
-│   ├── linker.nv         # Native PE linker (Nova, integrated via assemble_link_file)
-│   ├── memory.nv         # Raw memory byte access (Nova)
-│   ├── errors.nv         # Structured error/warning printer (Nova)
-│   ├── os_win.nv         # Windows syscall/runtime facade (Nova)
-│   ├── os_linux.nv       # Linux syscall/runtime facade (Nova)
-│   ├── os_macos.nv       # macOS syscall/runtime facade (Nova)
-│   ├── codegen_common.nv # Shared codegen externs + data strings (Nova)
-│   └── peephole.nv       # Assembly peephole optimizer (Nova)
-├── bootstrap/        # Python bootstrap compiler (frozen)
-│   ├── main.py           # Bootstrap entry point
-│   ├── compiler/         # Bootstrap codegen (Python)
-│   └── README.md         # Bootstrap status
-├── main.py           # Python bootstrap compiler entry point (aliases bootstrap/main.py)
-├── nova.nv           # Self-hosted compiler entry point
+├── nova.nv           # Self-hosted compiler entry point / CLI driver
 ├── runtime.c         # C runtime wrappers for native compilation
-├── docs/             # Documentation
-└── tests/            # Test programs
+├── _galaxy.py        # Galaxy package manager (also exposed as galaxy/ and tools/galaxy.py)
+├── install.py|.sh|.ps1  # Installers
+├── bootstrap/        # Python bootstrap compiler (Stage 0) and VM
+│   ├── main.py           # Bootstrap CLI entry point
+│   ├── lexer/ parser/ nova_ast/ modules/   # Front end
+│   ├── compiler/         # Type checker + x86_64/ARM64 codegen backends
+│   └── vm/               # Bytecode compiler and VM (`nova dev`)
+├── stdlib/           # Self-hosted compiler and standard library, written in Nova
+│   ├── lexer.nv parser.nv type_checker.nv types.nv compiler.nv
+│   ├── codegen_common.nv peephole.nv errors.nv vm.nv
+│   ├── backend/x86_64/   # codegen*.nv, assembler*.nv, linker.nv, os_windows.nv, os_unix.nv
+│   ├── backend/arm64/    # same layout for ARM64
+│   ├── fs.nv path.nv env.nv process.nv time.nv json.nv slice.nv ffi.nv system.nv
+│   └── gui.nv nss.nv     # Win32 GDI GUI toolkit and NSS stylesheets
+├── tools/            # nova_py (Python bridge), libtest, galaxy wrapper
+├── docs/             # Language features, internals, libraries
+├── examples/         # GUI and UI demos
+└── tests/            # Python tests and .nv fixtures (run with `python -m pytest`)
 ```
 
 ## Language Features
@@ -215,6 +228,11 @@ nova/
 - **Capacity-based list allocation** — `append` doubles capacity exponentially, no realloc on every insertion
 - **Float literals + x87 runtime** — `x = 3.14; print(x)` uses IEEE 754 single precision, x87 FPU for arithmetic
 - **For-in loops `for i in items { ... }`** — iterate over list elements directly
+- **`for i in range(n)` / `range(a, b)` / `range(a, b, step)`** — Python-style counting loops (end excluded, step is a literal); compiled to the same counted loop as `for i = a to b step s`, so bounds-check elimination still applies
+- **Data constructors** — `Point(1, 2)` or `Point(x=1, y=2)` build a `data` value (missing fields are zero); `Point()` and field assignment still work
+- **Dictionary shortcuts** — `d["k"]`, `d["k"] = v`, `"k" in d`, `"k" not in d` (`in` is for dictionaries; use `text.contains` for strings)
+- **Return types are inferred** — `def label(n) { return "n=" + str(n) }` prints as a string without a `-> string` annotation when every known return is a string
+- **`json.parse(text)`** — parse JSON into a typed tree (`json.get`, `json.at`, `json.asInt`, `json.asString`, ...); see `stdlib/json.nv`
 - **Boolean short-circuit** — `and`/`or` skip right operand evaluation when left determines the result
 - **Debug prints (`printd`)** — `printd(x)` outputs `debug - [line N]: <value>` with automatic line number, enabled via `--debug` flag
 - **Smart error messages** — compiler errors include error category, line number, and fix suggestions

@@ -38,6 +38,7 @@ class Arm64Codegen:
         self.noinline_funcs = set()
         self.entry_func = None
         self.extern_decls = {}
+        self.linked_libs = []
 
     def _emit_fp_access(self, f, op, reg, neg_offset):
         """Emit `op reg, [fp, #neg_offset]`, handling ARM64's [-256,255] limit.
@@ -568,6 +569,12 @@ class Arm64Codegen:
         self.assembly.append(".extern _oob_file_ptr")
         self.assembly.append(".extern _oob_line")
         self.assembly.append(".extern _out_of_bounds")
+        for sym in ["_slice_cmp", "_slice_eq", "_slice_find", "_slice_to_str",
+                    "_slice_from_str", "_slice_from_list_data", "_slice_byte_at",
+                    "_ffi_open", "_ffi_sym", "_ffi_close",
+                    "_ffi_call0", "_ffi_call1", "_ffi_call2", "_ffi_call3",
+                    "_ffi_call4", "_ffi_call5", "_ffi_call6"]:
+            self.assembly.append(f".extern {sym}")
 
         self.data_section.append(".align 3")
         self.data_section.append('fmt_int: .asciz "%d\\n"')
@@ -955,11 +962,12 @@ class Arm64Codegen:
             self.assembly.append(f"{continue_label}:")
             self.compile_expr(step_val)
             self.assembly.append("    ldr x1, [sp], #16")
+            step_op = "sub" if node.is_downto else "add"
             if isinstance(offset, str):
-                self.assembly.append(f"    add {offset}, {offset}, x1")
+                self.assembly.append(f"    {step_op} {offset}, {offset}, x1")
             else:
                 self._emit_fp_access(self.assembly, "ldr", "x0", -offset)
-                self.assembly.append("    add x0, x0, x1")
+                self.assembly.append(f"    {step_op} x0, x0, x1")
                 self._emit_fp_access(self.assembly, "str", "x0", -offset)
             self.assembly.append(f"    b {loop_label}")
             self.assembly.append(f"{end_label}:")
@@ -1116,6 +1124,10 @@ class Arm64Codegen:
             self.add_defer(node)
         elif isinstance(node, ExternDef):
             self.extern_decls[node.name] = node
+            if getattr(node, 'lib', None):
+                clean_lib = node.lib.strip('"\'')
+                if clean_lib and clean_lib not in self.linked_libs:
+                    self.linked_libs.append(clean_lib)
             self.assembly.append(f".extern _{node.name}")
         elif isinstance(node, MultiReturn):
             for i, val in enumerate(node.values):

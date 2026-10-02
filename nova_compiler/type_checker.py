@@ -21,7 +21,7 @@ BUILTIN_SIGS = {
     "sys_free":      (AnyType(), [AnyType()]),
     "sys_exit":      (AnyType(), [IntType]),
     "sys_platform":  (StringType, []),
-    "sys_flush":     (AnyType(), [IntType]),
+    "sys_flush":     (AnyType(), []),
     "sys_system":    (IntType, [StringType]),
     "sys_get_args":  (ListType(AnyType()), []),
     "sys_get_tick_count": (IntType, []),
@@ -178,6 +178,13 @@ class TypeInferer:
                 struct_type = StructType(stmt.name)
                 self.structs[stmt.name] = struct_type
             elif isinstance(stmt, Function):
+                params = []
+                for p_name, p_type_str in stmt.params:
+                    params.append(resolve_type_annotation(p_type_str))
+                ret_type = resolve_type_annotation(stmt.return_type)
+                func_type = FuncType(params, ret_type)
+                self.functions[stmt.name] = func_type
+            elif isinstance(stmt, ExternDef):
                 params = []
                 for p_name, p_type_str in stmt.params:
                     params.append(resolve_type_annotation(p_type_str))
@@ -478,6 +485,10 @@ class TypeInferer:
         inst_t = self.visit(node.instance)
         for arg in node.args:
             self.visit(arg)
+        if (node.method_name == "has" and len(node.args) == 1 and
+                (isinstance(inst_t, ListType) or (isinstance(inst_t, ScalarType) and inst_t.name == "string"))):
+            raise StaticTypeError("'in' and .has() work on dictionaries only", node.line,
+                "use text.contains(s, part) for strings, or loop over the list")
         # FileType method validation
         if isinstance(inst_t, ScalarType) and inst_t.name == "file":
             if node.method_name == "write":
