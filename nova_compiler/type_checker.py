@@ -280,7 +280,7 @@ class TypeInferer:
                 if suggestion:
                     import sys
                     import re
-                    print(f"  warning: unknown identifier '{node.name}' at line {node.line} — did you mean '{suggestion}'?", file=sys.stderr)
+                    print(f"  warning: unknown identifier '{node.name}' at line {node.line} -- did you mean '{suggestion}'?", file=sys.stderr)
         return t
 
     def visit_BinOp(self, node):
@@ -406,7 +406,7 @@ class TypeInferer:
             func_type = self.functions[node.name]
             if len(node.args) != len(func_type.params):
                 raise StaticTypeError(f"Function {node.name} expects {len(func_type.params)} args, got {len(node.args)}", node.line,
-                    f"add or remove arguments to match the function signature — expected {len(func_type.params)}, got {len(node.args)}")
+                    f"add or remove arguments to match the function signature -- expected {len(func_type.params)}, got {len(node.args)}")
             
             for arg, param_type in zip(node.args, func_type.params):
                 arg_t = self.visit(arg)
@@ -502,7 +502,7 @@ class TypeInferer:
             if func is not None:
                 if len(node.args) != len(func.params):
                     raise StaticTypeError(f"Function {node.method_name} expects {len(func.params)} args, got {len(node.args)}", node.line,
-                        f"add or remove arguments to match the function signature — expected {len(func.params)}, got {len(node.args)}")
+                        f"add or remove arguments to match the function signature -- expected {len(func.params)}, got {len(node.args)}")
                 for arg, param_type in zip(node.args, func.params):
                     arg_t = self.visit(arg)
                     self.unify(param_type, arg_t, arg)
@@ -602,7 +602,7 @@ class TypeInferer:
                 suggestion = did_you_mean(node.field_name, inst_t.fields.keys())
                 if suggestion:
                     import sys
-                    print(f"  warning: unknown field '{node.field_name}' on {inst_t.name} at line {node.line} — did you mean '{suggestion}'?", file=sys.stderr)
+                    print(f"  warning: unknown field '{node.field_name}' on {inst_t.name} at line {node.line} -- did you mean '{suggestion}'?", file=sys.stderr)
         return AnyType()
 
     def visit_LoadLib(self, node):

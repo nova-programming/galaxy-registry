@@ -406,7 +406,7 @@ def cmd_repl():
 
 
 def run_source(file_path):
-    """Run a Nova program in the VM (development mode — fast execution)."""
+    """Run a Nova program in the VM (development mode -- fast execution)."""
     file_path = os.path.abspath(file_path)
     base_dir = os.path.dirname(file_path)
 
@@ -569,7 +569,7 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
 
     # Build cache: skip if source unchanged and output exists
     if not debug_mode and os.path.exists(exe_file) and _check_cache(base_dir, file_path):
-        print(f"  [cached] {os.path.basename(file_path)} unchanged — {os.path.basename(exe_file)} is up to date")
+        print(f"  [cached] {os.path.basename(file_path)} unchanged -- {os.path.basename(exe_file)} is up to date")
         return
 
     with open(file_path, "r", encoding="utf-8") as f:
@@ -866,7 +866,7 @@ def run_native(file_path, target_arch="x86_64", target_os=None):
     exe_file = file_path.rsplit(".", 1)[0] + output_ext
 
     if not os.path.exists(exe_file):
-        print(f"  Native build failed — falling back to VM execution.")
+        print(f"  Native build failed -- falling back to VM execution.")
         run_source(file_path)
         return
 
