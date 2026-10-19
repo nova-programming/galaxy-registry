@@ -326,6 +326,28 @@ class TypeInferer:
             
         return t
 
+    def visit_UnpackAssign(self, node):
+        # No per-position return typing here (MultiReturn's own return type -- a Function's
+        # "(T1,T2,...)" string -- isn't unpacked back into a FuncType with multiple return
+        # types), just AnyType for each target so visit_Variable later doesn't misreport a
+        # legitimately-assigned name as unknown.
+        self.visit(node.value)
+        for target in node.targets:
+            if isinstance(target, Variable) and target.name != '_':
+                existing_t = None
+                for env in reversed(self.env_stack):
+                    if target.name in env:
+                        existing_t = env[target.name]
+                        break
+                if existing_t is None:
+                    self.set_var_type(target.name, AnyType())
+        return AnyType()
+
+    def visit_MultiReturn(self, node):
+        for val in node.values:
+            self.visit(val)
+        return AnyType()
+
     def visit_Function(self, node):
         if node.name == "main":
             raise StaticTypeError(

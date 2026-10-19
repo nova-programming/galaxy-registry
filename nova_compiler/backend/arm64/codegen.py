@@ -212,9 +212,16 @@ class Arm64Codegen:
         if isinstance(node, Number):
             reg = self._alloc_reg()
             if isinstance(node.value, float):
+                # movz only takes a 16-bit immediate; a float's 32-bit bit pattern needs
+                # the same movz+movk chunking the integer path below already uses (this
+                # one-shot movz with the full pattern would fail to assemble for nearly
+                # any float -- caught by cross-assembling with
+                # `clang --target=arm64-apple-macos11 -c`, this environment's only
+                # available ARM64 verification since there's no hardware or emulator).
                 import struct
                 bits = struct.unpack('<I', struct.pack('<f', node.value))[0]
-                self.assembly.append(f"    movz {reg}, #{bits}")
+                self.assembly.append(f"    movz {reg}, #{bits & 0xFFFF}")
+                self.assembly.append(f"    movk {reg}, #{(bits >> 16) & 0xFFFF}, lsl 16")
             else:
                 val = int(node.value)
                 if val < 0: val = (1 << 64) + val
@@ -248,7 +255,18 @@ class Arm64Codegen:
         elif isinstance(node, UnaryOp):
             in_reg = self._compile_expr_to_reg(node.value)
             if node.op == "-":
-                self.assembly.append(f"    neg {in_reg}, {in_reg}")
+                if self._is_float_expr(node.value):
+                    # Flip the sign bit of the 32-bit single-precision value (on the "w"
+                    # view of the register, which zero-extends into the "x" register's
+                    # upper 32 bits per normal AArch64 semantics) instead of negating it
+                    # as a two's-complement integer, which corrupts the bit pattern
+                    # entirely -- same bug and fix as the x86_64 backend had. Verified by
+                    # cross-assembling the generated .s with `clang --target=aarch64-linux-gnu
+                    # -c` (this environment has no ARM64 hardware or emulator to run it).
+                    w_reg = "w" + in_reg[1:]
+                    self.assembly.append(f"    eor {w_reg}, {w_reg}, #0x80000000")
+                else:
+                    self.assembly.append(f"    neg {in_reg}, {in_reg}")
             elif node.op == "~":
                 self.assembly.append(f"    mvn {in_reg}, {in_reg}")
             elif node.op == "not":
@@ -528,6 +546,7 @@ class Arm64Codegen:
         self.assembly.append(".extern _dict_values")
         self.assembly.append(".extern _dict_items")
         self.assembly.append(".extern _dict_free")
+        self.assembly.append(".extern _as_list")
         self.assembly.append(".extern _abs")
         self.assembly.append(".extern _min")
         self.assembly.append(".extern _max")
@@ -701,6 +720,11 @@ class Arm64Codegen:
         self.data_section.append(".global __nova_argv")
         self.data_section.append("__nova_argv:")
         self.data_section.append("    .quad 0")
+        # Extra MultiReturn values (anything past the first) ride here instead of in
+        # x1/x2/x3 -- same reasoning and layout as the x86_64 backend's _nova_multi_ret.
+        self.data_section.append(".align 3")
+        self.data_section.append("_nova_multi_ret:")
+        self.data_section.append("    .quad " + ", ".join(["0"] * 8))
 
         self.assembly.append(".data")
         for line in self.data_section:
@@ -742,6 +766,11 @@ class Arm64Codegen:
             if node.name not in self.local_vars:
                 self.local_offset += 8
                 self.local_vars[node.name] = self.local_offset
+        elif isinstance(node, UnpackAssign):
+            for target in node.targets:
+                if isinstance(target, Variable) and target.name != '_' and target.name not in self.local_vars:
+                    self.local_offset += 8
+                    self.local_vars[target.name] = self.local_offset
         elif isinstance(node, IfElse):
             for s in node.if_body: self.scan_vars(s)
             for s in node.else_body: self.scan_vars(s)
@@ -1136,15 +1165,25 @@ class Arm64Codegen:
                     self.linked_libs.append(clean_lib)
             self.assembly.append(f".extern _{node.name}")
         elif isinstance(node, MultiReturn):
+            # Same bug and fix as x86_64 had: this used to smuggle values[1:] out in
+            # x1/x2/x3, trusting they'd survive to the caller, but nothing here actually
+            # guarantees that across the call boundary (and x86_64's version provably
+            # didn't survive its own epilogue). values[1:] go through the
+            # _nova_multi_ret static buffer instead; values[0] stays the normal,
+            # ABI-compatible single return value in x0. Verified by cross-assembling with
+            # `clang --target=arm64-apple-macos11 -c` -- no ARM64 hardware/emulator
+            # available in this environment to run it.
+            max_extra = 8
             for i, val in enumerate(node.values):
                 self.compile_expr(val)
                 self.assembly.append("    ldr x0, [sp], #16")
                 if i == 0:
                     self.assembly.append("    mov x1, x0")
-                elif i == 1:
-                    self.assembly.append("    mov x2, x0")
-                elif i == 2:
-                    self.assembly.append("    mov x3, x0")
+                elif i - 1 < max_extra:
+                    slot = (i - 1) * 8
+                    self.assembly.append("    adrp x16, _nova_multi_ret@PAGE")
+                    self.assembly.append("    add x16, x16, _nova_multi_ret@PAGEOFF")
+                    self.assembly.append(f"    str x0, [x16, #{slot}]")
             self.assembly.append("    mov x0, x1")
             self.emit_deferred()
             self.assembly.append("    ldp fp, lr, [sp], #16")
@@ -1152,27 +1191,31 @@ class Arm64Codegen:
         elif isinstance(node, UnpackAssign):
             self.compile_expr(node.value)
             self.assembly.append("    ldr x0, [sp], #16")
+            target_types = []
+            if isinstance(node.value, Call):
+                rt = self.func_returns.get(node.value.name, "")
+                if rt.startswith("(") and rt.endswith(")"):
+                    target_types = [t.strip() for t in rt[1:-1].split(",")]
+            max_extra = 8
             for i, target in enumerate(node.targets):
                 if isinstance(target, Variable) and target.name == '_':
                     continue
+                if isinstance(target, Variable) and i < len(target_types) and target_types[i] == "string":
+                    self.string_vars.add(target.name)
                 if i == 0:
-                    self.assembly.append("    mov x1, x0")
-                    if isinstance(target, Variable):
-                        offset = self.local_vars.get(target.name)
-                        if offset is not None:
-                            self._emit_fp_access(self.assembly, "str", "x1", -offset if isinstance(offset, int) else 0)
-                elif i == 1:
-                    self.assembly.append("    mov x2, x0")
-                    if isinstance(target, Variable):
-                        offset = self.local_vars.get(target.name)
-                        if offset is not None:
-                            self._emit_fp_access(self.assembly, "str", "x2", -offset if isinstance(offset, int) else 0)
-                elif i == 2:
-                    self.assembly.append("    mov x3, x0")
-                    if isinstance(target, Variable):
-                        offset = self.local_vars.get(target.name)
-                        if offset is not None:
-                            self._emit_fp_access(self.assembly, "str", "x3", -offset if isinstance(offset, int) else 0)
+                    reg = "x0"
+                elif i - 1 < max_extra:
+                    slot = (i - 1) * 8
+                    self.assembly.append("    adrp x16, _nova_multi_ret@PAGE")
+                    self.assembly.append("    add x16, x16, _nova_multi_ret@PAGEOFF")
+                    self.assembly.append(f"    ldr x0, [x16, #{slot}]")
+                    reg = "x0"
+                else:
+                    continue
+                if isinstance(target, Variable):
+                    offset = self.local_vars.get(target.name)
+                    if offset is not None:
+                        self._emit_fp_access(self.assembly, "str", reg, -offset if isinstance(offset, int) else 0)
         elif isinstance(node, RawBlock):
             for line in node.body:
                 if isinstance(line, str): self.assembly.append(line)
@@ -1349,12 +1392,26 @@ class Arm64Codegen:
             struct_name = None
             if hasattr(node.instance, 'inferred_type') and getattr(node.instance.inferred_type, 'name', None):
                 struct_name = node.instance.inferred_type.name
-            if struct_name and struct_name != "any":
-                offset = self.get_struct_prop_offset(struct_name, node.field_name)
+            if node.field_name == "ptr" and struct_name not in self.struct_defs:
+                # Builtin `.ptr` on a list/string value, not a user struct field literally
+                # named "ptr" -- same bug and fix as the x86_64 backend had (ListType's
+                # inferred_type.name is "list", so this was reaching get_prop_offset's "no
+                # struct defines this field" default of offset 0, returning a list's own
+                # element count instead of its data pointer). Verified by cross-assembling
+                # with `clang --target=arm64-apple-macos11 -c` -- no ARM64 hardware/
+                # emulator available in this environment to run it.
+                if self._is_string_expr(node.instance):
+                    self.assembly.append("    str x0, [sp, #-16]!")
+                else:
+                    self.assembly.append("    ldr x0, [x0, #8]")
+                    self.assembly.append("    str x0, [sp, #-16]!")
             else:
-                offset = self.get_prop_offset(node.field_name)
-            self.assembly.append(f"    ldr x0, [x0, #{offset}]")
-            self.assembly.append("    str x0, [sp, #-16]!")
+                if struct_name and struct_name != "any":
+                    offset = self.get_struct_prop_offset(struct_name, node.field_name)
+                else:
+                    offset = self.get_prop_offset(node.field_name)
+                self.assembly.append(f"    ldr x0, [x0, #{offset}]")
+                self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, Alloc):
             self.compile_expr(node.size)
             self.assembly.append("    ldr x0, [sp], #16")
@@ -1602,6 +1659,14 @@ class Arm64Codegen:
                 self.assembly.append("    ldr x0, [sp], #16")
                 self.assembly.append("    bl _fflush")
             elif node.method_name == "as_list":
+                # Identical bug to x86_64's: x0 held the instance pointer, then bl _malloc
+                # immediately clobbered it with malloc's own return value before it was
+                # ever stored, leaving the wrapper pointing at itself with count
+                # hardcoded to 0. Delegating to runtime.c's _as_list fixes both that and
+                # the missing ARC header (see docs/internals/ownership.md and the x86_64
+                # backend's identical fix for the full reasoning). Verified by
+                # cross-assembling with `clang --target=arm64-apple-macos11 -c` -- no
+                # ARM64 hardware/emulator available in this environment to run it.
                 self.compile_expr(node.instance)
                 self.assembly.append("    ldr x0, [sp], #16")
                 count = 100
@@ -1609,13 +1674,8 @@ class Arm64Codegen:
                     count_node = node.kwargs['count']
                     if isinstance(count_node, Number):
                         count = count_node.value
-                self.assembly.append("    mov x0, #16")
-                self.assembly.append("    bl _malloc")
-                self.assembly.append("    mov x1, #0")
-                self.assembly.append("    str w1, [x0]")
                 self.assembly.append(f"    mov x1, #{count}")
-                self.assembly.append("    str w1, [x0, #4]")
-                self.assembly.append("    str x0, [x0, #8]")
+                self.assembly.append("    bl _as_list")
                 self.assembly.append("    str x0, [sp, #-16]!")
             elif node.method_name == "insert":
                 val_reg = self._compile_expr_to_reg(node.args[1])

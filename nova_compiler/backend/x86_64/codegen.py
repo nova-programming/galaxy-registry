@@ -238,6 +238,7 @@ class X86_64Codegen:
             self.assembly.append(f".extern {b_sym}")
 
         self.assembly.append(".extern _slice_list")
+        self.assembly.append(".extern _as_list")
         self.assembly.append(".extern _list_insert")
         self.assembly.append(".extern _list_clear")
         self.assembly.append(".extern _sys_awrite_c")
@@ -376,6 +377,17 @@ class X86_64Codegen:
         self.data_section.append(".global __nova_argv")
         self.data_section.append("__nova_argv:")
         self.data_section.append("    .quad 0")
+        # Extra MultiReturn values (anything past the first) ride here instead of in
+        # registers: value[0] stays in rax, the normal single-value return, so a
+        # MultiReturn-returning function still looks like an ordinary function to
+        # everything else (including its own prologue/epilogue register save/restore,
+        # which would otherwise clobber any register used to smuggle a 2nd/3rd value
+        # out). UnpackAssign reads this immediately after the call that fills it, which
+        # is safe for the sanctioned `a, b = f()` pattern; it is not reentrant across a
+        # nested MultiReturn call made before unpacking the outer one.
+        self.data_section.append(".align 8")
+        self.data_section.append("_nova_multi_ret:")
+        self.data_section.append("    .quad " + ", ".join(["0"] * 8))
 
         self.assembly.append(".data")
         for line in self.data_section:
@@ -483,6 +495,15 @@ class X86_64Codegen:
         # Handle nodes that introduce new variables
         if isinstance(node, Assignment):
             self.register_var(node.name)
+            self.scan_vars(node.value, visited)
+            return
+        if isinstance(node, UnpackAssign):
+            # Bare Variable targets aren't registered by the generic recursive walk below
+            # (only Assignment/ForLoop/ForIn introduce new locals there), so without this,
+            # every unpacked name would silently fail to get a stack slot.
+            for target in node.targets:
+                if isinstance(target, Variable) and target.name != '_':
+                    self.register_var(target.name)
             self.scan_vars(node.value, visited)
             return
         if isinstance(node, ForLoop):
@@ -1004,15 +1025,19 @@ class X86_64Codegen:
             sym = f"_{node.name}" if self.target_os == "macos" else node.name
             self.assembly.append(f".extern {sym}")
         elif isinstance(node, MultiReturn):
+            # value[0] is the normal, ABI-compatible return (rax). Anything past it goes
+            # into the _nova_multi_ret static buffer instead of a register -- see its
+            # declaration in generate() for why.
+            max_extra = 8
             for i, val in enumerate(node.values):
                 self.compile_expr(val)
                 self.assembly.append("    pop rax")
                 if i == 0:
                     self.assembly.append("    mov rbx, rax")
-                elif i == 1:
-                    self.assembly.append("    mov rcx, rax")
-                elif i == 2:
-                    self.assembly.append("    mov rdx, rax")
+                elif i - 1 < max_extra:
+                    slot = (i - 1) * 8
+                    self.assembly.append("    lea rcx, [rip + _nova_multi_ret]")
+                    self.assembly.append(f"    mov [rcx + {slot}], rax")
             self.assembly.append("    mov rax, rbx")
             for reg in reversed(getattr(self, 'used_regs', [])):
                 self.assembly.append(f"    pop {reg}")
@@ -1020,41 +1045,45 @@ class X86_64Codegen:
             self.assembly.append("    pop rbp")
             self.assembly.append("    ret")
         elif isinstance(node, UnpackAssign):
+            # Mirrors MultiReturn: target[0] comes from rax (the call's normal return
+            # value, already on the stack from compile_expr below); target[1:] are read
+            # back out of _nova_multi_ret, which the callee's own MultiReturn just filled.
+            # This only works for the `a, b = f()` pattern -- reading the buffer right
+            # after the call that's supposed to have filled it -- not for an arbitrary
+            # multi-valued expression.
             self.compile_expr(node.value)
             self.assembly.append("    pop rax")
+            # Per-position types, so string_vars gets the same treatment UnpackAssign's
+            # targets would get from a plain `x = some_string_fn()` Assignment -- without
+            # this, print(name) picks the %d format and shows a string's raw pointer value
+            # as a huge integer instead of calling it as a string.
+            target_types = []
+            if isinstance(node.value, Call):
+                rt = self.func_returns.get(node.value.name, "")
+                if rt.startswith("(") and rt.endswith(")"):
+                    target_types = [t.strip() for t in rt[1:-1].split(",")]
+            max_extra = 8
             for i, target in enumerate(node.targets):
                 if isinstance(target, Variable) and target.name == '_':
                     continue
+                if isinstance(target, Variable) and i < len(target_types) and target_types[i] == "string":
+                    self.string_vars.add(target.name)
                 if i == 0:
-                    self.assembly.append(f"    mov rbx, rax")
-                    if isinstance(target, Variable):
-                        offset = self.local_vars.get(target.name)
-                        if offset is not None:
-                            if isinstance(offset, str):
-                                self.assembly.append(f"    mov {offset}, rbx")
-                            else:
-                                self.assembly.append(f"    mov [rbp - {offset}], rbx")
-                elif i == 1:
-                    self.assembly.append(f"    mov rcx, rax")
-                    if isinstance(target, Variable):
-                        offset = self.local_vars.get(target.name)
-                        if offset is not None:
-                            if isinstance(offset, str):
-                                self.assembly.append(f"    mov {offset}, rcx")
-                            else:
-                                self.assembly.append(f"    mov [rbp - {offset}], rcx")
-                elif i == 2:
-                    self.assembly.append(f"    mov rdx, rax")
-                    if isinstance(target, Variable):
-                        offset = self.local_vars.get(target.name)
-                        if offset is not None:
-                            if isinstance(offset, str):
-                                self.assembly.append(f"    mov {offset}, rdx")
-                            else:
-                                self.assembly.append(f"    mov [rbp - {offset}], rdx")
-            for stmt in node.catch_body:
-                self.compile_stmt(stmt)
-            self.assembly.append(f"{after_label}:")
+                    reg = "rax"
+                elif i - 1 < max_extra:
+                    slot = (i - 1) * 8
+                    self.assembly.append("    lea rcx, [rip + _nova_multi_ret]")
+                    self.assembly.append(f"    mov rax, [rcx + {slot}]")
+                    reg = "rax"
+                else:
+                    continue
+                if isinstance(target, Variable):
+                    offset = self.local_vars.get(target.name)
+                    if offset is not None:
+                        if isinstance(offset, str):
+                            self.assembly.append(f"    mov {offset}, {reg}")
+                        else:
+                            self.assembly.append(f"    mov [rbp - {offset}], {reg}")
         elif isinstance(node, Throw):
             self.compile_expr(node.value)
             self.assembly.append("    pop rdi")
@@ -1160,23 +1189,27 @@ class X86_64Codegen:
             all_leaf = left_leaf and right_leaf
             is_float_op = self._is_float_expr(node.left) or self._is_float_expr(node.right)
             if is_float_op:
+                # Float literals/values are 32-bit IEEE-754 single-precision bit patterns
+                # (see compile_leaf_to_reg / the Number case below), so these must be the
+                # single-precision (ss) instructions, not double (sd) — sd read 8 bytes
+                # that were never a valid double and silently computed garbage.
                 self.compile_expr(node.left)
                 self.compile_expr(node.right)
-                self.assembly.append("    movsd xmm0, [rsp + 8]")
-                self.assembly.append("    movsd xmm1, [rsp]")
+                self.assembly.append("    movss xmm0, [rsp + 8]")
+                self.assembly.append("    movss xmm1, [rsp]")
                 if node.op == "+":
-                    self.assembly.append("    addsd xmm0, xmm1")
+                    self.assembly.append("    addss xmm0, xmm1")
                 elif node.op == "-":
-                    self.assembly.append("    subsd xmm0, xmm1")
+                    self.assembly.append("    subss xmm0, xmm1")
                 elif node.op == "*":
-                    self.assembly.append("    mulsd xmm0, xmm1")
+                    self.assembly.append("    mulss xmm0, xmm1")
                 elif node.op == "/":
-                    self.assembly.append("    divsd xmm0, xmm1")
+                    self.assembly.append("    divss xmm0, xmm1")
                 else:
-                    self.assembly.append("    addsd xmm0, xmm1")
+                    self.assembly.append("    addss xmm0, xmm1")
                 self.assembly.append("    add rsp, 16")
                 self.assembly.append("    sub rsp, 8")
-                self.assembly.append("    movsd [rsp], xmm0")
+                self.assembly.append("    movss [rsp], xmm0")
             elif all_leaf and node.op == "+" and (self._is_string_expr(node.left) or self._is_string_expr(node.right)):
                 self.compile_expr(node.left)
                 self.compile_expr(node.right)
@@ -1258,7 +1291,12 @@ class X86_64Codegen:
             self.compile_expr(node.value)
             self.assembly.append("    pop rax")
             if node.op == "-":
-                self.assembly.append("    neg rax")
+                if self._is_float_expr(node.value):
+                    # Flip the sign bit of the 32-bit single-precision value instead of
+                    # negating it as a two's-complement integer, which corrupted the bits.
+                    self.assembly.append("    xor eax, 2147483648")
+                else:
+                    self.assembly.append("    neg rax")
             elif node.op == "~":
                 self.assembly.append("    not rax")
             elif node.op == "not":
@@ -1273,12 +1311,17 @@ class X86_64Codegen:
             is_float_cmp = self._is_float_expr(node.left) or self._is_float_expr(node.right)
 
             if is_float_cmp:
+                # Single precision, matching the 32-bit literal encoding (see the BinOp
+                # float case above). Also fixed here: operands were loaded reversed
+                # (xmm0 <- right, xmm1 <- left), so comisd computed compare(right, left)
+                # and every setb/seta below tested the wrong direction; dest must be
+                # left, src must be right for the setcc table below to mean what it says.
                 self.compile_expr(node.left)
                 self.compile_expr(node.right)
-                self.assembly.append("    movsd xmm0, [rsp]")
-                self.assembly.append("    movsd xmm1, [rsp + 8]")
+                self.assembly.append("    movss xmm0, [rsp + 8]")
+                self.assembly.append("    movss xmm1, [rsp]")
                 self.assembly.append("    add rsp, 16")
-                self.assembly.append("    comisd xmm0, xmm1")
+                self.assembly.append("    comiss xmm0, xmm1")
                 self.assembly.append("    pushf")
                 self.assembly.append("    pop rax")
             elif all_leaf:
@@ -1484,13 +1527,26 @@ class X86_64Codegen:
             struct_name = None
             if hasattr(node.instance, 'inferred_type') and getattr(node.instance.inferred_type, 'name', None):
                 struct_name = node.instance.inferred_type.name
-            
-            if struct_name and struct_name != "any":
-                offset = self.get_struct_prop_offset(struct_name, node.field_name)
+
+            if node.field_name == "ptr" and struct_name not in self.struct_defs:
+                # Builtin `.ptr` on a list/string value (docs/features.md's "High-to-Low
+                # Bridge"), not a user struct field literally named "ptr" (those have
+                # struct_name set and go through get_struct_prop_offset below, unaffected).
+                # This used to fall through to get_prop_offset's "no struct defines this
+                # field" default of offset 0 -- `lst.ptr` silently returned the list's own
+                # element count instead of its data pointer.
+                if self._is_string_expr(node.instance):
+                    self.assembly.append("    push rax")
+                else:
+                    self.assembly.append("    mov rax, [rax + 8]")
+                    self.assembly.append("    push rax")
             else:
-                offset = self.get_prop_offset(node.field_name)
-            self.assembly.append(f"    mov rax, [rax + {offset}]")
-            self.assembly.append("    push rax")
+                if struct_name and struct_name != "any":
+                    offset = self.get_struct_prop_offset(struct_name, node.field_name)
+                else:
+                    offset = self.get_prop_offset(node.field_name)
+                self.assembly.append(f"    mov rax, [rax + {offset}]")
+                self.assembly.append("    push rax")
         elif isinstance(node, Alloc):
             self.compile_expr(node.size)
             self.assembly.append("    pop rdi")
@@ -1513,7 +1569,12 @@ class X86_64Codegen:
             elif node.property == "value_byte":
                 self.assembly.append("    pop rdx")
                 self.assembly.append("    xor rax, rax")
-                self.assembly.append("    mov al, byte [rdx]")
+                # "byte [rdx]" (no "ptr") isn't a valid size override in GAS's Intel-syntax
+                # parser -- it silently assembled to something that always read 0 instead of
+                # erroring. This was the actual cause of the self-hosted compiler's own
+                # float_str_to_hex() always parsing "0" digits: it's nova.exe's own
+                # bootstrap-compiled code, and it reads each character via .value_byte.
+                self.assembly.append("    mov al, byte ptr [rdx]")
                 self.assembly.append("    push rax")
             elif node.property == "addr":
                 pass
@@ -1742,20 +1803,28 @@ class X86_64Codegen:
                 self.assembly.append("    call _fclose")
                 self.assembly.append("    add rsp, 32")
             elif node.method_name == "as_list":
+                # Was completely broken: the instance pointer was popped into rax, then
+                # immediately clobbered by _malloc's own return value before ever being
+                # stored anywhere, leaving the wrapper's data pointer pointing at itself
+                # (mov [rax+8], rax) with count hardcoded to 0 regardless of `count=`, and
+                # the 16-byte header had no ARC tag (runtime.c's _nova_value_retain/
+                # _release/_kind would read 16 bytes before the block looking for one --
+                # see docs/internals/ownership.md). Delegating to runtime.c's _as_list
+                # fixes both: it actually wires up the given pointer/count, and allocates
+                # through _nova_arc_alloc with the "borrowed" pad flag set so the wrapper
+                # is a real, safely ARC-manageable list without the wrap ever taking
+                # ownership of (and incorrectly freeing) the caller's buffer.
                 self.compile_expr(node.instance)
-                self.assembly.append("    pop rax")
                 count = 100
                 if hasattr(node, 'kwargs') and 'count' in node.kwargs:
                     count_node = node.kwargs['count']
                     if isinstance(count_node, Number):
                         count = count_node.value
-                self.assembly.append("    mov rdi, 16")
+                self.assembly.append("    pop rdi")
+                self.assembly.append(f"    mov rsi, {count}")
                 self.assembly.append("    sub rsp, 32")
-                self.assembly.append("    call _malloc")
+                self.assembly.append("    call _as_list")
                 self.assembly.append("    add rsp, 32")
-                self.assembly.append("    mov dword ptr [rax], 0")
-                self.assembly.append("    mov dword ptr [rax + 4], " + str(count))
-                self.assembly.append("    mov [rax + 8], rax")
                 self.assembly.append("    push rax")
             elif node.method_name == "flush":
                 self.compile_expr(node.instance)
