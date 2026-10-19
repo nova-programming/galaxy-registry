@@ -148,10 +148,13 @@ class TypeInferer:
             return t1
                 
         line = node.line if node and hasattr(node, 'line') else '?'
+        # Every call site passes (expected_type, actual_type) -- e.g. unify(param_type, arg_t, ...)
+        # for a call argument, unify(declared_t, val_t, ...) for an assignment. t1 is what was
+        # expected, t2 is what was actually given; the message names them in that order.
         raise StaticTypeError(
-            f"Type mismatch: cannot use {t1} where {t2} is expected",
+            f"Type mismatch: cannot use {t2} where {t1} is expected",
             line,
-            f"try converting the value with int() or str(), or use a variable of type {t2}"
+            f"try converting the value with int() or str(), or use a variable of type {t1}"
         )
 
     def visit(self, node):
