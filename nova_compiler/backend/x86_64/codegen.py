@@ -547,6 +547,80 @@ class X86_64Codegen:
             elif hasattr(child, '__dict__'):  # AST node
                 self.scan_vars(child, visited)
 
+    def count_var_refs(self, node, counts, visited=None, weight=1):
+        """Counts how many times each variable name is read or written in node's subtree,
+        weighted by estimated execution frequency. Mirrors scan_vars' traversal (same
+        special-cased node kinds, same generic fallback for everything else) but counts
+        instead of registering, so compile_function can give the small, fixed set of
+        available registers to whichever few names are actually hot in this function
+        instead of whichever four happen to be declared/assigned first.
+
+        A reference inside a loop body runs once per iteration, not once -- a dict receiver
+        referenced twice inside a 60,000-iteration loop matters far more than a variable
+        referenced five times outside any loop, so each loop nesting level multiplies the
+        weight of everything inside it (a fixed per-level factor, not a real iteration count,
+        since that's rarely known statically; good enough to rank "inside a loop" above
+        "outside one" and nested loops above single ones, which is what actually matters
+        here)."""
+        if node is None:
+            return
+        if visited is None:
+            visited = set()
+        node_id = id(node)
+        if node_id in visited:
+            return
+        visited.add(node_id)
+        LOOP_WEIGHT = 10
+
+        if isinstance(node, Variable):
+            counts[node.name] = counts.get(node.name, 0) + weight
+            return
+        if isinstance(node, Assignment):
+            counts[node.name] = counts.get(node.name, 0) + weight
+            self.count_var_refs(node.value, counts, visited, weight)
+            return
+        if isinstance(node, UnpackAssign):
+            for target in node.targets:
+                if isinstance(target, Variable) and target.name != '_':
+                    counts[target.name] = counts.get(target.name, 0) + weight
+            self.count_var_refs(node.value, counts, visited, weight)
+            return
+        if isinstance(node, While):
+            self.count_var_refs(node.condition, counts, visited, weight)
+            for s in node.body:
+                self.count_var_refs(s, counts, visited, weight * LOOP_WEIGHT)
+            return
+        if isinstance(node, ForLoop):
+            counts[node.var_name] = counts.get(node.var_name, 0) + weight
+            self.count_var_refs(node.start, counts, visited, weight)
+            self.count_var_refs(node.end, counts, visited, weight)
+            self.count_var_refs(node.step, counts, visited, weight)
+            for s in node.body:
+                self.count_var_refs(s, counts, visited, weight * LOOP_WEIGHT)
+            return
+        if isinstance(node, ForIn):
+            counts[node.var_name] = counts.get(node.var_name, 0) + weight
+            self.count_var_refs(node.collection, counts, visited, weight)
+            for s in node.body:
+                self.count_var_refs(s, counts, visited, weight * LOOP_WEIGHT)
+            return
+
+        for attr in dir(node):
+            if attr.startswith('_'):
+                continue
+            try:
+                child = getattr(node, attr)
+            except Exception:
+                continue
+            if child is None:
+                continue
+            if isinstance(child, list):
+                for item in child:
+                    if hasattr(item, '__dict__'):
+                        self.count_var_refs(item, counts, visited, weight)
+            elif hasattr(child, '__dict__'):
+                self.count_var_refs(child, counts, visited, weight)
+
     def compile_function(self, fn):
         old_local_vars = self.local_vars.copy()
         old_string_vars = self.string_vars.copy()
@@ -564,6 +638,22 @@ class X86_64Codegen:
             self.entry_func = fn.name
         if fn.is_noinline:
             self.noinline_funcs.add(fn.name)
+
+        # Claim registers for whichever names are referenced most often in this function,
+        # before the normal declaration-order walk below gets a chance to hand the small,
+        # fixed register set to whichever four happen to be declared/assigned first. This
+        # only changes which four variables win a register, not which names end up getting
+        # one at all: register_var() still runs for everything else too, and simply falls
+        # back to a stack slot for names it finds already registered.
+        ref_counts = {}
+        for param in fn.params:
+            param_name = param[0] if isinstance(param, (list, tuple)) else param
+            ref_counts.setdefault(param_name, 0)
+        for stmt in fn.body:
+            self.count_var_refs(stmt, ref_counts)
+        hot_names = sorted(ref_counts, key=lambda n: -ref_counts[n])[:len(self.available_regs)]
+        for name in hot_names:
+            self.register_var(name)
 
         for param in fn.params:
             param_name = param[0] if isinstance(param, (list, tuple)) else param
