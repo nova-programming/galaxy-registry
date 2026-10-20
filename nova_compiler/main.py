@@ -613,8 +613,12 @@ def compile_native(file_path, debug_mode=0, target_arch="x86_64", target_os=None
     else:
         from compiler.backend.x86_64.codegen import X86_64Codegen
         codegen = X86_64Codegen(ast, module_names=module_names, debug_mode=debug_mode, target_os=target_os, source_path=source_path)
-        
-    asm_code = codegen.generate()
+
+    try:
+        asm_code = codegen.generate()
+    except StaticTypeError as e:
+        print(format_error(source, getattr(e, 'line', None), getattr(e, 'col', None), str(e)))
+        sys.exit(1)
 
     asm_file = file_path.rsplit(".", 1)[0] + ".s"
 

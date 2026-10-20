@@ -1,5 +1,6 @@
 import os
 from nova_ast.nodes import *
+from compiler.type_checker import StaticTypeError
 
 # Field-to-preferred-struct mapping: when a field exists in multiple structs at
 # different offsets and type info is unavailable (AnyType), use this struct's offset.
@@ -102,6 +103,12 @@ class X86_64Codegen:
             val = 1 if node.value else 0
             self.assembly.append(f"    mov {reg}, {val}")
         elif isinstance(node, Variable):
+            if node.name not in self.local_vars:
+                raise StaticTypeError(
+                    f"Undefined variable '{node.name}'",
+                    getattr(node, 'line', None),
+                    "declare it with an assignment before using it, or check for a typo"
+                )
             offset = self.local_vars[node.name]
             if isinstance(offset, str):
                 self.assembly.append(f"    mov {reg}, {offset}")
@@ -1118,6 +1125,12 @@ class X86_64Codegen:
             val = 1 if node.value else 0
             self.assembly.append(f"    push {val}")
         elif isinstance(node, Variable):
+            if node.name not in self.local_vars:
+                raise StaticTypeError(
+                    f"Undefined variable '{node.name}'",
+                    getattr(node, 'line', None),
+                    "declare it with an assignment before using it, or check for a typo"
+                )
             offset = self.local_vars[node.name]
             if isinstance(offset, str):
                 self.assembly.append(f"    mov rax, {offset}")
