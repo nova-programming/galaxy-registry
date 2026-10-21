@@ -597,6 +597,7 @@ class Arm64Codegen:
         self.assembly.append(".extern _call")
         self.assembly.append(".extern _try_catch_sp")
         self.assembly.append(".extern _catch_ip")
+        self.assembly.append(".extern _try_depth")
         self.assembly.append(".extern _exception_val")
         self.assembly.append(".extern _oob_file_ptr")
         self.assembly.append(".extern _oob_line")
@@ -1134,20 +1135,36 @@ class Arm64Codegen:
         elif isinstance(node, Try):
             catch_label = self.next_label("catch")
             after_label = self.next_label("after_try")
-            self.assembly.append(f"    adrp x16, _try_catch_sp@PAGE")
-            self.assembly.append(f"    add x16, x16, _try_catch_sp@PAGEOFF")
-            self.assembly.append("    mov x17, sp")
-            self.assembly.append("    str x17, [x16]")
-            self.assembly.append(f"    adrp x16, _catch_ip@PAGE")
-            self.assembly.append(f"    add x16, x16, _catch_ip@PAGEOFF")
-            self.assembly.append(f"    adrp x17, {catch_label}@PAGE")
-            self.assembly.append(f"    add x17, x17, {catch_label}@PAGEOFF")
-            self.assembly.append("    str x17, [x16]")
+            # _try_catch_sp/_catch_ip are arrays indexed by _try_depth (a real handler
+            # stack), not a single slot -- mirrors the identical fix in the x86_64
+            # backend. A single slot breaks as soon as a try is nested inside a called
+            # function or a second try follows the first: the inner try's normal exit
+            # would zero/clobber the outer try's still-active handler. x9/x10/x16/x17
+            # are all plain scratch here (never x18, which is a reserved platform
+            # register on Apple's ARM64 ABI).
+            self.assembly.append(f"    adrp x16, _try_depth@PAGE")
+            self.assembly.append(f"    add x16, x16, _try_depth@PAGEOFF")
+            self.assembly.append("    ldr x9, [x16]")
+            self.assembly.append(f"    adrp x17, _try_catch_sp@PAGE")
+            self.assembly.append(f"    add x17, x17, _try_catch_sp@PAGEOFF")
+            self.assembly.append("    add x17, x17, x9, lsl #3")
+            self.assembly.append("    mov x10, sp")
+            self.assembly.append("    str x10, [x17]")
+            self.assembly.append(f"    adrp x17, _catch_ip@PAGE")
+            self.assembly.append(f"    add x17, x17, _catch_ip@PAGEOFF")
+            self.assembly.append("    add x17, x17, x9, lsl #3")
+            self.assembly.append(f"    adrp x10, {catch_label}@PAGE")
+            self.assembly.append(f"    add x10, x10, {catch_label}@PAGEOFF")
+            self.assembly.append("    str x10, [x17]")
+            self.assembly.append("    add x9, x9, #1")
+            self.assembly.append("    str x9, [x16]")
             for stmt in node.body:
                 self.compile_stmt(stmt)
-            self.assembly.append(f"    adrp x16, _try_catch_sp@PAGE")
-            self.assembly.append(f"    add x16, x16, _try_catch_sp@PAGEOFF")
-            self.assembly.append("    str xzr, [x16]")
+            self.assembly.append(f"    adrp x16, _try_depth@PAGE")
+            self.assembly.append(f"    add x16, x16, _try_depth@PAGEOFF")
+            self.assembly.append("    ldr x9, [x16]")
+            self.assembly.append("    sub x9, x9, #1")
+            self.assembly.append("    str x9, [x16]")
             self.assembly.append(f"    b {after_label}")
             self.assembly.append(f"{catch_label}:")
             self.assembly.append(f"    adrp x16, _exception_val@PAGE")
@@ -1166,12 +1183,21 @@ class Arm64Codegen:
             self.assembly.append(f"    adrp x16, _exception_val@PAGE")
             self.assembly.append(f"    add x16, x16, _exception_val@PAGEOFF")
             self.assembly.append("    str x0, [x16]")
+            # Pop the handler stack before jumping to it, so a throw from inside a catch
+            # body resumes at the next-outer handler rather than re-entering this one.
+            self.assembly.append(f"    adrp x16, _try_depth@PAGE")
+            self.assembly.append(f"    add x16, x16, _try_depth@PAGEOFF")
+            self.assembly.append("    ldr x9, [x16]")
+            self.assembly.append("    sub x9, x9, #1")
+            self.assembly.append("    str x9, [x16]")
             self.assembly.append(f"    adrp x17, _try_catch_sp@PAGE")
             self.assembly.append(f"    add x17, x17, _try_catch_sp@PAGEOFF")
+            self.assembly.append("    add x17, x17, x9, lsl #3")
             self.assembly.append("    ldr x17, [x17]")
             self.assembly.append("    mov sp, x17")
             self.assembly.append(f"    adrp x16, _catch_ip@PAGE")
             self.assembly.append(f"    add x16, x16, _catch_ip@PAGEOFF")
+            self.assembly.append("    add x16, x16, x9, lsl #3")
             self.assembly.append("    ldr x16, [x16]")
             self.assembly.append("    br x16")
         elif isinstance(node, Defer):

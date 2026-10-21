@@ -255,6 +255,7 @@ class X86_64Codegen:
         self.assembly.append(".extern _api_open_internal")
         self.assembly.append(".extern _try_catch_sp")
         self.assembly.append(".extern _catch_ip")
+        self.assembly.append(".extern _try_depth")
         self.assembly.append(".extern _exception_val")
         self.assembly.append(".extern _oob_file_ptr")
         self.assembly.append(".extern _oob_line")
@@ -1103,15 +1104,25 @@ class X86_64Codegen:
         elif isinstance(node, Try):
             catch_label = self.next_label("catch")
             after_label = self.next_label("after_try")
+            # _try_catch_sp/_catch_ip are arrays indexed by _try_depth (a real handler
+            # stack), not a single slot -- see runtime.c's comment on _try_catch_sp for
+            # why a single slot breaks as soon as a try is nested inside a called
+            # function or a second try follows the first.
+            self.assembly.append("    lea rcx, [rip + _try_depth]")
+            self.assembly.append("    mov rdx, [rcx]")
             self.assembly.append("    lea rax, [rip + _try_catch_sp]")
-            self.assembly.append("    mov [rax], rsp")
+            self.assembly.append("    mov [rax + rdx*8], rsp")
             self.assembly.append("    lea rax, [rip + _catch_ip]")
-            self.assembly.append(f"    lea rcx, [rip + {catch_label}]")
-            self.assembly.append("    mov [rax], rcx")
+            self.assembly.append(f"    lea rbx, [rip + {catch_label}]")
+            self.assembly.append("    mov [rax + rdx*8], rbx")
+            self.assembly.append("    inc rdx")
+            self.assembly.append("    mov [rcx], rdx")
             for stmt in node.body:
                 self.compile_stmt(stmt)
-            self.assembly.append("    lea rax, [rip + _try_catch_sp]")
-            self.assembly.append("    mov qword ptr [rax], 0")
+            self.assembly.append("    lea rcx, [rip + _try_depth]")
+            self.assembly.append("    mov rdx, [rcx]")
+            self.assembly.append("    dec rdx")
+            self.assembly.append("    mov [rcx], rdx")
             self.assembly.append(f"    jmp {after_label}")
             self.assembly.append(f"{catch_label}:")
             self.assembly.append("    lea rax, [rip + _exception_val]")
@@ -1201,10 +1212,16 @@ class X86_64Codegen:
             self.assembly.append("    pop rdi")
             self.assembly.append("    lea rax, [rip + _exception_val]")
             self.assembly.append("    mov [rax], rdi")
+            # Pop the handler stack before jumping to it, so a throw from inside a catch
+            # body resumes at the next-outer handler rather than re-entering this one.
+            self.assembly.append("    lea rcx, [rip + _try_depth]")
+            self.assembly.append("    mov rdx, [rcx]")
+            self.assembly.append("    dec rdx")
+            self.assembly.append("    mov [rcx], rdx")
             self.assembly.append("    lea rax, [rip + _try_catch_sp]")
-            self.assembly.append("    mov rsp, [rax]")
+            self.assembly.append("    mov rsp, [rax + rdx*8]")
             self.assembly.append("    lea rax, [rip + _catch_ip]")
-            self.assembly.append("    mov rax, [rax]")
+            self.assembly.append("    mov rax, [rax + rdx*8]")
             self.assembly.append("    jmp rax")
         else:
             self.compile_expr(node)
