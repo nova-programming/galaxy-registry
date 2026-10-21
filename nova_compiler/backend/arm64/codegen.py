@@ -1210,27 +1210,43 @@ class Arm64Codegen:
                     self.linked_libs.append(clean_lib)
             self.assembly.append(f".extern _{node.name}")
         elif isinstance(node, MultiReturn):
-            # Same bug and fix as x86_64 had: this used to smuggle values[1:] out in
-            # x1/x2/x3, trusting they'd survive to the caller, but nothing here actually
-            # guarantees that across the call boundary (and x86_64's version provably
-            # didn't survive its own epilogue). values[1:] go through the
-            # _nova_multi_ret static buffer instead; values[0] stays the normal,
-            # ABI-compatible single return value in x0. Verified by cross-assembling with
-            # `clang --target=arm64-apple-macos11 -c` -- no ARM64 hardware/emulator
-            # available in this environment to run it.
+            # values[1:] go through the _nova_multi_ret static buffer instead of extra
+            # registers; values[0] stays the normal, ABI-compatible single return value in x0.
+            #
+            # Two bugs fixed here (found by code comparison against this function's own
+            # Return case just above, since there is no ARM64 hardware/emulator in this
+            # environment to execute either version and actually observe them):
+            # 1. value[0] used to be stashed in x1 (`mov x1, x0`) across the evaluation of
+            #    values[1:] and emit_deferred(). _alloc_reg()'s register pool
+            #    (_compile_expr_to_reg) starts from x0 and hands out x1 next, so *any*
+            #    moderately complex values[1]/values[2] expression needing two live temporaries
+            #    simultaneously would silently clobber the stashed value[0] -- the same bug
+            #    the differential fuzzer found and fixed in the x86_64 backend's MultiReturn
+            #    (seed 1001, 2026-10-21), just via a different register-allocation mechanism
+            #    (ARM64 has no hot-variable allocator to mirror x86_64's rbx-via-r12-r15
+            #    clobber path, but its _alloc_reg() pool reaches x1 just as easily). Fixed by
+            #    pushing value[0] onto the real stack instead, matching Return's own `ldr x0,
+            #    [sp], #16` / push-based handling of its single value.
+            # 2. The epilogue never did `add sp, sp, #{self.local_aligned}` -- the local-
+            #    variables stack space Return's epilogue always reclaims before `ldp fp, lr,
+            #    [sp], #16`. Skipping it meant `ldp` read fp/lr from the wrong stack slot
+            #    (still under the callee's own now-dead locals) for any multi-return function
+            #    with local variables, corrupting the caller's frame on return.
             max_extra = 8
             for i, val in enumerate(node.values):
                 self.compile_expr(val)
                 self.assembly.append("    ldr x0, [sp], #16")
                 if i == 0:
-                    self.assembly.append("    mov x1, x0")
+                    self.assembly.append("    str x0, [sp, #-16]!")
                 elif i - 1 < max_extra:
                     slot = (i - 1) * 8
                     self.assembly.append("    adrp x16, _nova_multi_ret@PAGE")
                     self.assembly.append("    add x16, x16, _nova_multi_ret@PAGEOFF")
                     self.assembly.append(f"    str x0, [x16, #{slot}]")
-            self.assembly.append("    mov x0, x1")
             self.emit_deferred()
+            self.assembly.append("    ldr x0, [sp], #16")
+            if self.local_aligned > 0:
+                self.assembly.append(f"    add sp, sp, #{self.local_aligned}")
             self.assembly.append("    ldp fp, lr, [sp], #16")
             self.assembly.append("    ret")
         elif isinstance(node, UnpackAssign):

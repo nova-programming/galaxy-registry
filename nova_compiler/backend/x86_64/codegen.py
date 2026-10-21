@@ -1151,17 +1151,31 @@ class X86_64Codegen:
             # value[0] is the normal, ABI-compatible return (rax). Anything past it goes
             # into the _nova_multi_ret static buffer instead of a register -- see its
             # declaration in generate() for why.
+            #
+            # value[0] is pushed onto the real stack, not kept in rbx, across the evaluation
+            # of values[1:] and emit_deferred(): ordinary binary-op codegen copies a
+            # register-allocated hot variable (Phase 44/45's frequency-weighted allocator;
+            # r12-r15) into rbx as scratch whenever it's read, so keeping value[0] in rbx
+            # across any later expression that reads one is not safe -- it silently becomes
+            # whatever rbx was last used for. Found by the differential fuzzer (seed 1001,
+            # 2026-10-21) once it started generating multi-return functions whose second/third
+            # return expression reads a hot variable: `print(fn0(...))` printed 1000 instead
+            # of fn0's actual first return value. Also now runs deferred cleanups (previously
+            # didn't), matching this function's own Return case just above, which already
+            # does -- skipping them only for the multi-value case would leave a function's
+            # defers silently not firing depending on how many values it returns.
             max_extra = 8
             for i, val in enumerate(node.values):
                 self.compile_expr(val)
                 self.assembly.append("    pop rax")
                 if i == 0:
-                    self.assembly.append("    mov rbx, rax")
+                    self.assembly.append("    push rax")
                 elif i - 1 < max_extra:
                     slot = (i - 1) * 8
                     self.assembly.append("    lea rcx, [rip + _nova_multi_ret]")
                     self.assembly.append(f"    mov [rcx + {slot}], rax")
-            self.assembly.append("    mov rax, rbx")
+            self.emit_deferred()
+            self.assembly.append("    pop rax")
             for reg in reversed(getattr(self, 'used_regs', [])):
                 self.assembly.append(f"    pop {reg}")
             self.assembly.append("    mov rsp, rbp")
