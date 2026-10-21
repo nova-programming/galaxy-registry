@@ -527,7 +527,22 @@ class X86_64Codegen:
             for s in node.body:
                 self.scan_vars(s, visited)
             return
-        
+        if isinstance(node, Try):
+            # catch_var is a plain string naming a new local (the caught exception value,
+            # bound by compile_stmt's own Try handling below) -- not a nested AST node, so
+            # the generic recursive walk at the bottom of this function would never find it
+            # the way it finds Assignment/ForLoop/ForIn targets. Without this, the catch
+            # variable is never registered: compile_stmt still stores the exception value
+            # into local_vars.get(node.catch_var), but that's always None, so the store is
+            # silently skipped and any later reference to the name fails as undefined.
+            if node.catch_var:
+                self.register_var(node.catch_var)
+            for s in node.body:
+                self.scan_vars(s, visited)
+            for s in node.catch_body:
+                self.scan_vars(s, visited)
+            return
+
         # Recursively visit all child attributes that could be nodes
         for attr in dir(node):
             if attr.startswith('_'):

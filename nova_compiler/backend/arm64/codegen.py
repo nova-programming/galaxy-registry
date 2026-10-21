@@ -795,6 +795,18 @@ class Arm64Codegen:
             for s in node.body: self.scan_vars(s)
         elif isinstance(node, RawBlock):
             for s in node.body: self.scan_vars(s)
+        elif isinstance(node, Try):
+            # catch_var is a plain string naming a new local (the caught exception value,
+            # bound by compile_stmt's own Try handling below) -- mirrors the identical fix
+            # in the x86_64 backend's scan_vars. Without this, compile_stmt's
+            # self.local_vars.get(node.catch_var) is always None, so the exception value is
+            # never actually stored anywhere, and any later reference to the catch variable
+            # fails as undefined.
+            if node.catch_var and node.catch_var not in self.local_vars:
+                self.local_offset += 8
+                self.local_vars[node.catch_var] = self.local_offset
+            for s in node.body: self.scan_vars(s)
+            for s in node.catch_body: self.scan_vars(s)
 
     def compile_function(self, fn):
         self.assembly.append(f"_{fn.name}:")
