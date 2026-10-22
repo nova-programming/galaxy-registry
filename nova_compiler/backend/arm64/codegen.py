@@ -41,6 +41,26 @@ class Arm64Codegen:
         self.extern_decls = {}
         self.linked_libs = []
 
+    def _adrp(self, reg, label):
+        """Load the page address of `label` into `reg`. Mach-O (macOS) addresses a symbol as
+        `adrp reg, label@PAGE` / `add reg, reg, label@PAGEOFF`; the GNU assembler targeting
+        Linux/ELF rejects `@PAGE`/`@PAGEOFF` outright (confirmed directly: `aarch64-linux-gnu-as`
+        errors with "unexpected characters following instruction" on them) and instead uses a
+        bare `adrp reg, label` paired with `add reg, reg, :lo12:label` (see _page_add). Symbol
+        *names* themselves need no OS-conditional handling here -- runtime.c's LINUX_WRAP
+        wrappers (e.g. `_malloc` calling the real unprefixed `malloc`) already make this
+        codegen's macOS-style underscore-prefixed names resolve correctly on Linux too."""
+        if self.target_os == "linux":
+            return f"    adrp {reg}, {label}"
+        return f"    adrp {reg}, {label}@PAGE"
+
+    def _page_add(self, reg, label):
+        """Pairs with _adrp: completes the page address into a full address of `label` in
+        `reg`. See _adrp's comment for why this differs on Linux."""
+        if self.target_os == "linux":
+            return f"    add {reg}, {reg}, :lo12:{label}"
+        return f"    add {reg}, {reg}, {label}@PAGEOFF"
+
     def _emit_fp_access(self, f, op, reg, neg_offset):
         """Emit `op reg, [fp, #neg_offset]`, handling ARM64's [-256,255] limit.
         Falls back to `sub/add x16, fp, #abs; op reg, [x16]` for large offsets.
@@ -242,8 +262,8 @@ class Arm64Codegen:
         elif isinstance(node, String):
             reg = self._alloc_reg()
             label = self.add_string_literal(node.value)
-            self.assembly.append(f"    adrp {reg}, {label}@PAGE")
-            self.assembly.append(f"    add {reg}, {reg}, {label}@PAGEOFF")
+            self.assembly.append(self._adrp(reg, label))
+            self.assembly.append(self._page_add(reg, label))
             return reg
         elif isinstance(node, Variable):
             reg = self._alloc_reg()
@@ -676,10 +696,10 @@ class Arm64Codegen:
         self.assembly.append("    mov fp, sp")
 
         # Set _oob_file_ptr for error messages
-        self.assembly.append("    adrp x16, source_path_str@PAGE")
-        self.assembly.append("    add x16, x16, source_path_str@PAGEOFF")
-        self.assembly.append("    adrp x17, _oob_file_ptr@PAGE")
-        self.assembly.append("    add x17, x17, _oob_file_ptr@PAGEOFF")
+        self.assembly.append(self._adrp('x16', 'source_path_str'))
+        self.assembly.append(self._page_add('x16', 'source_path_str'))
+        self.assembly.append(self._adrp('x17', '_oob_file_ptr'))
+        self.assembly.append(self._page_add('x17', '_oob_file_ptr'))
         self.assembly.append("    str x16, [x17]")
 
         self.local_vars = {}
@@ -700,11 +720,11 @@ class Arm64Codegen:
 
         self.assembly.append(f"    str x0, [sp, #{aligned - 8}]")
         self.assembly.append(f"    str x1, [sp, #{aligned - 16}]")
-        self.assembly.append(f"    adrp x2, __nova_argc@PAGE")
-        self.assembly.append(f"    add x2, x2, __nova_argc@PAGEOFF")
+        self.assembly.append(self._adrp('x2', '__nova_argc'))
+        self.assembly.append(self._page_add('x2', '__nova_argc'))
         self.assembly.append(f"    str x0, [x2]")
-        self.assembly.append(f"    adrp x2, __nova_argv@PAGE")
-        self.assembly.append(f"    add x2, x2, __nova_argv@PAGEOFF")
+        self.assembly.append(self._adrp('x2', '__nova_argv'))
+        self.assembly.append(self._page_add('x2', '__nova_argv'))
         self.assembly.append(f"    str x1, [x2]")
 
         for node in top_level:
@@ -900,8 +920,8 @@ class Arm64Codegen:
                 self.assembly.append("    ldr x0, [sp], #16")
                 self.assembly.append("    ldr x0, [x0, #8]")
                 self.assembly.append("    str x0, [sp, #-16]!")
-                self.assembly.append("    adrp x0, fmt_str@PAGE")
-                self.assembly.append("    add x0, x0, fmt_str@PAGEOFF")
+                self.assembly.append(self._adrp('x0', 'fmt_str'))
+                self.assembly.append(self._page_add('x0', 'fmt_str'))
                 self.assembly.append("    ldr x1, [sp], #16")
                 self.assembly.append("    bl _printf")
                 self.assembly.append("    mov x0, #0")
@@ -909,44 +929,44 @@ class Arm64Codegen:
             else:
                 self.compile_expr(node.value)
                 if self._is_string_expr(node.value):
-                    self.assembly.append("    adrp x0, fmt_str@PAGE")
-                    self.assembly.append("    add x0, x0, fmt_str@PAGEOFF")
+                    self.assembly.append(self._adrp('x0', 'fmt_str'))
+                    self.assembly.append(self._page_add('x0', 'fmt_str'))
                 elif self._is_float_expr(node.value):
-                    self.assembly.append("    adrp x0, fmt_float@PAGE")
-                    self.assembly.append("    add x0, x0, fmt_float@PAGEOFF")
+                    self.assembly.append(self._adrp('x0', 'fmt_float'))
+                    self.assembly.append(self._page_add('x0', 'fmt_float'))
                 else:
-                    self.assembly.append("    adrp x0, fmt_int@PAGE")
-                    self.assembly.append("    add x0, x0, fmt_int@PAGEOFF")
+                    self.assembly.append(self._adrp('x0', 'fmt_int'))
+                    self.assembly.append(self._page_add('x0', 'fmt_int'))
                 self.assembly.append("    ldr x1, [sp], #16")
                 self.assembly.append("    bl _printf")
                 self.assembly.append("    mov x0, #0")
                 self.assembly.append("    bl _fflush")
         elif isinstance(node, PrintD):
             if self.debug_mode == 1:
-                self.assembly.append("    adrp x0, fmt_str@PAGE")
-                self.assembly.append("    add x0, x0, fmt_str@PAGEOFF")
-                self.assembly.append("    adrp x1, debug_prefix@PAGE")
-                self.assembly.append("    add x1, x1, debug_prefix@PAGEOFF")
+                self.assembly.append(self._adrp('x0', 'fmt_str'))
+                self.assembly.append(self._page_add('x0', 'fmt_str'))
+                self.assembly.append(self._adrp('x1', 'debug_prefix'))
+                self.assembly.append(self._page_add('x1', 'debug_prefix'))
                 self.assembly.append("    bl _printf")
-                self.assembly.append("    adrp x0, fmt_int_pure@PAGE")
-                self.assembly.append("    add x0, x0, fmt_int_pure@PAGEOFF")
+                self.assembly.append(self._adrp('x0', 'fmt_int_pure'))
+                self.assembly.append(self._page_add('x0', 'fmt_int_pure'))
                 self.assembly.append(f"    mov x1, #{node.line}")
                 self.assembly.append("    bl _printf")
-                self.assembly.append("    adrp x0, fmt_str@PAGE")
-                self.assembly.append("    add x0, x0, fmt_str@PAGEOFF")
-                self.assembly.append("    adrp x1, debug_suffix@PAGE")
-                self.assembly.append("    add x1, x1, debug_suffix@PAGEOFF")
+                self.assembly.append(self._adrp('x0', 'fmt_str'))
+                self.assembly.append(self._page_add('x0', 'fmt_str'))
+                self.assembly.append(self._adrp('x1', 'debug_suffix'))
+                self.assembly.append(self._page_add('x1', 'debug_suffix'))
                 self.assembly.append("    bl _printf")
                 self.compile_expr(node.value)
                 if self._is_string_expr(node.value):
-                    self.assembly.append("    adrp x0, fmt_str@PAGE")
-                    self.assembly.append("    add x0, x0, fmt_str@PAGEOFF")
+                    self.assembly.append(self._adrp('x0', 'fmt_str'))
+                    self.assembly.append(self._page_add('x0', 'fmt_str'))
                 elif self._is_float_expr(node.value):
-                    self.assembly.append("    adrp x0, fmt_float_pure@PAGE")
-                    self.assembly.append("    add x0, x0, fmt_float_pure@PAGEOFF")
+                    self.assembly.append(self._adrp('x0', 'fmt_float_pure'))
+                    self.assembly.append(self._page_add('x0', 'fmt_float_pure'))
                 else:
-                    self.assembly.append("    adrp x0, fmt_int_pure@PAGE")
-                    self.assembly.append("    add x0, x0, fmt_int_pure@PAGEOFF")
+                    self.assembly.append(self._adrp('x0', 'fmt_int_pure'))
+                    self.assembly.append(self._page_add('x0', 'fmt_int_pure'))
                 self.assembly.append("    ldr x1, [sp], #16")
                 self.assembly.append("    bl _printf")
                 self.assembly.append("    mov x0, #10")
@@ -1100,8 +1120,8 @@ class Arm64Codegen:
             self.assembly.append("    ldr x2, [sp], #16")
             self.assembly.append("    ldr x1, [sp], #16")
             self.assembly.append("    ldr x0, [sp], #16")
-            self.assembly.append(f"    adrp x16, _oob_line@PAGE")
-            self.assembly.append(f"    add x16, x16, _oob_line@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_oob_line'))
+            self.assembly.append(self._page_add('x16', '_oob_line'))
             self.assembly.append(f"    mov x17, #{node.line}")
             self.assembly.append(f"    str x17, [x16]")
             oob_lbl = f"L_oob_{self.label_count}"
@@ -1142,33 +1162,33 @@ class Arm64Codegen:
             # would zero/clobber the outer try's still-active handler. x9/x10/x16/x17
             # are all plain scratch here (never x18, which is a reserved platform
             # register on Apple's ARM64 ABI).
-            self.assembly.append(f"    adrp x16, _try_depth@PAGE")
-            self.assembly.append(f"    add x16, x16, _try_depth@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_try_depth'))
+            self.assembly.append(self._page_add('x16', '_try_depth'))
             self.assembly.append("    ldr x9, [x16]")
-            self.assembly.append(f"    adrp x17, _try_catch_sp@PAGE")
-            self.assembly.append(f"    add x17, x17, _try_catch_sp@PAGEOFF")
+            self.assembly.append(self._adrp('x17', '_try_catch_sp'))
+            self.assembly.append(self._page_add('x17', '_try_catch_sp'))
             self.assembly.append("    add x17, x17, x9, lsl #3")
             self.assembly.append("    mov x10, sp")
             self.assembly.append("    str x10, [x17]")
-            self.assembly.append(f"    adrp x17, _catch_ip@PAGE")
-            self.assembly.append(f"    add x17, x17, _catch_ip@PAGEOFF")
+            self.assembly.append(self._adrp('x17', '_catch_ip'))
+            self.assembly.append(self._page_add('x17', '_catch_ip'))
             self.assembly.append("    add x17, x17, x9, lsl #3")
-            self.assembly.append(f"    adrp x10, {catch_label}@PAGE")
-            self.assembly.append(f"    add x10, x10, {catch_label}@PAGEOFF")
+            self.assembly.append(self._adrp('x10', catch_label))
+            self.assembly.append(self._page_add('x10', catch_label))
             self.assembly.append("    str x10, [x17]")
             self.assembly.append("    add x9, x9, #1")
             self.assembly.append("    str x9, [x16]")
             for stmt in node.body:
                 self.compile_stmt(stmt)
-            self.assembly.append(f"    adrp x16, _try_depth@PAGE")
-            self.assembly.append(f"    add x16, x16, _try_depth@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_try_depth'))
+            self.assembly.append(self._page_add('x16', '_try_depth'))
             self.assembly.append("    ldr x9, [x16]")
             self.assembly.append("    sub x9, x9, #1")
             self.assembly.append("    str x9, [x16]")
             self.assembly.append(f"    b {after_label}")
             self.assembly.append(f"{catch_label}:")
-            self.assembly.append(f"    adrp x16, _exception_val@PAGE")
-            self.assembly.append(f"    add x16, x16, _exception_val@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_exception_val'))
+            self.assembly.append(self._page_add('x16', '_exception_val'))
             self.assembly.append("    ldr x0, [x16]")
             if node.catch_var:
                 offset = self.local_vars.get(node.catch_var)
@@ -1180,23 +1200,23 @@ class Arm64Codegen:
         elif isinstance(node, Throw):
             self.compile_expr(node.value)
             self.assembly.append("    ldr x0, [sp], #16")
-            self.assembly.append(f"    adrp x16, _exception_val@PAGE")
-            self.assembly.append(f"    add x16, x16, _exception_val@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_exception_val'))
+            self.assembly.append(self._page_add('x16', '_exception_val'))
             self.assembly.append("    str x0, [x16]")
             # Pop the handler stack before jumping to it, so a throw from inside a catch
             # body resumes at the next-outer handler rather than re-entering this one.
-            self.assembly.append(f"    adrp x16, _try_depth@PAGE")
-            self.assembly.append(f"    add x16, x16, _try_depth@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_try_depth'))
+            self.assembly.append(self._page_add('x16', '_try_depth'))
             self.assembly.append("    ldr x9, [x16]")
             self.assembly.append("    sub x9, x9, #1")
             self.assembly.append("    str x9, [x16]")
-            self.assembly.append(f"    adrp x17, _try_catch_sp@PAGE")
-            self.assembly.append(f"    add x17, x17, _try_catch_sp@PAGEOFF")
+            self.assembly.append(self._adrp('x17', '_try_catch_sp'))
+            self.assembly.append(self._page_add('x17', '_try_catch_sp'))
             self.assembly.append("    add x17, x17, x9, lsl #3")
             self.assembly.append("    ldr x17, [x17]")
             self.assembly.append("    mov sp, x17")
-            self.assembly.append(f"    adrp x16, _catch_ip@PAGE")
-            self.assembly.append(f"    add x16, x16, _catch_ip@PAGEOFF")
+            self.assembly.append(self._adrp('x16', '_catch_ip'))
+            self.assembly.append(self._page_add('x16', '_catch_ip'))
             self.assembly.append("    add x16, x16, x9, lsl #3")
             self.assembly.append("    ldr x16, [x16]")
             self.assembly.append("    br x16")
@@ -1240,8 +1260,8 @@ class Arm64Codegen:
                     self.assembly.append("    str x0, [sp, #-16]!")
                 elif i - 1 < max_extra:
                     slot = (i - 1) * 8
-                    self.assembly.append("    adrp x16, _nova_multi_ret@PAGE")
-                    self.assembly.append("    add x16, x16, _nova_multi_ret@PAGEOFF")
+                    self.assembly.append(self._adrp('x16', '_nova_multi_ret'))
+                    self.assembly.append(self._page_add('x16', '_nova_multi_ret'))
                     self.assembly.append(f"    str x0, [x16, #{slot}]")
             self.emit_deferred()
             self.assembly.append("    ldr x0, [sp], #16")
@@ -1267,8 +1287,8 @@ class Arm64Codegen:
                     reg = "x0"
                 elif i - 1 < max_extra:
                     slot = (i - 1) * 8
-                    self.assembly.append("    adrp x16, _nova_multi_ret@PAGE")
-                    self.assembly.append("    add x16, x16, _nova_multi_ret@PAGEOFF")
+                    self.assembly.append(self._adrp('x16', '_nova_multi_ret'))
+                    self.assembly.append(self._page_add('x16', '_nova_multi_ret'))
                     self.assembly.append(f"    ldr x0, [x16, #{slot}]")
                     reg = "x0"
                 else:
@@ -1310,8 +1330,8 @@ class Arm64Codegen:
                 self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, String):
             label = self.add_string_literal(node.value)
-            self.assembly.append(f"    adrp x0, {label}@PAGE")
-            self.assembly.append(f"    add x0, x0, {label}@PAGEOFF")
+            self.assembly.append(self._adrp('x0', label))
+            self.assembly.append(self._page_add('x0', label))
             self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, Boolean):
             val = 1 if node.value else 0
@@ -1373,16 +1393,21 @@ class Arm64Codegen:
                     if it is not None:
                         arg_type = str(it)
                 label = self.add_string_literal(arg_type)
-                self.assembly.append(f"    adrp x0, {label}@PAGE")
-                self.assembly.append(f"    add x0, x0, {label}@PAGEOFF")
+                self.assembly.append(self._adrp('x0', label))
+                self.assembly.append(self._page_add('x0', label))
                 self.assembly.append("    str x0, [sp, #-16]!")
             elif node.name == "random":
+                # Each arg pushed to the stack immediately after evaluation -- see the
+                # comment on the general Call case below for why holding a second
+                # _compile_expr_to_reg result in a register across evaluating another
+                # argument is unsafe (a nested call in between can clobber it).
                 if len(node.args) == 2:
                     r1 = self._compile_expr_to_reg(node.args[1])
-                    r0 = self._compile_expr_to_reg(node.args[0])
                     self.assembly.append(f"    str {r1}, [sp, #-16]!")
+                    self._free_reg(r1)
+                    r0 = self._compile_expr_to_reg(node.args[0])
                     self.assembly.append(f"    str {r0}, [sp, #-16]!")
-                    self._free_reg(r1); self._free_reg(r0)
+                    self._free_reg(r0)
                     self.assembly.append("    ldr x0, [sp], #16")
                     self.assembly.append("    ldr x1, [sp], #16")
                     self.assembly.append("    bl _random_range")
@@ -1399,11 +1424,8 @@ class Arm64Codegen:
                     self.assembly.append("    bl _random")
                     self.assembly.append("    str x0, [sp, #-16]!")
             elif node.name == "chacha20_init":
-                regs = []
                 for arg in reversed(node.args):
                     r = self._compile_expr_to_reg(arg)
-                    regs.append(r)
-                for r in regs:
                     self.assembly.append(f"    str {r}, [sp, #-16]!")
                     self._free_reg(r)
                 if len(node.args) >= 1:
@@ -1420,11 +1442,21 @@ class Arm64Codegen:
                 self.assembly.append("    bl _malloc")
                 self.assembly.append("    str x0, [sp, #-16]!")
             else:
-                arg_regs = []
+                # Each argument is pushed to the real stack immediately after being
+                # evaluated, not held in its _compile_expr_to_reg register across the
+                # evaluation of the next one. The register pool (_alloc_reg/_free_reg) only
+                # tracks which of x0-x15 this function's OWN codegen considers "in use" --
+                # it has no way to protect a value against a nested function call made
+                # while evaluating a later argument, and ARM64 callee's are free to clobber
+                # any caller-saved register (x0-x18) they want. Found by actually running
+                # self-hosted ARM64 codegen under QEMU for the first time: a 3-argument
+                # call whose 2nd argument needed its own nested calls (string
+                # concatenation) silently corrupted the 3rd argument's already-computed
+                # value sitting in a caller-saved register. x86_64's equivalent path
+                # (compile_expr, which always leaves its result on the stack, never in a
+                # held register) never had this problem.
                 for arg in reversed(node.args):
                     reg = self._compile_expr_to_reg(arg)
-                    arg_regs.append(reg)
-                for reg in arg_regs:
                     self.assembly.append(f"    str {reg}, [sp, #-16]!")
                     self._free_reg(reg)
                 n_args = len(node.args)
@@ -1522,13 +1554,13 @@ class Arm64Codegen:
             if is_str:
                 self.assembly.append("    ldrb w0, [x0, x1]")
                 self.assembly.append("    lsl x0, x0, #1")
-                self.assembly.append("    adrp x1, char_strings@PAGE")
-                self.assembly.append("    add x1, x1, char_strings@PAGEOFF")
+                self.assembly.append(self._adrp('x1', 'char_strings'))
+                self.assembly.append(self._page_add('x1', 'char_strings'))
                 self.assembly.append("    add x0, x1, x0")
                 self.assembly.append("    str x0, [sp, #-16]!")
             else:
-                self.assembly.append(f"    adrp x16, _oob_line@PAGE")
-                self.assembly.append(f"    add x16, x16, _oob_line@PAGEOFF")
+                self.assembly.append(self._adrp('x16', '_oob_line'))
+                self.assembly.append(self._page_add('x16', '_oob_line'))
                 self.assembly.append(f"    mov x17, #{node.line}")
                 self.assembly.append(f"    str x17, [x16]")
                 oob_lbl = f"L_oob_{self.label_count}"
@@ -1572,8 +1604,8 @@ class Arm64Codegen:
         elif isinstance(node, OpenFile):
             self.compile_expr(node.path)
             self.assembly.append("    ldr x0, [sp], #16")
-            self.assembly.append("    adrp x1, str_fmode_a@PAGE")
-            self.assembly.append("    add x1, x1, str_fmode_a@PAGEOFF")
+            self.assembly.append(self._adrp('x1', 'str_fmode_a'))
+            self.assembly.append(self._page_add('x1', 'str_fmode_a'))
             self.assembly.append("    bl _fopen")
             self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, ReadFile):
@@ -1622,15 +1654,15 @@ class Arm64Codegen:
                 if mangled in self.func_returns or f"{cname}.{node.method_name}" in self.func_returns:
                     is_class_method = True
             if is_class_method:
-                regs = []
+                # Same push-immediately fix as the general Call case: holding multiple
+                # _compile_expr_to_reg results across later evaluations is unsafe.
                 for arg in reversed(node.args):
                     r = self._compile_expr_to_reg(arg)
-                    regs.append(r)
-                inst_reg = self._compile_expr_to_reg(node.instance)
-                regs.append(inst_reg)
-                for r in regs:
                     self.assembly.append(f"    str {r}, [sp, #-16]!")
                     self._free_reg(r)
+                inst_reg = self._compile_expr_to_reg(node.instance)
+                self.assembly.append(f"    str {inst_reg}, [sp, #-16]!")
+                self._free_reg(inst_reg)
                 # Pop into x0 = instance (self), x1 = arg0, ...
                 self.assembly.append("    ldr x0, [sp], #16")
                 if len(node.args) >= 1:
@@ -1697,8 +1729,8 @@ class Arm64Codegen:
                 self.compile_expr(node.args[0])
                 self.assembly.append("    ldr x0, [sp], #16")
                 mode_label = "str_fmode_w" if node.method_name == "open" else "str_fmode_a"
-                self.assembly.append(f"    adrp x1, {mode_label}@PAGE")
-                self.assembly.append(f"    add x1, x1, {mode_label}@PAGEOFF")
+                self.assembly.append(self._adrp('x1', mode_label))
+                self.assembly.append(self._page_add('x1', mode_label))
                 self.assembly.append("    bl _fopen")
                 self.assembly.append("    str x0, [sp, #-16]!")
             elif node.method_name == "read":
@@ -1826,8 +1858,8 @@ class Arm64Codegen:
             self.assembly.append("    mov x0, #32")
             self.assembly.append("    bl _malloc")
             self.assembly.append("    ldr x2, [sp], #16")
-            self.assembly.append("    adrp x1, fmt_int_pure@PAGE")
-            self.assembly.append("    add x1, x1, fmt_int_pure@PAGEOFF")
+            self.assembly.append(self._adrp('x1', 'fmt_int_pure'))
+            self.assembly.append(self._page_add('x1', 'fmt_int_pure'))
             self.assembly.append("    str x0, [sp, #-16]!")
             self.assembly.append("    bl _sprintf")
             self.assembly.append("    ldr x0, [sp], #16")
