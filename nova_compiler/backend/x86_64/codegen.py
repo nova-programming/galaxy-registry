@@ -8,6 +8,10 @@ _FIELD_PREFERRED = {
     "params": "AstNode",
     "name": "Type",
     "inferred_type": "AstNode",
+    # `line`/`col` exist on Token and AstNode at different offsets. Untyped AST accesses
+    # (node.line in resolve_imports, node.col in diagnostics) must not read Token slots.
+    "line": "AstNode",
+    "col": "AstNode",
 }
 
 class X86_64Codegen:
@@ -404,31 +408,18 @@ class X86_64Codegen:
         return "\n".join(self.assembly)
 
     def _emit_concat_strings(self):
+        # Delegate to the runtime's single-pass concat (strlen+strlen+memcpy+memcpy) instead of
+        # the previous strlen/strlen/malloc/strcpy/strcat chain, which re-scanned the left
+        # operand twice more (once in strcpy, again inside strcat to find the end to append at)
+        # for no benefit -- memcpy with a known length never needs that scan. Callers here push
+        # args on the stack (not rdi/rsi), so this keeps that same [rbp+16]/[rbp+24] convention
+        # and only swaps the body for a call into _nova_str_concat's SysV convention.
         self.assembly.append("_concat_strings:")
         self.assembly.append("    push rbp")
         self.assembly.append("    mov rbp, rsp")
-        self.assembly.append("    push rbx")
-        self.assembly.append("    sub rsp, 40")
         self.assembly.append("    mov rdi, [rbp + 16]")
-        self.assembly.append("    call _strlen")
-        self.assembly.append("    mov rbx, rax")
-        self.assembly.append("    mov rdi, [rbp + 24]")
-        self.assembly.append("    call _strlen")
-        self.assembly.append("    add rbx, rax")
-        self.assembly.append("    inc rbx")
-        self.assembly.append("    mov rdi, rbx")
-        self.assembly.append("    call _malloc")
-        self.assembly.append("    mov [rsp], rax")
-        self.assembly.append("    mov rsi, [rbp + 16]")
-        self.assembly.append("    mov rdi, rax")
-        self.assembly.append("    call _strcpy")
-        self.assembly.append("    mov rax, [rsp]")
         self.assembly.append("    mov rsi, [rbp + 24]")
-        self.assembly.append("    mov rdi, rax")
-        self.assembly.append("    call _strcat")
-        self.assembly.append("    mov rax, [rsp]")
-        self.assembly.append("    add rsp, 40")
-        self.assembly.append("    pop rbx")
+        self.assembly.append("    call _nova_str_concat")
         self.assembly.append("    pop rbp")
         self.assembly.append("    ret")
 
@@ -1081,11 +1072,11 @@ class X86_64Codegen:
                 self.assembly.append("    mov rdi, [rbx + 8]")
                 self.assembly.append("    mov [rdi + rcx*8], rax")
         elif isinstance(node, WriteFile):
+            # _fputs(str, file): stack holds [.., content, fd], so fd pops first.
             self.compile_expr(node.content)
-            self.compile_expr(node.file)
-            self.assembly.append("    pop rdi")
+            self.compile_expr(node.fd)
             self.assembly.append("    pop rsi")
-            self.assembly.append("    mov rdx, -1")
+            self.assembly.append("    pop rdi")
             self.assembly.append("    call _fputs")
         elif isinstance(node, RawBlock):
             for line in node.body:
@@ -1096,7 +1087,7 @@ class X86_64Codegen:
                 else:
                     self.compile_stmt(line)
         elif isinstance(node, CloseFile):
-            self.compile_expr(node.value)
+            self.compile_expr(node.fd)
             self.assembly.append("    pop rdi")
             self.assembly.append("    sub rsp, 32")
             self.assembly.append("    call _fclose")
@@ -1626,6 +1617,11 @@ class X86_64Codegen:
                 self.assembly.append("    sub rsp, 32")
                 self.assembly.append(f"    call _{node.name}")
                 self.assembly.append("    add rsp, 32")
+                # Same stack-argument cleanup as the general call path below: only six
+                # arguments go into registers, so anything past the sixth must be popped
+                # by the caller or every later push/pop in this frame is shifted by 8.
+                if n_args > 6:
+                    self.assembly.append(f"    add rsp, {(n_args - 6) * 8}")
                 self.assembly.append("    push rax")
             else:
                 for arg in reversed(node.args):
@@ -1666,6 +1662,15 @@ class X86_64Codegen:
                 else:
                     self.assembly.append(f"    call _{node.name}")
                 self.assembly.append("    add rsp, 32")
+
+                # Arguments past the ones moved into registers are still on the stack and
+                # belong to the caller. Not popping them shifted every later push/pop by
+                # 8 bytes, so a function's epilogue `pop r15/r14/r13/r12` read the wrong
+                # slots and returned garbage in the callee-saved registers -- corrupting
+                # (for example) a live struct pointer held across a 7+ argument call.
+                stack_args = n_args - (4 if is_win_extern else 6)
+                if stack_args > 0:
+                    self.assembly.append(f"    add rsp, {stack_args * 8}")
 
                 if n_args > 0:
                     pass
@@ -1797,15 +1802,17 @@ class X86_64Codegen:
             self.assembly.append("    mov [rbx], rax")
             self.assembly.append("    push rbx")
         elif isinstance(node, OpenFile):
+            # open(path, mode) must honour the mode argument; previously this hardcoded "a".
+            self.compile_expr(node.mode)
             self.compile_expr(node.path)
             self.assembly.append("    pop rdi")
-            self.assembly.append("    lea rsi, [rip + str_fmode_a]")
+            self.assembly.append("    pop rsi")
             self.assembly.append("    sub rsp, 32")
             self.assembly.append("    call _fopen")
             self.assembly.append("    add rsp, 32")
             self.assembly.append("    push rax")
         elif isinstance(node, ReadFile):
-            self.compile_expr(node.file)
+            self.compile_expr(node.fd)
             self.assembly.append("    pop rdi")
             self.assembly.append("    call _sys_read_c")
             self.assembly.append("    push rax")
@@ -1882,6 +1889,10 @@ class X86_64Codegen:
                 self.assembly.append("    sub rsp, 32")
                 self.assembly.append(f"    call _{mangled}")
                 self.assembly.append("    add rsp, 32")
+                # Stack-argument cleanup, as in the plain call path: the six register
+                # arguments are popped above, the rest must be popped here.
+                if n_call > 6:
+                    self.assembly.append(f"    add rsp, {(n_call - 6) * 8}")
                 self.assembly.append("    push rax")
             elif node.method_name == "append":
                 self.compile_expr(node.args[0])
@@ -1939,10 +1950,11 @@ class X86_64Codegen:
                 self.assembly.append("    call _sys_read_c")
                 self.assembly.append("    push rax")
             elif node.method_name == "write":
+                # _fputs(str, file): the instance (file) is on top of the stack.
                 self.compile_expr(node.args[0])
                 self.compile_expr(node.instance)
-                self.assembly.append("    pop rdi")
                 self.assembly.append("    pop rsi")
+                self.assembly.append("    pop rdi")
                 self.assembly.append("    call _fputs")
                 self.assembly.append("    push rax")
             elif node.method_name == "close":

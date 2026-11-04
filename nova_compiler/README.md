@@ -24,8 +24,11 @@ curl -O https://galaxy-registry.vercel.app/install.py && python install.py
 After installation, open a **new** terminal, then:
 
 ```bash
-nova --version           # Check Nova version
+nova --version           # Check Nova version (or 'nova version')
+nova help                # Display help and available commands
 nova build hello.nv      # Compile a Nova program (requires GCC)
+nova build -o out.exe hello.nv  # Compile with custom output executable name
+nova build -b hello.nv   # Compile and benchmark build phases
 nova run hello.nv        # Compile, link, and immediately execute
 nova check hello.nv      # Parse and type-check without building
 nova lint hello.nv       # Show advisory style warnings; does not rewrite files
@@ -277,4 +280,4 @@ calls when a program must work in both modes.
 
 ## License
 
-CC BY-NC 4.0 — personal/educational use allowed; commercial use prohibited.
+MIT License — open source, free for personal and commercial use.

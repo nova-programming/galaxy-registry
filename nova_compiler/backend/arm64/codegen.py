@@ -8,6 +8,9 @@ _FIELD_PREFERRED = {
     "params": "AstNode",
     "name": "Type",
     "inferred_type": "AstNode",
+    # Keep in step with the x86_64 backend.
+    "line": "AstNode",
+    "col": "AstNode",
 }
 
 class Arm64Codegen:
@@ -761,27 +764,17 @@ class Arm64Codegen:
         return "\n".join(self.assembly)
 
     def _emit_concat_strings(self):
+        # Delegate to the runtime's single-pass concat instead of the previous
+        # strlen/strlen/malloc/strcpy/strcat chain -- see the x86_64 backend's
+        # _emit_concat_strings for why. Callers push args on the stack at the
+        # same offsets as before ([sp, #48]/[sp, #64] once this prologue has run);
+        # only the body now calls into _nova_str_concat's x0/x1 convention.
         self.assembly.append("_concat_strings:")
         self.assembly.append("    stp fp, lr, [sp, #-16]!")
         self.assembly.append("    sub sp, sp, #32")
-        self.assembly.append("    str x19, [sp, #16]")
         self.assembly.append("    ldr x0, [sp, #48]")
-        self.assembly.append("    bl _strlen")
-        self.assembly.append("    mov x19, x0")
-        self.assembly.append("    ldr x0, [sp, #64]")
-        self.assembly.append("    bl _strlen")
-        self.assembly.append("    add x19, x19, x0")
-        self.assembly.append("    add x0, x19, #1")
-        self.assembly.append("    bl _malloc")
-        self.assembly.append("    str x0, [sp, #8]")
-        self.assembly.append("    ldr x1, [sp, #48]")
-        self.assembly.append("    mov x0, x0")
-        self.assembly.append("    bl _strcpy")
         self.assembly.append("    ldr x1, [sp, #64]")
-        self.assembly.append("    ldr x0, [sp, #8]")
-        self.assembly.append("    bl _strcat")
-        self.assembly.append("    ldr x0, [sp, #8]")
-        self.assembly.append("    ldr x19, [sp, #16]")
+        self.assembly.append("    bl _nova_str_concat")
         self.assembly.append("    add sp, sp, #32")
         self.assembly.append("    ldp fp, lr, [sp], #16")
         self.assembly.append("    ret")
@@ -1140,7 +1133,7 @@ class Arm64Codegen:
             self.assembly.append(f"{after_lbl}:")
         elif isinstance(node, WriteFile):
             cnt_reg = self._compile_expr_to_reg(node.content)
-            file_reg = self._compile_expr_to_reg(node.file)
+            file_reg = self._compile_expr_to_reg(node.fd)
             self.assembly.append(f"    str {cnt_reg}, [sp, #-16]!")
             self.assembly.append(f"    str {file_reg}, [sp, #-16]!")
             self._free_reg(cnt_reg)
@@ -1149,7 +1142,7 @@ class Arm64Codegen:
             self.assembly.append("    ldr x0, [sp], #16")
             self.assembly.append("    bl _fputs")
         elif isinstance(node, CloseFile):
-            self.compile_expr(node.value)
+            self.compile_expr(node.fd)
             self.assembly.append("    ldr x0, [sp], #16")
             self.assembly.append("    bl _fclose")
         elif isinstance(node, Try):
@@ -1602,14 +1595,15 @@ class Arm64Codegen:
             self.assembly.append("    str x0, [x1]")
             self.assembly.append("    str x1, [sp, #-16]!")
         elif isinstance(node, OpenFile):
+            # open(path, mode) must honour the mode argument; previously this hardcoded "a".
+            self.compile_expr(node.mode)
             self.compile_expr(node.path)
             self.assembly.append("    ldr x0, [sp], #16")
-            self.assembly.append(self._adrp('x1', 'str_fmode_a'))
-            self.assembly.append(self._page_add('x1', 'str_fmode_a'))
+            self.assembly.append("    ldr x1, [sp], #16")
             self.assembly.append("    bl _fopen")
             self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, ReadFile):
-            self.compile_expr(node.file)
+            self.compile_expr(node.fd)
             self.assembly.append("    ldr x0, [sp], #16")
             self.assembly.append("    bl _sys_read_c")
             self.assembly.append("    str x0, [sp, #-16]!")
