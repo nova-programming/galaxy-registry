@@ -1,10 +1,16 @@
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js");
 
-// Compiler sources are fetched from GitHub. NOVA_REF is the branch, tag or commit to load; set it to a
-// release tag or commit SHA to pin the playground to a known-good compiler (bump it when you release).
+// Try to import bundled compiler files (instant startup, zero network fetch, immune to GitHub rate-limits or ISP blocks)
+try {
+    importScripts("nova_bundle.js");
+} catch(e) {
+    console.warn("Local nova_bundle.js not available, will fallback to network fetch", e);
+}
+
+// Compiler sources can also be fetched from GitHub if custom ?nova= is supplied.
 const NOVA_REF = "main";
-// `nova_worker.js?nova=http://localhost:8766/` loads the compiler from a local checkout instead (for testing).
-const NOVA_RAW = new URL(self.location.href).searchParams.get("nova") ||
+const customNovaParam = new URL(self.location.href).searchParams.get("nova");
+const NOVA_RAW = customNovaParam ||
     "https://raw.githubusercontent.com/nova-programming/Nova/" + NOVA_REF + "/";
 
 let pyodide = null;
@@ -17,7 +23,20 @@ async function fetchPythonFile(path) {
 }
 
 async function loadNovaFiles() {
-    // Directories and source files in Pyodide FS
+    // Ensure all target directories exist in Pyodide virtual filesystem
+    for (const f of ["lexer", "parser", "nova_ast", "modules", "vm", "compiler"]) {
+        try { pyodide.FS.mkdir(f); } catch(e) {}
+    }
+
+    // Fast path: use bundled files (100% reliable, zero network dependency)
+    if (self.NOVA_COMPILER_FILES && !customNovaParam) {
+        for (const [file, content] of Object.entries(self.NOVA_COMPILER_FILES)) {
+            pyodide.FS.writeFile(file, content);
+        }
+        return;
+    }
+
+    // Network fallback path (only if bundle is missing or custom ?nova= is specified)
     const files = [
         "lexer/__init__.py", "lexer/tokenizer.py", "lexer/tokens.py",
         "parser/__init__.py", "parser/parser.py",
@@ -26,20 +45,27 @@ async function loadNovaFiles() {
         "vm/__init__.py", "vm/machine.py", "vm/opcodes.py", "vm/compiler.py",
         "compiler/types.py", "compiler/type_checker.py"
     ];
-    // Newer compiler sources import these; older refs do not have them, so a 404 is tolerated.
     const optionalFiles = ["names.py"];
-    // Standard-library modules that run in the VM, written next to the program so `import text` works.
     const optionalStdlib = ["text", "json"];
 
-    for (const f of ["lexer", "parser", "nova_ast", "modules", "vm", "compiler"]) {
-        try { pyodide.FS.mkdir(f); } catch(e) {}
-    }
-
-    // Fetch directly from GitHub main branch
     const BASE_URL = NOVA_RAW + "bootstrap/";
     for (const file of files) {
-        const content = await fetchPythonFile(BASE_URL + file);
-        pyodide.FS.writeFile(file, content);
+        if (file === "vm/__init__.py") {
+            // vm/__init__.py is 0 bytes in python, write empty string directly
+            pyodide.FS.writeFile(file, "");
+            continue;
+        }
+        try {
+            const content = await fetchPythonFile(BASE_URL + file);
+            pyodide.FS.writeFile(file, content);
+        } catch(e) {
+            // If empty file fails on some CDNs, create empty file
+            if (file.endsWith("__init__.py")) {
+                pyodide.FS.writeFile(file, "");
+            } else {
+                throw e;
+            }
+        }
     }
     for (const file of optionalFiles) {
         try { pyodide.FS.writeFile(file, await fetchPythonFile(BASE_URL + file)); } catch (e) {}
