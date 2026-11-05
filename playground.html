@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Playground — Interactive WebAssembly Compiler</title>
+    <title>Nova Playground — Interactive WebAssembly Compiler &amp; Diagnostics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Shared Theme CSS -->
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <!-- Monaco Editor -->
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.41.0/min/vs/editor/editor.main.css">
     <style>
@@ -19,7 +22,7 @@
             --border-subtle: #21262d;
             --accent: #2f81f7;
             --accent-hover: #1f6feb;
-            --nav-bg: rgba(13, 17, 23, 0.85);
+            --nav-bg: rgba(13, 17, 23, 0.88);
             --code-bg: #161b22;
             --console-bg: #010409;
             --card-bg: #161b22;
@@ -30,7 +33,7 @@
             --warning: #d29922;
         }
 
-        body[data-theme="light"] {
+        body[data-theme="light"], html[data-theme="light"] body {
             --bg: #ffffff;
             --text: #0f172a;
             --text-secondary: #475569;
@@ -128,6 +131,34 @@
         }
         .btn-tool:hover { background: var(--btn-hover); border-color: var(--accent); }
         .btn-tool svg { width: 14px; height: 14px; }
+
+        /* Capability Badge */
+        .capability-pill {
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            background: var(--btn-bg); border: 1px solid var(--border);
+            padding: 0.35rem 0.7rem; border-radius: 20px;
+            font-size: 0.76rem; font-weight: 500; color: var(--text-secondary);
+            cursor: pointer; transition: all 0.2s ease; user-select: none;
+        }
+        .capability-pill:hover {
+            border-color: var(--accent); color: var(--text);
+        }
+        .cap-badge-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+        }
+        .cap-badge-info {
+            font-size: 0.85rem; color: var(--accent); font-weight: 700;
+        }
+
+        .syntax-pill {
+            font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
+            padding: 0.2rem 0.55rem; border-radius: 4px;
+            background: var(--btn-bg); border: 1px solid var(--border);
+            color: var(--text-secondary); display: inline-flex; align-items: center;
+        }
+        .syntax-pill.error { color: var(--error); border-color: var(--error); background: rgba(239, 68, 68, 0.1); }
+        .syntax-pill.success { color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
 
         .compiler-indicator {
             display: inline-flex; align-items: center; gap: 0.5rem;
@@ -232,6 +263,57 @@
         }
         .toast.show { opacity: 1; transform: translateY(0); }
 
+        /* Capability Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            padding: 1.5rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 12px; width: 100%; max-width: 640px;
+            box-shadow: 0 20px 48px rgba(0,0,0,0.35); overflow: hidden;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+        .modal-close {
+            background: none; border: none; font-size: 1.5rem;
+            color: var(--text-tertiary); cursor: pointer; line-height: 1;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-body { padding: 1.5rem; font-size: 0.88rem; line-height: 1.6; }
+        .cap-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+            margin: 1.25rem 0;
+        }
+        .cap-col {
+            background: var(--sidebar-bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 1rem;
+        }
+        .cap-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem; }
+        .cap-col ul { list-style: none; padding: 0; margin: 0; }
+        .cap-col li {
+            font-size: 0.78rem; color: var(--text-secondary);
+            margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;
+        }
+        .cap-col.supported h4 { color: var(--success); }
+        .cap-col.native-only h4 { color: #f59e0b; }
+        .modal-footer {
+            margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-footer p { font-size: 0.82rem; color: var(--text-secondary); margin: 0; }
+
         /* Responsive Layout */
         @media (max-width: 860px) {
             .workspace { flex-direction: column; }
@@ -240,6 +322,7 @@
             nav { padding: 0 1rem; }
             .nav-links { gap: 1rem; }
             .toolbar { gap: 0.5rem; }
+            .cap-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -257,6 +340,7 @@
             <a href="examples.html">Examples</a>
             <a href="templates.html">Templates</a>
             <a href="playground.html" class="active">Playground</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
             <a href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
@@ -266,19 +350,30 @@
         <div class="editor-container">
             <div class="toolbar">
                 <div class="toolbar-group">
-                    <label for="example-select" style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);">Examples:</label>
+                    <label for="example-select" style="font-size:0.78rem;font-weight:600;color:var(--text-secondary);">Preset:</label>
                     <select id="example-select" class="select-preset" onchange="loadPreset(this.value)">
-                        <option value="fibonacci">Fibonacci (Recursion &amp; Types)</option>
-                        <option value="fizzbuzz">FizzBuzz (Loops &amp; Conditionals)</option>
-                        <option value="primes">Prime Finder (Iterative Loops)</option>
-                        <option value="classes">Data Classes &amp; Structs</option>
-                        <option value="switch">Switch / Pattern Matching</option>
-                        <option value="sort">Bubble Sort (Lists &amp; Mutation)</option>
-                        <option value="range">range() Counting Loops</option>
-                        <option value="ctor">Data Constructors</option>
-                        <option value="dict">Dictionaries &amp; in</option>
-                        <option value="modules">Modules (text)</option>
-                        <option value="json">json.parse</option>
+                        <optgroup label="Beginner Basics">
+                            <option value="fibonacci">Fibonacci (Recursion &amp; Types)</option>
+                            <option value="fizzbuzz">FizzBuzz (Loops &amp; Conditionals)</option>
+                            <option value="primes">Prime Finder (Iterative Loops)</option>
+                            <option value="range">range() Counting Loops</option>
+                        </optgroup>
+                        <optgroup label="Data Structures">
+                            <option value="classes">Classes &amp; OOP Methods</option>
+                            <option value="ctor">Data Constructors (Point, Player)</option>
+                            <option value="dict">Dictionaries &amp; Membership</option>
+                        </optgroup>
+                        <optgroup label="Algorithms">
+                            <option value="sort">Bubble Sort (Lists &amp; Mutation)</option>
+                            <option value="switch">Switch Pattern Matching</option>
+                        </optgroup>
+                        <optgroup label="Standard Library">
+                            <option value="modules">Text Manipulation (import text)</option>
+                            <option value="json">JSON Tree Parsing (import json)</option>
+                        </optgroup>
+                        <optgroup label="Native Showcase (Local Toolchain)">
+                            <option value="gui_showcase">Desktop Declarative Window (Win32 GUI)</option>
+                        </optgroup>
                     </select>
 
                     <button class="btn-tool" onclick="resetCurrentPreset()" title="Reset snippet">
@@ -289,15 +384,18 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         Share
                     </button>
-                    <button class="btn-tool" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">
-                        <span id="theme-icon">&#9789;</span>
-                    </button>
+                    <div class="capability-pill" onclick="toggleCapabilityModal()" title="View browser VM capabilities vs native">
+                        <span class="cap-badge-dot"></span>
+                        <span>Browser VM Sandbox</span>
+                        <span class="cap-badge-info">&#9432;</span>
+                    </div>
                 </div>
 
                 <div class="toolbar-group">
+                    <span id="syntax-status" class="syntax-pill success">&#10003; Syntax OK</span>
                     <div class="compiler-indicator">
                         <span class="status-dot" id="status-dot"></span>
-                        <span id="compiler-status">Initializing Pyodide (Downloading ~10MB)...</span>
+                        <span id="compiler-status">Initializing Pyodide VM...</span>
                     </div>
                     <button id="run-btn" class="btn-run" onclick="runCode()" disabled>
                         <span>Run Code</span>
@@ -320,8 +418,8 @@
                 </div>
             </div>
             <div id="console-output"><span class="console-line system">Welcome to the Nova Playground!</span>
-<span class="console-line system">The self-hosted Nova compiler runs entirely in your browser using WebAssembly.</span>
-<span class="console-line system">Select an example or write custom Nova code, then press Ctrl+Enter to execute.</span>
+<span class="console-line system">Nova runs directly in your browser using a sandboxed WebAssembly VM.</span>
+<span class="console-line system">Type or edit code, see real-time syntax markers, and press Ctrl+Enter to execute.</span>
 </div>
         </div>
     </div>
@@ -338,6 +436,51 @@
         </div>
     </div>
 
+    <!-- Capability Modal -->
+    <div id="capability-modal" class="modal-overlay" onclick="if(event.target===this) toggleCapabilityModal()">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Execution Environment &amp; Capabilities</h3>
+                <button class="modal-close" onclick="toggleCapabilityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Nova Playground runs the self-hosted Nova compiler compiled to <strong>WebAssembly (Pyodide sandbox)</strong> directly in your browser with zero server latency.</p>
+                <div class="cap-grid">
+                    <div class="cap-col supported">
+                        <h4>🟢 Supported in Browser VM</h4>
+                        <ul>
+                            <li>&#10003; Full Nova Syntax &amp; Type System</li>
+                            <li>&#10003; Hindley-Milner Type Inference</li>
+                            <li>&#10003; Functions, Lambdas &amp; Closures</li>
+                            <li>&#10003; Classes, Methods &amp; Constructors</li>
+                            <li>&#10003; Pattern Matching &amp; Switch Blocks</li>
+                            <li>&#10003; Algorithmic &amp; Math Logic</li>
+                            <li>&#10003; <code>import text</code> String Processing</li>
+                            <li>&#10003; <code>import json</code> Tree Parsing</li>
+                        </ul>
+                    </div>
+                    <div class="cap-col native-only">
+                        <h4>⚡ Requires Native Compiler (<code>nova run</code>)</h4>
+                        <ul>
+                            <li>&bull; <code>import gui</code> Native Win32 GDI Graphics</li>
+                            <li>&bull; Double-Buffered Framebuffer Engine</li>
+                            <li>&bull; NSS CSS-like Desktop Stylesheets</li>
+                            <li>&bull; <code>extern def</code> &amp; Direct C-ABI FFI</li>
+                            <li>&bull; Direct Memory Pointers (<code>@raw</code>, <code>.ptr</code>)</li>
+                            <li>&bull; Operating System Subprocesses</li>
+                            <li>&bull; Direct Hardware &amp; Host Filesystem I/O</li>
+                            <li>&bull; Sub-250KB Standalone Machine Binaries</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <p>Want to build native 60 FPS desktop applications?</p>
+                    <a href="index.html?view=view-getting-started" class="btn-primary" style="font-size:0.82rem;padding:0.45rem 1rem;background:var(--accent);color:#fff;border-radius:6px;text-decoration:none;">Install Nova CLI &amp; Studio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast">Permalink copied to clipboard!</div>
 
@@ -350,17 +493,215 @@
     <script>
         // Preset Code Snippets
         const PRESETS = {
-            fibonacci: `# Fibonacci Calculation in Nova\ndef calculate_fibonacci(n: int) -> int {\n    if n <= 1 {\n        return n\n    }\n    return calculate_fibonacci(n - 1) + calculate_fibonacci(n - 2)\n}\n\nprint("Calculating Fibonacci sequence up to 12:")\nfor i = 0 to 12 {\n    print("fib(" + str(i) + ") = " + str(calculate_fibonacci(i)))\n}\n`,
-            fizzbuzz: `# Classic FizzBuzz in Nova\ndef fizzbuzz(limit: int) {\n    for i = 1 to limit {\n        if i % 15 == 0 {\n            print("FizzBuzz")\n        } elif i % 3 == 0 {\n            print("Fizz")\n        } elif i % 5 == 0 {\n            print("Buzz")\n        } else {\n            print(i)\n        }\n    }\n}\n\nprint("Running FizzBuzz up to 20:")\nfizzbuzz(20)\n`,
-            primes: `# Prime Number Finder in Nova\ndef is_prime(n: int) -> bool {\n    if n <= 1 {\n        return false\n    }\n    for i = 2 to n - 1 {\n        if n % i == 0 {\n            return false\n        }\n    }\n    return true\n}\n\nprint("Prime numbers up to 30:")\ncount = 0\nfor n = 2 to 30 {\n    if is_prime(n) {\n        print(str(n) + " is prime")\n        count = count + 1\n    }\n}\nprint("Total primes found: " + str(count))\n`,
-            classes: `# Data Classes & Structures in Nova\ndata Player {\n    name: string\n    health: int\n    level: int\n}\n\ndef create_hero(name: string) -> Player {\n    p = Player()\n    p.name = name\n    p.health = 100\n    p.level = 1\n    return p\n}\n\nhero = create_hero("Valkyrie")\nprint("Hero created: " + hero.name)\nprint("Health: " + str(hero.health))\nprint("Level: " + str(hero.level))\n`,
-            switch: `# Pattern Evaluation with Switch in Nova\ndef get_http_message(status: int) -> string {\n    switch status {\n        case 200: { return "200 OK: Request succeeded." }\n        case 201: { return "201 Created: Resource provisioned." }\n        case 400: { return "400 Bad Request: Invalid payload." }\n        case 404: { return "404 Not Found: Endpoint does not exist." }\n        case 500: { return "500 Internal Error: Server failure." }\n        default:  { return "Unknown status code: " + str(status) }\n    }\n}\n\ncodes = [200, 201, 404, 500, 418]\nfor code in codes {\n    print(get_http_message(code))\n}\n`,
-            sort: `# Bubble Sort Algorithm in Nova\ndef bubble_sort(arr: list) -> list {\n    n = len(arr)\n    for i = 0 to n - 1 {\n        for j = 0 to n - i - 2 {\n            if arr[j] > arr[j + 1] {\n                temp = arr[j]\n                arr[j] = arr[j + 1]\n                arr[j + 1] = temp\n            }\n        }\n    }\n    return arr\n}\n\nitems = [64, 34, 25, 12, 22, 11, 90]\nprint("Original array:")\nprint(items)\n\nsorted_items = bubble_sort(items)\nprint("Sorted array:")\nprint(sorted_items)\n`,
-            range: `# Python-style counting loops\nprint("range(5):")\nfor i in range(5) {\n    print(i)\n}\nprint("range(2, 10, 3):")\nfor i in range(2, 10, 3) {\n    print(i)\n}\nprint("Counting down:")\nfor i in range(5, 0, -2) {\n    print(i)\n}\nitems = [10, 20, 30]\nfor i in range(len(items)) {\n    print("items[" + str(i) + "] = " + str(items[i]))\n}\n`,
-            ctor: `# data constructors: values in field order, or by name\ndata Point {\n    x: int\n    y: int\n}\n\ndata Player {\n    name: string\n    health: int\n}\n\na = Point(3, 4)\nb = Point(y=9, x=1)\nc = Point(7)\nprint("a = (" + str(a.x) + ", " + str(a.y) + ")")\nprint("b = (" + str(b.x) + ", " + str(b.y) + ")")\nprint("c = (" + str(c.x) + ", " + str(c.y) + ")  # missing fields are zero")\nhero = Player("Valkyrie", 100)\nprint(hero.name + " has " + str(hero.health) + " health")\n`,
-            dict: `# Dictionaries: d["key"] and "key" in d\nages = {"ada": 36, "linus": 54}\nages["grace"] = 85\nprint(ages["ada"] + ages["grace"])\nif "linus" in ages {\n    print("linus is in the dictionary")\n}\nif "bob" not in ages {\n    print("bob is missing")\n}\n`,
-            modules: `# Standard modules: import, then call with a dot\nimport text\n\nline = "  nova makes systems programming easy  "\nwords = text.words(line)\nprint("words: " + str(len(words)))\nprint(text.upper(text.trim(line)))\nprint(text.padLeft("7", 3, "0") + " | " + text.padRight("ab", 5, ".") + "|")\nprint(text.replace("a-b-c", "-", "+"))\nprint(text.toInt("  42 apples") + 1)\nprint(text.capitalize("hELLO"))\n`,
-            json: `# json.parse returns a typed tree; write literal braces as \\{ and \\}\nimport json\n\ndoc = json.parse("\\{\\"name\\": \\"Ada\\", \\"langs\\": [\\"nova\\", \\"c\\"], \\"age\\": 36\\}")\nprint(json.asString(json.get(doc, "name")))\nprint(json.asInt(json.get(doc, "age")))\nlangs = json.get(doc, "langs")\nprint(json.size(langs))\nprint(json.asString(json.at(langs, 0)))\n`
+            fibonacci: `# Fibonacci Calculation in Nova
+def calculate_fibonacci(n: int) -> int {
+    if n <= 1 {
+        return n
+    }
+    return calculate_fibonacci(n - 1) + calculate_fibonacci(n - 2)
+}
+
+print("Calculating Fibonacci sequence up to 12:")
+for i = 0 to 12 {
+    print("fib(" + str(i) + ") = " + str(calculate_fibonacci(i)))
+}
+`,
+            fizzbuzz: `# Classic FizzBuzz in Nova
+def fizzbuzz(limit: int) {
+    for i = 1 to limit {
+        if i % 15 == 0 {
+            print("FizzBuzz")
+        } elif i % 3 == 0 {
+            print("Fizz")
+        } elif i % 5 == 0 {
+            print("Buzz")
+        } else {
+            print(i)
+        }
+    }
+}
+
+print("Running FizzBuzz up to 20:")
+fizzbuzz(20)
+`,
+            primes: `# Prime Number Finder in Nova
+def is_prime(n: int) -> bool {
+    if n <= 1 {
+        return false
+    }
+    for i = 2 to n - 1 {
+        if n % i == 0 {
+            return false
+        }
+    }
+    return true
+}
+
+print("Prime numbers up to 30:")
+count = 0
+for n = 2 to 30 {
+    if is_prime(n) {
+        print(str(n) + " is prime")
+        count = count + 1
+    }
+}
+print("Total primes found: " + str(count))
+`,
+            classes: `# Classes with Constructors and Methods
+class Player {
+    health: int
+    name: string
+
+    def __init__(h: int, n: string) {
+        self.health = h
+        self.name = n
+    }
+
+    def take_damage(amount: int) {
+        self.health = self.health - amount
+    }
+
+    def is_alive() -> bool {
+        return self.health > 0
+    }
+}
+
+p = Player(100, "Valkyrie")
+p.take_damage(35)
+print("Hero name: " + p.name)
+print("Is alive: " + str(p.is_alive()))
+print("Current health: " + str(p.health))
+`,
+            switch: `# Pattern Evaluation with Switch in Nova
+def get_http_message(status: int) -> string {
+    switch status {
+        case 200: { return "200 OK: Request succeeded." }
+        case 201: { return "201 Created: Resource provisioned." }
+        case 400: { return "400 Bad Request: Invalid payload." }
+        case 404: { return "404 Not Found: Endpoint does not exist." }
+        case 500: { return "500 Internal Error: Server failure." }
+        default:  { return "Unknown status code: " + str(status) }
+    }
+}
+
+codes = [200, 201, 404, 500, 418]
+for code in codes {
+    print(get_http_message(code))
+}
+`,
+            sort: `# Bubble Sort Algorithm in Nova
+def bubble_sort(arr: list) -> list {
+    n = len(arr)
+    for i = 0 to n - 1 {
+        for j = 0 to n - i - 2 {
+            if arr[j] > arr[j + 1] {
+                temp = arr[j]
+                arr[j] = arr[j + 1]
+                arr[j + 1] = temp
+            }
+        }
+    }
+    return arr
+}
+
+items = [64, 34, 25, 12, 22, 11, 90]
+print("Original array:")
+print(items)
+
+sorted_items = bubble_sort(items)
+print("Sorted array:")
+print(sorted_items)
+`,
+            range: `# Python-style counting loops
+print("range(5):")
+for i in range(5) {
+    print(i)
+}
+print("range(2, 10, 3):")
+for i in range(2, 10, 3) {
+    print(i)
+}
+print("Counting down:")
+for i in range(5, 0, -2) {
+    print(i)
+}
+items = [10, 20, 30]
+for i in range(len(items)) {
+    print("items[" + str(i) + "] = " + str(items[i]))
+}
+`,
+            ctor: `# Data constructors: values in field order, or by name
+data Point {
+    x: int
+    y: int
+}
+
+data Player {
+    name: string
+    health: int
+}
+
+a = Point(3, 4)
+b = Point(y=9, x=1)
+c = Point(7)
+print("a = (" + str(a.x) + ", " + str(a.y) + ")")
+print("b = (" + str(b.x) + ", " + str(b.y) + ")")
+print("c = (" + str(c.x) + ", " + str(c.y) + ")  # missing fields default to 0")
+hero = Player("Valkyrie", 100)
+print(hero.name + " has " + str(hero.health) + " health")
+`,
+            dict: `# Dictionaries: d["key"] and "key" in d
+ages = {"ada": 36, "linus": 54}
+ages["grace"] = 85
+print("Grace age: " + str(ages["grace"]))
+if "linus" in ages {
+    print("linus is in the dictionary")
+}
+if "bob" not in ages {
+    print("bob is missing")
+}
+`,
+            modules: `# Standard modules: import, then call with a dot
+import text
+
+line = "  nova makes systems programming easy  "
+words = text.words(line)
+print("words: " + str(len(words)))
+print(text.upper(text.trim(line)))
+print(text.padLeft("7", 3, "0") + " | " + text.padRight("ab", 5, ".") + "|")
+print(text.replace("a-b-c", "-", "+"))
+print(text.toInt("  42 apples") + 1)
+print(text.capitalize("hELLO"))
+`,
+            json: `# json.parse returns a typed tree; write literal braces as \\{ and \\}
+import json
+
+doc = json.parse("\\{\\"name\\": \\"Ada\\", \\"langs\\": [\\"nova\\", \\"c\\"], \\"age\\": 36\\}")
+print(json.asString(json.get(doc, "name")))
+print(json.asInt(json.get(doc, "age")))
+langs = json.get(doc, "langs")
+print(json.size(langs))
+print(json.asString(json.at(langs, 0)))
+`,
+            gui_showcase: `# Nova Native Declarative GUI (Local Win32 GDI)
+# NOTE: 'import gui' runs natively with 60 FPS double-buffered rendering.
+# To execute this application, run locally with: nova run my_app.nv
+# or open in Nova Studio!
+
+import gui
+
+app = gui.App("Nova Desktop Studio", 640, 480)
+app.set_theme(gui.THEME_DARK)
+
+col = gui.Column()
+col.add(gui.Title("Welcome to Nova Native GUI"))
+col.add(gui.Text("60 FPS double-buffered Win32 desktop graphics."))
+col.add(gui.Button("Click Me!", "on_btn_clicked"))
+
+app.set_root(col)
+print("To run native GUI apps with 60 FPS Win32 rendering:")
+print("Install Nova CLI and run: nova run app.nv")
+`
         };
 
         // Monaco Language Registration
@@ -408,9 +749,7 @@
         });
 
         // Initialize Monaco Editor
-        let currentTheme = localStorage.getItem('nova_playground_theme') || 'dark';
-        document.body.setAttribute('data-theme', currentTheme);
-        document.getElementById('theme-icon').innerHTML = currentTheme === 'dark' ? '&#9789;' : '&#9788;';
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
 
         const editor = monaco.editor.create(document.getElementById('editor'), {
             value: PRESETS.fibonacci,
@@ -430,10 +769,17 @@
         function loadFromHash() {
             if (window.location.hash.startsWith('#code=')) {
                 try {
-                    const encoded = window.location.hash.slice(6);
-                    const decoded = decodeURIComponent(atob(encoded));
-                    editor.setValue(decoded);
-                    showToast('Loaded shared snippet from URL!');
+                    const raw = window.location.hash.slice(6);
+                    let decoded = '';
+                    try {
+                        decoded = decodeURIComponent(atob(raw));
+                    } catch (e1) {
+                        decoded = decodeURIComponent(raw);
+                    }
+                    if (decoded) {
+                        editor.setValue(decoded);
+                        showToast('Loaded shared snippet into editor!');
+                    }
                 } catch(e) {
                     console.warn('Could not parse code from URL hash', e);
                 }
@@ -449,6 +795,7 @@
         const execMetrics = document.getElementById("exec-metrics");
         const cursorPosEl = document.getElementById("cursor-pos");
         const charCountEl = document.getElementById("char-count");
+        const syntaxStatusEl = document.getElementById("syntax-status");
 
         // Cursor & Char Count Listeners
         function updateMetrics() {
@@ -458,21 +805,25 @@
             charCountEl.textContent = `${len} chars`;
         }
         editor.onDidChangeCursorPosition(updateMetrics);
-        editor.onDidChangeModelContent(updateMetrics);
         updateMetrics();
 
         // Web Worker Setup
         const worker = new Worker("nova_worker.js");
+        let workerReady = false;
         let runStartTime = 0;
+        let checkDebounce = null;
+        let lastCheckedCode = "";
 
         worker.onmessage = (e) => {
             const data = e.data;
             if (data.type === "status") {
                 statusEl.textContent = data.msg;
                 if (data.ready) {
+                    workerReady = true;
                     statusDot.className = "status-dot ready";
                     statusEl.textContent = "Compiler Ready";
                     runBtn.disabled = false;
+                    triggerDiagnosticCheck();
                 }
             } else if (data.type === "result") {
                 const duration = Date.now() - runStartTime;
@@ -499,12 +850,46 @@
                 consoleOut.innerHTML += `\n<span class="console-line prompt">&gt; Execution output:</span>\n` + out;
                 consoleOut.scrollTop = consoleOut.scrollHeight;
                 execMetrics.textContent = `⚡ ${duration}ms (${lineCount} lines)`;
+            } else if (data.type === "check_result") {
+                if (data.error) {
+                    const line = data.line || 1;
+                    monaco.editor.setModelMarkers(editor.getModel(), "nova_syntax", [{
+                        startLineNumber: line,
+                        startColumn: 1,
+                        endLineNumber: line,
+                        endColumn: 1000,
+                        message: data.error,
+                        severity: monaco.MarkerSeverity.Error
+                    }]);
+                    syntaxStatusEl.className = "syntax-pill error";
+                    syntaxStatusEl.innerHTML = `&#9888; Syntax Error (Ln ${line})`;
+                } else {
+                    monaco.editor.setModelMarkers(editor.getModel(), "nova_syntax", []);
+                    syntaxStatusEl.className = "syntax-pill success";
+                    syntaxStatusEl.innerHTML = `&#10003; Syntax OK`;
+                }
             } else if (data.type === "error") {
                 statusDot.className = "status-dot";
                 statusEl.textContent = "Execution error";
                 consoleOut.innerHTML += `\n<span class="console-line error">Worker Error: ${escapeHtml(data.msg || '')}</span>\n`;
             }
         };
+
+        function triggerDiagnosticCheck() {
+            clearTimeout(checkDebounce);
+            checkDebounce = setTimeout(() => {
+                if (!workerReady) return;
+                const currentCode = editor.getValue();
+                if (currentCode === lastCheckedCode) return;
+                lastCheckedCode = currentCode;
+                worker.postMessage({ id: Date.now(), action: "check", code: currentCode });
+            }, 300);
+        }
+
+        editor.onDidChangeModelContent(() => {
+            updateMetrics();
+            triggerDiagnosticCheck();
+        });
 
         function runCode() {
             if (runBtn.disabled) return;
@@ -560,13 +945,9 @@
             showToast('Permalink copied to clipboard!');
         }
 
-        function toggleTheme() {
-            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.body.setAttribute('data-theme', currentTheme);
-            localStorage.setItem('nova_playground_theme', currentTheme);
-            monaco.editor.setTheme(currentTheme === 'dark' ? 'vs-dark' : 'vs');
-            document.getElementById('theme-icon').innerHTML = currentTheme === 'dark' ? '&#9789;' : '&#9788;';
-            showToast(`Switched to ${currentTheme} theme`);
+        function toggleCapabilityModal() {
+            const modal = document.getElementById('capability-modal');
+            modal.classList.toggle('active');
         }
 
         function showToast(msg) {

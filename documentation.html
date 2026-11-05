@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <!-- Shared Theme Engine -->
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
         :root {
             --bg: #ffffff;
@@ -182,6 +185,17 @@
             padding: 0.15em 0.5em; border-radius: 4px;
             font-family: 'JetBrains Mono', monospace; font-size: 0.8em;
         }
+
+        .doc-run-btn {
+            position: absolute; top: 0.6rem; right: 0.6rem;
+            background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #e4e4e7; font-size: 0.72rem; font-weight: 600;
+            padding: 0.25rem 0.65rem; border-radius: 5px; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .doc-run-btn:hover {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -201,6 +215,7 @@
             <a href="examples.html">Examples</a>
             <a href="templates.html">Templates</a>
             <a href="playground.html">Playground</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
             <a href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
@@ -936,6 +951,24 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 });
             });
         });
+    
+        // Inject Run in Playground button on all runnable code blocks
+        document.querySelectorAll('.doc-content pre').forEach(pre => {
+            const text = pre.innerText.trim();
+            if (text.startsWith('$') || text.startsWith('curl') || text.startsWith('powershell') || text.startsWith('galaxy ') || text.startsWith('nova ') || text.startsWith('call ')) return;
+            if (text.length < 15) return;
+            const btn = document.createElement('button');
+            btn.className = 'doc-run-btn';
+            btn.innerHTML = '▶ Run in Playground';
+            btn.title = 'Open this snippet in Nova Playground';
+            btn.onclick = () => {
+                const encoded = btoa(encodeURIComponent(text));
+                window.open(`playground.html#code=${encoded}`, '_blank');
+            };
+            pre.style.position = 'relative';
+            pre.appendChild(btn);
+        });
+
     </script>
     <footer style="border-top:1px solid var(--border);padding:1.75rem 2rem;background:var(--sidebar-bg);">
         <div style="max-width:1040px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;color:var(--text-tertiary);">

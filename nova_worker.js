@@ -17,7 +17,7 @@ async function fetchPythonFile(path) {
 }
 
 async function loadNovaFiles() {
-    // We need to create directories and write files in Pyodide FS
+    // Directories and source files in Pyodide FS
     const files = [
         "lexer/__init__.py", "lexer/tokenizer.py", "lexer/tokens.py",
         "parser/__init__.py", "parser/parser.py",
@@ -50,18 +50,19 @@ async function loadNovaFiles() {
 }
 
 async function init() {
-    postMessage({ type: "status", msg: "Loading Pyodide..." });
+    postMessage({ type: "status", msg: "Initializing WebAssembly VM..." });
     pyodide = await loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
     });
     
-    postMessage({ type: "status", msg: "Loading Nova Compiler..." });
+    postMessage({ type: "status", msg: "Loading Nova Compiler Core..." });
     await loadNovaFiles();
     
-    // Create the runner script in Pyodide
+    // Create the runner & diagnostic syntax checker script in Pyodide
     pyodide.runPython(`
 import sys
 import io
+import re
 import traceback
 from lexer.tokenizer import tokenize
 from parser.parser import Parser
@@ -81,12 +82,10 @@ def run_nova(source_code):
         ast = parser.parse()
         
         # Handle bare expressions as prints for REPL-like behavior in playground
-        is_bare_expr = False
         if len(ast) == 1:
             from nova_ast.nodes import Print, Assignment, Function, ClassDef, While, ForLoop, ForIn, IfElse, Return, Break, Continue, Data, EnumDef, Import, RawBlock, Try, Throw
             stmt = ast[0]
             if not isinstance(stmt, (Assignment, Function, ClassDef, Data, EnumDef, Import, RawBlock, Print, While, ForLoop, ForIn, IfElse, Return, Break, Continue, Try, Throw)):
-                is_bare_expr = True
                 ast = [Print(stmt)]
         
         checker = TypeInferer()
@@ -111,9 +110,12 @@ def check_syntax(source_code):
         tokens = tokenize(source_code)
         parser = Parser(tokens)
         parser.parse()
-        return {"error": ""}
+        return {"error": "", "line": 0}
     except Exception as e:
-        return {"error": str(e)}
+        msg = str(e)
+        m = re.search(r'line\\s+(\\d+)', msg)
+        line = int(m.group(1)) if m else 1
+        return {"error": msg, "line": line}
     `);
     
     initialized = true;
@@ -148,10 +150,11 @@ self.onmessage = async (e) => {
             const check_func = pyodide.globals.get("check_syntax");
             const resultProxy = check_func(code);
             const error = resultProxy.get("error");
+            const line = resultProxy.get("line");
             resultProxy.destroy();
-            postMessage({ type: "check_result", id, error });
+            postMessage({ type: "check_result", id, error, line });
         } catch (err) {
-            postMessage({ type: "check_result", id, error: err.toString() });
+            postMessage({ type: "check_result", id, error: err.toString(), line: 1 });
         }
     }
 };

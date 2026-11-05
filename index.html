@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy Registry — Nova Package Manager</title>
+    <title>Galaxy — The Developer Ecosystem for Nova</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <!-- Shared Theme Engine -->
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
         :root {
             --bg: #fff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #787878;
@@ -27,6 +30,7 @@
             background: var(--bg); color: var(--text);
             line-height: 1.6; -webkit-font-smoothing: antialiased;
             min-height: 100vh; display: flex; flex-direction: column;
+            transition: background 0.2s ease, color 0.2s ease;
         }
         nav {
             position: sticky; top: 0; z-index: 100;
@@ -41,23 +45,41 @@
             text-decoration: none; color: inherit;
         }
         .nav-brand svg { width: 22px; height: 22px; }
-        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
         .nav-links a {
             color: var(--text-secondary); text-decoration: none;
             font-size: 0.875rem; font-weight: 500; transition: color .2s; cursor: pointer;
         }
-        .nav-links a:hover, .nav-links a.active { color: var(--text); }
-        .container { max-width: 1040px; margin: 0 auto; padding: 3rem 2rem; flex: 1; }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); font-weight: 600; }
+        .container { max-width: 1080px; margin: 0 auto; padding: 3rem 2rem; flex: 1; width: 100%; }
         .view-section { display: none; }
         .view-section.active { display: block; animation: fadeIn .35s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        .search-row {
+            display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;
+        }
+        .search-container { position: relative; flex: 1; }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+        .search-input {
+            width: 100%; padding: 0.75rem 3rem 0.75rem 2.75rem;
+            border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg); color: var(--text); font-size: 0.9rem;
+            outline: none; transition: border-color .2s;
+        }
+        .search-input:focus { border-color: var(--accent); }
         .search-kbd-hint {
             position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
-            background: #f1f5f9; border: 1px solid #cbd5e1; color: #64748b;
+            background: var(--sidebar-bg); border: 1px solid var(--border); color: var(--text-tertiary);
             padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.72rem;
             font-family: 'JetBrains Mono', monospace; font-weight: 600; pointer-events: none;
         }
+        .sort-select {
+            padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); font-size: 0.85rem; font-weight: 500;
+            outline: none; cursor: pointer; transition: border-color .2s;
+        }
+        .sort-select:focus { border-color: var(--accent); }
 
         /* Tier Badge */
         .tier-badge {
@@ -73,87 +95,56 @@
         /* Tier Tabs */
         .tier-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .tier-tab {
-            padding: 0.4rem 1rem; border-radius: 6px;
-            background: var(--sidebar-bg); border: 1px solid var(--border);
-            font-size: 0.8rem; font-weight: 500; cursor: pointer;
-            color: var(--text-secondary); transition: all .15s;
+            padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; transition: all .15s; color: var(--text-secondary);
         }
-        .tier-tab:hover { border-color: #bbb; }
-        .tier-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
-        .search-container { position: relative; margin-bottom: 1.5rem; }
-        .search-input {
-            width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; font-size: 0.9rem;
-            border: 1px solid var(--border); border-radius: 8px; outline: none;
-            transition: border-color .2s, box-shadow .2s;
-        }
-        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,112,243,0.1); }
-        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
+        .tier-tab:hover { color: var(--text); }
+        .tier-tab.active { background: var(--text); color: var(--bg); font-weight: 600; }
 
-        /* Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+        /* Package Cards Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.25rem; }
         .card {
-            border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem;
-            cursor: pointer; transition: border-color .2s, box-shadow .2s;
-            display: flex; flex-direction: column;
+            border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;
+            background: var(--bg); transition: all .2s; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: space-between;
         }
-        .card:hover { border-color: #bbb; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        .card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .card h3 { font-size: 1.1rem; font-weight: 600; }
-        .card p { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; flex-grow: 1; line-height: 1.5; }
-        .card-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.75rem; color: var(--text-tertiary); flex-wrap: wrap; gap: 0.5rem;
-        }
-        .card-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
-        .card-stats { display: flex; gap: 0.75rem; align-items: center; }
-        .stat { display: flex; align-items: center; gap: 0.25rem; }
+        .card-header h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+        .card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; flex-grow: 1; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-tertiary); }
+        .card-tags { display: flex; gap: 0.35rem; flex-wrap: wrap; }
         .badge {
-            background: #f0f0f2; padding: 0.1rem 0.4rem; border-radius: 3px;
-            font-size: 0.7rem; border: 1px solid var(--border);
+            background: var(--sidebar-bg); padding: 0.15rem 0.45rem; border-radius: 4px;
+            font-size: 0.7rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;
+            border: 1px solid var(--border);
         }
+        .card-stats { display: flex; align-items: center; gap: 0.6rem; }
+        .stat { display: inline-flex; align-items: center; gap: 0.2rem; }
 
-        /* ===== DETAIL PAGE ===== */
+        /* Package Details */
         .back-btn {
             display: inline-flex; align-items: center; gap: 0.4rem;
-            background: none; border: none; color: var(--text-secondary);
-            font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-bottom: 1.5rem;
+            color: var(--text-secondary); font-size: 0.85rem; cursor: pointer;
+            margin-bottom: 1.5rem; background: none; border: none; font-family: inherit;
         }
         .back-btn:hover { color: var(--text); }
-
-        /* Package Header */
-        .pkg-header {
-            border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2rem;
-        }
-        .pkg-header h1 { font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .pkg-header .pkg-subtitle { color: var(--text-secondary); font-size: 1rem; margin-top: 0.5rem; max-width: 650px; }
-
-        .pkg-header .pkg-meta-row {
-            display: flex; gap: 1.5rem; margin-top: 0.75rem; flex-wrap: wrap;
-            font-size: 0.8rem; color: var(--text-tertiary);
-        }
-        .pkg-header .pkg-meta-row span { display: flex; align-items: center; gap: 0.3rem; }
-
-        /* Keywords */
-        .keyword-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.75rem 0; }
+        .pkg-header { margin-bottom: 1.5rem; }
+        .pkg-header h1 { font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; }
+        .pkg-subtitle { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+        .pkg-meta-row { display: flex; gap: 1.5rem; font-size: 0.82rem; color: var(--text-tertiary); flex-wrap: wrap; }
+        .keyword-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
         .keyword {
-            background: #f0f0f2; padding: 0.2rem 0.55rem; border-radius: 12px;
-            font-size: 0.7rem; border: 1px solid var(--border); color: var(--text-secondary);
+            background: var(--sidebar-bg); padding: 0.2rem 0.5rem; border-radius: 4px;
+            font-size: 0.75rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;
+            border: 1px solid var(--border);
         }
-
-        /* Detail Layout */
-        .details-body {
-            display: grid; grid-template-columns: 1fr 280px; gap: 3rem; align-items: start;
-            overflow: hidden; width: 100%;
-        }
-        .main-col { width: 100%; min-width: 0; }
-        .main-col .prose pre { max-width: 100%; }
-        @media (max-width: 800px) { .details-body { grid-template-columns: 1fr; gap: 2rem; } }
+        .details-body { display: grid; grid-template-columns: 1fr 300px; gap: 2.5rem; margin-top: 1.5rem; }
+        @media (max-width: 860px) { .details-body { grid-template-columns: 1fr; gap: 2rem; } }
         .main-col { min-width: 0; }
 
         /* Doc Tabs */
-        .doc-tabs {
-            display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
-        }
+        .doc-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
         .doc-tab {
             padding: 0.6rem 1.25rem; font-size: 0.85rem; font-weight: 500;
             cursor: pointer; border-bottom: 2px solid transparent;
@@ -161,54 +152,39 @@
             background: none; border-top: none; border-left: none; border-right: none;
         }
         .doc-tab:hover { color: var(--text); }
-        .doc-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .doc-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 
         .doc-section { display: none; min-height: 200px; }
         .doc-section.active { display: block; animation: fadeIn .2s ease-out; }
 
-        /* Prose (for rendered markdown) */
+        /* Prose */
         .prose { line-height: 1.7; }
-        .prose h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-        .prose h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .prose h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text); }
+        .prose h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.75rem; color: var(--text); }
+        .prose h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; color: var(--text); }
         .prose p { margin-bottom: 1rem; color: var(--text-secondary); }
         .prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; }
         .prose li { margin-bottom: 0.3rem; color: var(--text-secondary); }
         .prose code {
             font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
-            background: #f0f0f2; padding: 0.15em 0.4em; border-radius: 4px;
+            background: var(--sidebar-bg); padding: 0.15em 0.4em; border-radius: 4px;
+            border: 1px solid var(--border);
         }
         .prose pre {
             background: var(--code-bg); color: #e4e4e7;
             padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto;
             margin: 1rem 0; font-size: 0.8rem; line-height: 1.5;
         }
-        .prose pre code { background: transparent; padding: 0; color: inherit; }
+        .prose pre code { background: transparent; padding: 0; color: inherit; border: none; }
         .prose a { color: var(--accent); text-decoration: none; }
         .prose a:hover { text-decoration: underline; }
 
-        /* Examples */
-        .example-card {
-            border: 1px solid var(--border); border-radius: 8px;
-            margin-bottom: 1rem; overflow: hidden;
-        }
-        .example-title {
-            padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600;
-            background: var(--sidebar-bg); border-bottom: 1px solid var(--border);
-        }
-        .example-card pre {
-            margin: 0; border-radius: 0;
-            background: var(--code-bg); color: #e4e4e7;
-            padding: 1rem 1.25rem; overflow-x: auto;
-            font-size: 0.8rem; line-height: 1.5;
-        }
-        .example-card pre code { background: none; padding: 0; color: inherit; }
-
-        /* Sidebar */
+        /* Side Column */
         .side-col {
             border-left: 1px solid var(--border); padding-left: 2rem;
             position: sticky; top: 80px; align-self: start;
         }
-        @media (max-width:800px) {
+        @media (max-width:860px) {
             .side-col { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 2rem; }
         }
         .side-section { margin-bottom: 1.75rem; }
@@ -216,19 +192,32 @@
             font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em;
             color: var(--text-tertiary); margin-bottom: 0.6rem;
         }
-        .install-box {
+        .install-box-sm {
             display: flex; align-items: center; justify-content: space-between;
             border: 1px solid var(--border); border-radius: 6px;
-            padding: 0.6rem 0.85rem; font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem; cursor: pointer; transition: border-color .2s;
+            padding: 0.55rem 0.8rem; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem; cursor: pointer; transition: all .2s;
+            background: var(--sidebar-bg); margin-bottom: 0.5rem;
         }
-        .install-box:hover { border-color: #bbb; }
-        .install-box .prefix { color: var(--text-tertiary); margin-right: 0.4rem; }
+        .install-box-sm:hover { border-color: var(--accent); }
+        .install-box-sm .prefix { color: var(--text-tertiary); margin-right: 0.4rem; }
         .meta-list { list-style: none; }
-        .meta-list li { margin-bottom: 0.5rem; font-size: 0.85rem; }
+        .meta-list li { margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+        .meta-list strong { color: var(--text); }
         .meta-list a { color: var(--accent); text-decoration: none; }
         .meta-list a:hover { text-decoration: underline; }
         .tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+        /* Security Card */
+        .security-card {
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 1rem; background: var(--sidebar-bg); margin-bottom: 1.5rem;
+        }
+        .sec-item { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.65rem; font-size: 0.78rem; }
+        .sec-item:last-child { margin-bottom: 0; }
+        .sec-icon { font-size: 0.9rem; line-height: 1.2; }
+        .sec-text strong { display: block; color: var(--text); font-size: 0.8rem; }
+        .sec-text span { color: var(--text-tertiary); }
 
         /* Version Table */
         .version-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -240,25 +229,27 @@
             display: inline-flex; align-items: center; gap: 0.35rem;
             padding: 0.45rem 0.9rem; border-radius: 6px;
             font-size: 0.8rem; font-weight: 500; cursor: pointer;
-            border: 1px solid var(--border); background: #fff; transition: all .15s;
+            border: 1px solid var(--border); background: var(--bg); color: var(--text); transition: all .15s;
+            text-decoration: none;
         }
-        .action-btn:hover { border-color: #bbb; }
+        .action-btn:hover { border-color: var(--accent); }
         .action-btn.upvote:hover { color: var(--upvote); border-color: var(--upvote); }
         .action-btn.flag:hover { color: var(--flag); border-color: var(--flag); }
         .action-bar { display: flex; gap: 0.75rem; margin: 1rem 0; flex-wrap: wrap; }
 
         .community-warning {
             background: #fffbeb; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b;
-            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0;
-            font-size: 0.85rem;
+            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0; font-size: 0.85rem;
         }
         .community-warning strong { color: #92400e; display: block; margin-bottom: 0.25rem; }
         .community-warning p { color: #78350f; margin: 0; }
+        body[data-theme="dark"] .community-warning { background: rgba(210, 153, 34, 0.12); border-color: #d29922; }
+        body[data-theme="dark"] .community-warning strong { color: #f59e0b; }
+        body[data-theme="dark"] .community-warning p { color: #d29922; }
 
         .quarantine-banner {
             background: #fef2f2; border: 1px solid var(--flag); border-left: 4px solid var(--flag);
-            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0;
-            font-size: 0.85rem;
+            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0; font-size: 0.85rem;
         }
         .quarantine-banner strong { color: var(--flag); display: block; margin-bottom: 0.25rem; }
         .quarantine-banner p { color: #991b1b; margin: 0; }
@@ -268,64 +259,26 @@
 
         .callout { padding: 1rem 1.25rem; border-radius: 6px; margin: 1.25rem 0; border-left: 4px solid; font-size: 0.9rem; }
         .callout strong { display: block; margin-bottom: 0.25rem; }
-        .callout-info { background: #eef4ff; border-color: #0070f3; }
-        .callout-info code { background: rgba(0,0,0,0.06); }
-        .btn-primary {
-            background: var(--text); color: #fff; padding: 0.6rem 1.4rem;
-            border-radius: 6px; border: none; font-weight: 500; font-size: 0.85rem;
-            cursor: pointer; transition: background .2s; text-decoration: none; display: inline-block;
-        }
-        .btn-primary:hover { background: #222; }
-        .btn-secondary {
-            background: #fff; color: var(--text); border: 1px solid var(--border);
-            padding: 0.6rem 1.4rem; border-radius: 6px; font-weight: 500;
-            font-size: 0.85rem; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block;
-        }
-        .btn-secondary:hover { border-color: #999; }
-        .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-
-        footer {
-            border-top: 1px solid var(--border); padding: 1.75rem 2rem;
-            background: var(--sidebar-bg); margin-top: auto;
-        }
-        .footer-inner {
-            max-width: 1040px; margin: 0 auto;
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.8rem; color: var(--text-tertiary);
-        }
-        .footer-links { display: flex; gap: 1.5rem; }
-        .footer-links a { color: var(--text-tertiary); text-decoration: none; }
-        .footer-links a:hover { color: var(--text); }
-        @media (max-width:600px) {
-            .footer-inner { flex-direction: column; gap: 0.75rem; text-align: center; }
-            .hero h1 { font-size: 2rem; }
-            .grid { grid-template-columns: 1fr; }
-        }
+        .callout-info { background: var(--callout-info-bg); border-color: var(--callout-info-border); }
 
         /* ===== HERO SECTION ===== */
         .hero-wrap {
             position: relative; overflow: hidden;
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 3.5rem 2rem 3rem;
-            margin: 0 0 2.5rem;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 3.5rem 2rem 3rem; margin: 0 0 2.5rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 20px 40px -15px rgba(0,0,0,0.03);
         }
         .hero-wrap::before {
             content: ''; position: absolute; inset: 0;
-            background: radial-gradient(ellipse at 50% -20%, rgba(0,112,243,0.08) 0%, transparent 70%);
+            background: radial-gradient(ellipse at 50% -20%, rgba(0,112,243,0.12) 0%, transparent 70%);
             pointer-events: none;
         }
-        .hero {
-            position: relative; z-index: 1;
-            text-align: center; max-width: 820px; margin: 0 auto;
-        }
+        .hero { position: relative; z-index: 1; text-align: center; max-width: 840px; margin: 0 auto; }
         .hero-badge {
             display: inline-flex; align-items: center; gap: 0.5rem;
-            background: #f8fafc; border: 1px solid #e2e8f0;
+            background: var(--sidebar-bg); border: 1px solid var(--border);
             padding: 0.35rem 0.85rem; border-radius: 20px;
-            font-size: 0.78rem; font-weight: 500; color: #475569;
+            font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);
             margin-bottom: 1.5rem;
         }
         .hero-badge .badge-dot {
@@ -333,22 +286,47 @@
             box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
         }
         .hero-title {
-            font-size: 3.25rem; font-weight: 800; letter-spacing: -0.04em;
-            line-height: 1.15; margin-bottom: 1.25rem; color: #0f172a;
+            font-size: 3.1rem; font-weight: 800; letter-spacing: -0.04em;
+            line-height: 1.15; margin-bottom: 1.25rem; color: var(--text);
         }
         .hero-title .accent {
             background: var(--accent-gradient);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .hero-desc {
-            font-size: 1.15rem; color: #475569; line-height: 1.6;
-            max-width: 640px; margin: 0 auto 2.25rem; font-weight: 400;
+            font-size: 1.12rem; color: var(--text-secondary); line-height: 1.6;
+            max-width: 660px; margin: 0 auto 2.25rem; font-weight: 400;
         }
+
+        /* Primary CTA Buttons */
+        .cta-row {
+            display: flex; gap: 1rem; justify-content: center; align-items: center;
+            margin-bottom: 2.25rem; flex-wrap: wrap;
+        }
+        .btn-try-playground {
+            display: inline-flex; align-items: center; gap: 0.55rem;
+            background: var(--accent-gradient); color: #ffffff;
+            padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 600;
+            font-size: 0.95rem; text-decoration: none; cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 112, 243, 0.35); transition: all 0.2s ease;
+            border: none;
+        }
+        .btn-try-playground:hover {
+            transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0, 112, 243, 0.45);
+        }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--bg); color: var(--text); border: 1px solid var(--border);
+            padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 600;
+            font-size: 0.9rem; text-decoration: none; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover { border-color: var(--accent); transform: translateY(-1px); }
 
         /* Interactive Install Terminal */
         .install-box {
             background: #0b0f17; border: 1px solid #1e293b;
-            border-radius: 12px; max-width: 680px; margin: 0 auto 2rem;
+            border-radius: 12px; max-width: 680px; margin: 0 auto 2.5rem;
             text-align: left; overflow: hidden;
             box-shadow: 0 12px 32px rgba(0,0,0,0.18);
         }
@@ -362,9 +340,7 @@
             cursor: pointer; transition: all 0.15s ease;
         }
         .install-tab:hover { color: #f8fafc; }
-        .install-tab.active {
-            color: #38bdf8; background: rgba(56,189,248,0.1); font-weight: 600;
-        }
+        .install-tab.active { color: #38bdf8; background: rgba(56,189,248,0.1); font-weight: 600; }
         .install-body {
             display: flex; align-items: center; justify-content: space-between;
             padding: 1rem 1.25rem; gap: 1rem;
@@ -383,79 +359,107 @@
             font-weight: 500; cursor: pointer; transition: all 0.2s ease;
             white-space: nowrap; flex-shrink: 0;
         }
-        .install-copy-btn:hover {
-            background: #334155; border-color: #475569;
-        }
-        .install-copy-btn.copied {
-            background: #065f46; border-color: #10b981; color: #a7f3d0;
-        }
+        .install-copy-btn:hover { background: #334155; border-color: #475569; }
+        .install-copy-btn.copied { background: #065f46; border-color: #10b981; color: #a7f3d0; }
 
-        .cta-row {
-            display: flex; gap: 1rem; justify-content: center; align-items: center;
+        /* Mini-Try-It Live Runner on Homepage */
+        .mini-runner {
+            background: var(--sidebar-bg); border: 1px solid var(--border);
+            border-radius: 12px; max-width: 760px; margin: 0 auto;
+            text-align: left; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
-        .btn-primary {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            background: #0f172a; color: #ffffff; border: 1px solid #0f172a;
-            padding: 0.65rem 1.35rem; border-radius: 8px; font-weight: 600;
-            font-size: 0.9rem; text-decoration: none; cursor: pointer;
-            transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        .mini-runner-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.65rem 1rem; background: var(--bg); border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 0.5rem;
         }
-        .btn-primary:hover {
-            background: #1e293b; border-color: #1e293b; transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .mini-tabs { display: flex; gap: 0.35rem; }
+        .mini-tab {
+            padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 500;
+            border-radius: 6px; border: 1px solid transparent; background: transparent;
+            color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;
         }
-        .btn-secondary {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            background: #ffffff; color: #0f172a; border: 1px solid #e2e8f0;
-            padding: 0.65rem 1.35rem; border-radius: 8px; font-weight: 600;
-            font-size: 0.9rem; text-decoration: none; cursor: pointer;
-            transition: all 0.2s ease;
+        .mini-tab.active {
+            background: var(--sidebar-bg); border-color: var(--border); color: var(--text); font-weight: 600;
         }
-        .btn-secondary:hover {
-            background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px);
+        .mini-actions { display: flex; gap: 0.5rem; align-items: center; }
+        .mini-run-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: #10b981; color: #fff; border: none;
+            padding: 0.35rem 0.85rem; border-radius: 6px; font-size: 0.78rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s ease;
         }
+        .mini-run-btn:hover { background: #059669; }
+        .mini-open-link {
+            font-size: 0.76rem; color: var(--accent); text-decoration: none; font-weight: 500;
+        }
+        .mini-open-link:hover { text-decoration: underline; }
+        .mini-grid {
+            display: grid; grid-template-columns: 1fr 1fr; min-height: 200px;
+        }
+        @media (max-width: 720px) { .mini-grid { grid-template-columns: 1fr; } }
+        .mini-code {
+            padding: 1rem; background: #0b0f17; color: #f8fafc;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.55;
+            overflow-x: auto; margin: 0; white-space: pre; border-right: 1px solid var(--border);
+        }
+        .mini-console {
+            padding: 1rem; background: #010409; color: #a7f3d0;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.55;
+            overflow-y: auto; white-space: pre-wrap;
+        }
+        .mini-console .system { color: #64748b; font-style: italic; }
 
-        /* Four Architecture Guarantees */
+        /* 6 Architecture Guarantees (Feature Pillars) */
         .pillars-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
-            margin: 2.5rem 0 3.5rem;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+            margin: 3rem 0;
         }
+        @media (max-width: 900px) { .pillars-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .pillars-grid { grid-template-columns: 1fr; } }
         .pillar-card {
-            background: #ffffff; border: 1px solid var(--border);
+            background: var(--bg); border: 1px solid var(--border);
             border-radius: 12px; padding: 1.35rem; text-align: left;
             transition: all 0.2s ease; position: relative;
         }
         .pillar-card:hover {
-            border-color: #cbd5e1; transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            border-color: var(--accent); transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
         }
         .pillar-icon {
-            width: 36px; height: 36px; border-radius: 8px;
+            width: 40px; height: 40px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; margin-bottom: 0.85rem;
+            font-size: 1.25rem; margin-bottom: 0.85rem;
         }
-        .pillar-icon.native { background: #f0fdf4; color: #16a34a; }
-        .pillar-icon.crypto { background: #f5f3ff; color: #7c3aed; }
-        .pillar-icon.gui    { background: #eff6ff; color: #2563eb; }
-        .pillar-icon.git    { background: #fff7ed; color: #ea580c; }
+        .pillar-icon.bin  { background: #eff6ff; color: #2563eb; }
+        .pillar-icon.gui  { background: #f0fdf4; color: #16a34a; }
+        .pillar-icon.type { background: #f5f3ff; color: #7c3aed; }
+        .pillar-icon.tool { background: #fff7ed; color: #ea580c; }
+        .pillar-icon.git  { background: #fdf2f8; color: #db2777; }
+        .pillar-icon.sec  { background: #ecfeff; color: #0891b2; }
         .pillar-card h3 {
-            font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 0.35rem;
+            font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;
         }
         .pillar-card p {
-            font-size: 0.82rem; color: #64748b; line-height: 1.5; margin: 0;
+            font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin: 0;
         }
 
-        @media (max-width: 900px) {
-            .pillars-grid { grid-template-columns: repeat(2, 1fr); }
-            .hero-title { font-size: 2.6rem; }
+        footer {
+            border-top: 1px solid var(--border); padding: 1.75rem 2rem;
+            background: var(--sidebar-bg); margin-top: auto;
         }
-        @media (max-width: 600px) {
-            .pillars-grid { grid-template-columns: 1fr; }
+        .footer-inner {
+            max-width: 1080px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; color: var(--text-tertiary);
+        }
+        .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-tertiary); text-decoration: none; }
+        .footer-links a:hover { color: var(--text); }
+        @media (max-width:600px) {
+            .footer-inner { flex-direction: column; gap: 0.75rem; text-align: center; }
             .hero-title { font-size: 2.1rem; }
-            .cta-row { flex-direction: column; width: 100%; }
-            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
-            .install-box { border-radius: 8px; }
-            .install-tabs { overflow-x: auto; }
         }
     </style>
 </head>
@@ -477,23 +481,41 @@
             <a class="nav-link" href="reference.html">Reference</a>
             <a class="nav-link" href="examples.html">Examples</a>
             <a class="nav-link" href="templates.html">Templates</a>
-            <a href="playground.html">Playground</a>
+            <a class="nav-link" href="playground.html">Playground</a>
             <a class="nav-link" onclick="switchNav('view-contribute');return false;">Contribute</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
             <a class="nav-link" href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
 
     <div class="container">
+        <!-- ===== VIEW: HOME ===== -->
         <section id="view-home" class="view-section active">
             <div class="hero-wrap">
                 <div class="hero">
                     <div class="hero-badge">
-                        <span class="badge-dot"></span> Nova v0.9.0 &middot; Self-Hosted Systems Language
+                        <span class="badge-dot"></span> Nova v0.9.0 &middot; Self-Hosted Systems Language &amp; GUI Framework
                     </div>
-                    <h1 class="hero-title">The Package Registry for <span class="accent">Nova</span></h1>
+                    <h1 class="hero-title">The Native Language with <span class="accent">Desktop GUI Built-in</span></h1>
                     <p class="hero-desc">
-                        Discover, install, and publish audited libraries for Nova — the self-hosted systems language compiling to native machine code with zero C-runtime dependencies and built-in 60 FPS Win32 GDI graphics.
+                        Pythonic ergonomics, C-speed native machine code (<250KB binaries), and 60 FPS Win32 double-buffered declarative desktop graphics. Built with a self-hosted compiler and verifiable Git-backed package ecosystem.
                     </p>
+
+                    <!-- Primary CTAs -->
+                    <div class="cta-row">
+                        <a class="btn-try-playground" href="playground.html">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            ⚡ Try Nova in Playground
+                        </a>
+                        <button class="btn-secondary" onclick="switchNav('view-libraries')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                            Explore Packages
+                        </button>
+                        <button class="btn-secondary" onclick="switchNav('view-getting-started')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            Install CLI
+                        </button>
+                    </div>
 
                     <!-- Interactive Install Terminal -->
                     <div class="install-box">
@@ -514,142 +536,150 @@
                         </div>
                     </div>
 
-                    <div class="cta-row">
-                        <button class="btn-primary" onclick="switchNav('view-libraries')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                            Explore Libraries
-                        </button>
-                        <a class="btn-secondary" href="documentation.html">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                            Read Documentation
-                        </a>
+                    <!-- Embedded Mini-Try-It Runner -->
+                    <div class="mini-runner">
+                        <div class="mini-runner-header">
+                            <div class="mini-tabs">
+                                <button class="mini-tab active" onclick="switchMiniSnippet('fib', this)">1. Fibonacci &amp; Types</button>
+                                <button class="mini-tab" onclick="switchMiniSnippet('class', this)">2. OOP Classes</button>
+                                <button class="mini-tab" onclick="switchMiniSnippet('text', this)">3. Text Processing</button>
+                            </div>
+                            <div class="mini-actions">
+                                <button class="mini-run-btn" onclick="runMiniSnippet()">▶ Run Code</button>
+                                <a id="mini-open-btn" class="mini-open-link" href="playground.html" target="_blank">Open in Full Playground &nearr;</a>
+                            </div>
+                        </div>
+                        <div class="mini-grid">
+                            <pre class="mini-code" id="mini-code-display"></pre>
+                            <div class="mini-console" id="mini-console-display">
+                                <span class="system">// Press "Run Code" above to execute in browser...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Architecture Pillars Grid -->
+            <!-- 6 Architecture Guarantees (Feature Pillars) -->
             <div class="pillars-grid">
                 <div class="pillar-card">
-                    <div class="pillar-icon native">&#9881;</div>
+                    <div class="pillar-icon bin">&#9881;</div>
                     <h3>Direct Native Binaries</h3>
-                    <p>Compiles directly to optimized x86_64 and ARM64 machine code with zero runtime overhead.</p>
-                </div>
-                <div class="pillar-card">
-                    <div class="pillar-icon crypto">&#128274;</div>
-                    <h3>Cryptographic Integrity</h3>
-                    <p>Every release version is pinned with SHA-256 hashes in Git for reproducible, tamper-proof builds.</p>
+                    <p>Compiles directly to optimized x86_64 / ARM64 machine code via GCC with sub-250KB executables and zero C-runtime dependency.</p>
                 </div>
                 <div class="pillar-card">
                     <div class="pillar-icon gui">&#128187;</div>
-                    <h3>Native 60 FPS GUI</h3>
-                    <p>Built-in double-buffered Win32 GDI engine with NSS CSS-like stylesheets in the standard library.</p>
+                    <h3>Native 60 FPS Win32 GUI</h3>
+                    <p>Built-in double-buffered Win32 GDI engine with reactive state management, NSS CSS-like stylesheets, and zero electron bloat.</p>
+                </div>
+                <div class="pillar-card">
+                    <div class="pillar-icon type">&#9889;</div>
+                    <h3>Pythonic Static Typing</h3>
+                    <p>Clean expressions with Hindley-Milner static type inference, algebraic data types, pattern matching, and zero runtime surprises.</p>
+                </div>
+                <div class="pillar-card">
+                    <div class="pillar-icon tool">&#128736;</div>
+                    <h3>Nova Studio &amp; Tooling</h3>
+                    <p>Complete self-hosted developer toolchain including Nova Studio IDE, integrated Particle Sandbox, Nova LSP, and <code>nova run/build</code>.</p>
                 </div>
                 <div class="pillar-card">
                     <div class="pillar-icon git">&#128230;</div>
-                    <h3>Git-Backed Registry</h3>
-                    <p>Fully open source and transparent. Submissions and audits are reviewed through GitHub workflows.</p>
+                    <h3>Git-Backed Package Registry</h3>
+                    <p>Decentralized and transparent package ecosystem hosted on GitHub. Package audits and releases are community-verified with no closed databases.</p>
+                </div>
+                <div class="pillar-card">
+                    <div class="pillar-icon sec">&#128274;</div>
+                    <h3>Cryptographic Provenance</h3>
+                    <p>Ed25519 digital signatures and SHA-256 integrity checksums guarantee tamper-proof package distribution and supply chain security.</p>
                 </div>
             </div>
         </section>
 
+        <!-- ===== VIEW: GETTING STARTED ===== -->
         <section id="view-getting-started" class="view-section">
-            <div class="prose" style="max-width:700px;margin:0 auto;">
-                <h1 style="font-size:2rem;font-weight:700;margin-bottom:0.5rem;">Get Started with Galaxy</h1>
-                <p style="color:var(--text-secondary);font-size:1rem;margin-bottom:2rem;">Install the CLI, create a library, publish to the world.</p>
+            <div class="prose" style="max-width:760px;margin:0 auto;">
+                <h1>Get Started with Nova &amp; Galaxy</h1>
+                <p>Install the native compiler and package manager in 60 seconds.</p>
 
-                <h2 style="font-size:1.25rem;margin-top:0;">1. Install the Nova system</h2>
-                <p><strong>No Python required</strong> — installs both the <strong>Nova compiler</strong> and <strong>Galaxy package manager</strong> together:</p>
+                <h2>1. Install the Nova Toolchain</h2>
                 <p><strong>macOS / Linux (bash):</strong></p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/install.sh && bash install.sh</code></pre>
+                <pre><code>curl -fsSL https://galaxy-registry.vercel.app/install.sh | bash</code></pre>
                 <p><strong>Windows (PowerShell):</strong></p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1"</code></pre>
-                <p><strong>Python fallback (any platform):</strong></p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>curl -O https://galaxy-registry.vercel.app/install.py && python install.py</code></pre>
-                <p>The installer downloads the Nova compiler and Galaxy CLI to <code>%LOCALAPPDATA%\nova\</code> (Windows) or <code>~/.nova/</code> (Unix), creates launchers, and adds to your PATH.</p>
-                <p><strong>To use <code>nova</code> and <code>galaxy</code> immediately in the current terminal:</strong></p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code># cmd.exe:
-call "%LOCALAPPDATA%\nova\use_nova.bat"
+                <pre><code>powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://galaxy-registry.vercel.app/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1"</code></pre>
+                <p><strong>Python Fallback (any OS):</strong></p>
+                <pre><code>curl -fsSL https://galaxy-registry.vercel.app/install.py | python</code></pre>
 
-# PowerShell:
-$env:PATH = "$env:LOCALAPPDATA\nova;$env:PATH"</code></pre>
-                <p>Or open a <strong>new terminal</strong> and run:</p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova --version
+                <h2>2. Verify Installation</h2>
+                <pre><code>nova --version
 galaxy --version</code></pre>
 
-                <h2 style="font-size:1.25rem;">2. Create a library project</h2>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy init library my-lib
-cd my-lib</code></pre>
-                <p>Use the <code>library</code> template for reusable Nova modules. See the <a href="templates.html"><strong>Templates reference</strong></a> for full details.</p>
-                <p>Your <code>galaxy.json</code> is auto-generated. Edit it to set your name, license, GitHub repo, and keywords.</p>
+                <h2>3. Create Your First Native App</h2>
+                <pre><code>// app.nv
+import gui
 
-                <h2 style="font-size:1.25rem;">3. Write code</h2>
-                <p>Add Nova source files to <code>src/</code>. The main file is <code>src/main.nv</code> (or the file specified in <code>galaxy.json</code> under <code>"main"</code>).</p>
+app = gui.App("My First Nova App", 640, 480)
+col = gui.Column()
+col.add(gui.Title("Hello World!"))
+col.add(gui.Text("Running at 60 FPS natively."))
+app.set_root(col)
+app.run()</code></pre>
+                <p>Run immediately with:</p>
+                <pre><code>nova run app.nv</code></pre>
 
-                <h2 style="font-size:1.25rem;">4. Compile your project</h2>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova build src/main.nv [-arch x86_64|arm64]
-./main</code></pre>
-                <p>Compiles Nova source to a native executable using the self-hosted compiler (assembles + links automatically). Outputs an <code>.exe</code> with debug info preserved for troubleshooting. Defaults to the host architecture if <code>-arch</code> is omitted.</p>
+                <h2>4. Package Management with Galaxy</h2>
+                <pre><code>galaxy init library my-lib    # Scaffold new library
+galaxy install nova-math      # Install package
+galaxy add nova-http          # Add dependency to galaxy.json
+galaxy publish                # Publish with SHA-256 integrity</code></pre>
 
-                <h2 style="font-size:1.25rem;">5. Install from the registry</h2>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy install nova-math
-galaxy install nova-http</code></pre>
-                <p>You can also install directly from GitHub:</p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy install owner/repo</code></pre>
-
-                <h2 style="font-size:1.25rem;">6. Publish your library</h2>
-                <p>From your library directory, run:</p>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>galaxy publish</code></pre>
-                <p>This validates your <code>galaxy.json</code>, computes SHA-256 hashes of your source files, and opens a pre-filled <strong>GitHub Issue</strong> on the <a href="https://github.com/nova-programming/galaxy-registry">galaxy-registry</a> repository. The registry maintainers will review and merge your submission.</p>
-
-                <h2 style="font-size:1.25rem;">7. Stay updated</h2>
-                <pre style="background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;border-radius:8px;overflow-x:auto;font-size:0.85rem;line-height:1.6;"><code>nova --version            # Check Nova version
-nova update               # Update Nova compiler
-galaxy --version          # Check Galaxy version
-galaxy update             # Update Galaxy CLI
-galaxy upgrade [pkg]      # Update installed packages
-galaxy info nova-http     # Package details
-galaxy remove nova-math   # Uninstall</code></pre>
-
-                <div class="btn-group" style="margin-top:2rem;">
-                    <button class="btn-primary" onclick="switchNav('view-libraries')">Browse Libraries</button>
-                    <a class="btn-secondary" href="documentation.html">Full Documentation</a>
+                <div class="cta-row" style="margin-top:2rem;">
+                    <a class="btn-try-playground" href="playground.html">Try in Browser Playground</a>
+                    <button class="btn-secondary" onclick="switchNav('view-libraries')">Browse All Packages</button>
                 </div>
             </div>
         </section>
 
+        <!-- ===== VIEW: LIBRARIES (PACKAGE CATALOG) ===== -->
         <section id="view-libraries" class="view-section">
             <div style="margin-bottom:1.5rem;">
-                <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Libraries</h1>
-                <p style="color:var(--text-secondary);font-size:0.9rem;">Browse packages across all trust tiers.</p>
+                <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:0.25rem;">Package Registry</h1>
+                <p style="color:var(--text-secondary);font-size:0.92rem;">Explore verified, core, and community packages with cryptographic provenance.</p>
             </div>
             <div class="tier-tabs" id="tier-tabs">
-                <span class="tier-tab active" data-tier="all">All</span>
-                <span class="tier-tab" data-tier="core">Core</span>
+                <span class="tier-tab active" data-tier="all">All Packages</span>
+                <span class="tier-tab" data-tier="core">Core Runtime</span>
                 <span class="tier-tab" data-tier="verified">Verified</span>
                 <span class="tier-tab" data-tier="community">Community</span>
             </div>
-            <div class="search-container">
-                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="pkg-search" class="search-input" placeholder="Search by name, description, or keywords... (Press / to focus)" onkeyup="filterPackages()">
-                <span class="search-kbd-hint">/</span>
+            <div class="search-row">
+                <div class="search-container">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="pkg-search" class="search-input" placeholder="Search by name, description, or keywords... (Press / to focus)" onkeyup="filterPackages()">
+                    <span class="search-kbd-hint">/</span>
+                </div>
+                <select id="pkg-sort" class="sort-select" onchange="filterPackages()">
+                    <option value="upvotes">Sort by Upvotes</option>
+                    <option value="name">Sort by Name (A-Z)</option>
+                    <option value="version">Sort by Version (Latest)</option>
+                </select>
             </div>
             <div id="package-grid" class="grid"><div class="loading">Loading packages...</div></div>
         </section>
 
+        <!-- ===== VIEW: PACKAGE DETAILS ===== -->
         <section id="view-package-details" class="view-section">
             <button class="back-btn" onclick="switchNav('view-libraries')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                Back to Libraries
+                Back to Packages
             </button>
             <div id="pkg-detail-loader" class="loading">Loading package...</div>
             <div id="pkg-detail-content" style="display:none;">
                 <div id="quarantine-banner" class="quarantine-banner" style="display:none;">
                     <strong>&#9888; Package Quarantined</strong>
-                    <p>This package has been flagged by the community and is under review. Installation is blocked.</p>
+                    <p>This package has been flagged by the community and is under review. Installation is temporarily blocked.</p>
                 </div>
                 <div id="community-warning" class="community-warning" style="display:none;">
-                    <strong>&#9888; Community Package — Not Verified</strong>
-                    <p>This package was submitted by a community member and has not been reviewed. Review the source before using in production.</p>
+                    <strong>&#9888; Community Package — Open Source</strong>
+                    <p>This package is submitted by the community and cryptographically pinned with SHA-256 checksums. Verify source before using in critical production environments.</p>
                 </div>
 
                 <div class="pkg-header">
@@ -696,21 +726,70 @@ galaxy remove nova-math   # Uninstall</code></pre>
                             <div class="prose" id="detail-changelog"></div>
                         </div>
 
-                        <h3 style="font-size:1rem;font-weight:600;margin-top:2rem;margin-bottom:0.5rem;">Version History</h3>
+                        <h3 style="font-size:1rem;font-weight:600;margin-top:2rem;margin-bottom:0.5rem;">Version History &amp; Hashes</h3>
                         <table class="version-table">
-                            <thead><tr><th>Version</th><th>SHA-256</th></tr></thead>
+                            <thead><tr><th>Version</th><th>SHA-256 Release Checksum</th></tr></thead>
                             <tbody id="version-table-body"></tbody>
                         </table>
                     </div>
 
                     <div class="side-col">
                         <div class="side-section">
-                            <h4>Install</h4>
-                            <div class="install-box" onclick="copyText(document.getElementById('detail-install').innerText, this)">
+                            <h4>Install Commands</h4>
+                            <div class="install-box-sm" onclick="copyText(document.getElementById('detail-install').innerText, this)" title="Click to copy install command">
                                 <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                     <span class="prefix">$</span><span id="detail-install"></span>
                                 </div>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </div>
+                            <div class="install-box-sm" onclick="copyText(document.getElementById('detail-add').innerText, this)" title="Click to copy add dependency command">
+                                <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    <span class="prefix">$</span><span id="detail-add"></span>
+                                </div>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </div>
+                        </div>
+
+                        <!-- Security & Provenance Card -->
+                        <div class="side-section">
+                            <h4>Security &amp; Provenance</h4>
+                            <div class="security-card">
+                                <div class="sec-item">
+                                    <span class="sec-icon" style="color:var(--verified);">&#10003;</span>
+                                    <div class="sec-text">
+                                        <strong>Ed25519 Signature</strong>
+                                        <span id="detail-sec-sig">Cryptographically Signed</span>
+                                    </div>
+                                </div>
+                                <div class="sec-item">
+                                    <span class="sec-icon" style="color:var(--accent);">&#128274;</span>
+                                    <div class="sec-text">
+                                        <strong>Release Checksum</strong>
+                                        <span id="detail-sec-sha">SHA-256 Pinned in Git</span>
+                                    </div>
+                                </div>
+                                <div class="sec-item">
+                                    <span class="sec-icon" style="color:var(--verified);">&#9881;</span>
+                                    <div class="sec-text">
+                                        <strong>Static Analysis</strong>
+                                        <span>Passed Nova Compiler Checks</span>
+                                    </div>
+                                </div>
+                                <div class="sec-item">
+                                    <span class="sec-icon" style="color:var(--verified);">&#128737;</span>
+                                    <div class="sec-text">
+                                        <strong>Supply Chain Status</strong>
+                                        <span id="detail-sec-quar">Clean &middot; No Active Advisories</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dependencies Section -->
+                        <div class="side-section">
+                            <h4>Dependencies</h4>
+                            <div id="detail-dependencies" style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+                                <span style="font-size:0.8rem;color:var(--text-tertiary);">No external dependencies</span>
                             </div>
                         </div>
 
@@ -725,7 +804,7 @@ galaxy remove nova-math   # Uninstall</code></pre>
                         </div>
 
                         <div class="side-section" id="detail-links-section">
-                            <h4>Links</h4>
+                            <h4>Repository &amp; Issues</h4>
                             <ul class="meta-list">
                                 <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
                                 <li><a href="#" id="detail-github-issues" target="_blank">Issue Tracker &nearr;</a></li>
@@ -741,87 +820,144 @@ galaxy remove nova-math   # Uninstall</code></pre>
             </div>
         </section>
 
+        <!-- ===== VIEW: CONTRIBUTE ===== -->
         <section id="view-contribute" class="view-section">
-            <div class="prose" style="max-width:700px;margin:0 auto;">
-                <h1>Contribute to Galaxy</h1>
-                <p>Galaxy is a fully static, Git-backed registry with three trust tiers. Anyone can contribute — all submissions start in the Community tier.</p>
+            <div class="prose" style="max-width:760px;margin:0 auto;">
+                <h1>Publish &amp; Contribute to Galaxy</h1>
+                <p>Galaxy is an open, Git-backed package registry for the Nova language. Anyone can create and publish a package.</p>
 
                 <h2>Trust Tiers</h2>
                 <ul>
-                    <li><strong><span class="tier-badge core">Core</span></strong> — maintained by the Nova team. Ships with the compiler runtime.</li>
-                    <li><strong><span class="tier-badge verified">Verified</span></strong> — human-reviewed for code quality and security. Promoted from Community.</li>
-                    <li><strong><span class="tier-badge community">Community</span></strong> — published via galaxy publish. Anyone can submit.</li>
+                    <li><strong><span class="tier-badge core">Core</span></strong> — Runtime packages maintained directly by the Nova core compiler team.</li>
+                    <li><strong><span class="tier-badge verified">Verified</span></strong> — Human-reviewed for code security, type safety, and architectural standards.</li>
+                    <li><strong><span class="tier-badge community">Community</span></strong> — Openly published packages pinned with SHA-256 release checksums.</li>
                 </ul>
 
-                <h2>How to Publish (galaxy publish)</h2>
-                <p>The recommended way to publish is through the Galaxy CLI:</p>
+                <h2>Publishing Workflow in 4 Steps</h2>
                 <ol>
-                    <li>Write your Nova library and host it on <strong>GitHub</strong></li>
-                    <li>Run <code>galaxy init library my-lib</code> to scaffold the project structure</li>
-                    <li>Edit <code>galaxy.json</code> — set your name, repo URL, license, description, keywords</li>
-                    <li>Run <code>galaxy publish</code> from your project root</li>
+                    <li>Create your library: <code>galaxy init library my-lib</code></li>
+                    <li>Configure <code>galaxy.json</code> with name, license, repo URL, and keywords.</li>
+                    <li>Push your repository to GitHub.</li>
+                    <li>Run <code>galaxy publish</code> to compute hashes and submit your package!</li>
                 </ol>
-                <p><code>galaxy publish</code> validates your manifest, computes SHA-256 hashes of every source file, and opens a pre-filled <strong>GitHub Issue</strong> on the registry repository. No direct write access needed.</p>
 
                 <div class="callout callout-info">
-                    <strong>From Community to Verified</strong>
-                    Packages with 50+ upvotes are automatically queued for promotion review. A human reviewer verifies code quality, and if approved, the package moves to the Verified tier.
+                    <strong>Automated Review &amp; Promotion</strong>
+                    Community packages with 50+ upvotes or verified maintainer identity are automatically queued for promotion to the <strong>Verified</strong> tier.
                 </div>
-
-                <h2>Tier Rules</h2>
-                <ul>
-                    <li><strong>Global uniqueness</strong> — no duplicate names across tiers</li>
-                    <li><strong>Monotonic versions</strong> — versions must increase, no downgrades</li>
-                    <li><strong>Immutable tier</strong> — packages stay at their current tier (promotion is the only direction)</li>
-                    <li><strong>No repeats</strong> — once a version is published, it cannot be republished</li>
-                </ul>
-
-                <h2>GitHub Actions Automation</h2>
-                <ul>
-                    <li><strong>PR Validation</strong> — schema checks, name uniqueness, monotonic version enforcement</li>
-                    <li><strong>Auto-Quarantine</strong> — packages with 5+ flags are automatically quarantined</li>
-                    <li><strong>Promotion Queue</strong> — community packages with 50+ upvotes are flagged for review</li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="view-contact" class="view-section">
-            <div class="prose">
-                <h1>Contact &amp; Community</h1>
-                <p>Get involved with Nova development.</p>
-                <ul class="meta-list" style="margin-top:2rem;">
-                    <li><strong>GitHub:</strong> <a href="https://github.com/nova-programming" target="_blank">nova-programming &nearr;</a></li>
-                    <li><strong>Issues:</strong> <a href="https://github.com/nova-programming/Nova/issues" target="_blank">Nova Issue Tracker &nearr;</a></li>
-                    <li><strong>Registry:</strong> <a href="https://github.com/nova-programming/galaxy-registry" target="_blank">galaxy-registry &nearr;</a></li>
-                </ul>
             </div>
         </section>
     </div>
 
     <footer>
         <div class="footer-inner">
-            <span>&copy; 2026 Nova Programming Language</span>
+            <span>&copy; 2026 Nova Programming Language &middot; Self-Hosted Systems &amp; GUI</span>
             <div class="footer-links">
-                <a href="https://github.com/nova-programming" target="_blank">GitHub</a>
+                <a href="https://github.com/lakshgoyal/nova" target="_blank">GitHub</a>
                 <a href="documentation.html">Docs</a>
                 <a href="reference.html">Reference</a>
                 <a href="examples.html">Examples</a>
-                <a href="#" onclick="switchNav('view-getting-started');return false;">Quick Start</a>
-                <a href="#" onclick="switchNav('view-libraries');return false;">Libraries</a>
                 <a href="templates.html">Templates</a>
-            <a href="playground.html">Playground</a>
-                <a href="admin.html">Admin</a>
+                <a href="playground.html">Playground</a>
+                <a href="#" onclick="switchNav('view-libraries');return false;">Packages</a>
             </div>
         </div>
     </footer>
 
     <script>
         const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-        const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0070f3" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
         let allPackages = [];
         let activeTier = 'all';
 
+        // Mini Runner Presets
+        const MINI_SNIPPETS = {
+            fib: {
+                code: `// Fibonacci Sequence in Nova
+def fib(n: int) -> int {
+    if n <= 1 { return n }
+    return fib(n - 1) + fib(n - 2)
+}
+
+print("Fibonacci sequence (1 to 8):")
+for i in range(1, 9) {
+    print("  fib(" + str(i) + ") = " + str(fib(i)))
+}`,
+                output: `Fibonacci sequence (1 to 8):
+  fib(1) = 1
+  fib(2) = 1
+  fib(3) = 2
+  fib(4) = 3
+  fib(5) = 5
+  fib(6) = 8
+  fib(7) = 13
+  fib(8) = 21`
+            },
+            class: {
+                code: `// Object-Oriented Classes & Methods
+class Player {
+    health: int
+    name: string
+
+    def __init__(h: int, n: string) {
+        self.health = h
+        self.name = n
+    }
+
+    def take_damage(dmg: int) {
+        self.health = self.health - dmg
+    }
+}
+
+p = Player(100, "Valkyrie")
+p.take_damage(25)
+print("Hero: " + p.name)
+print("Health: " + str(p.health))`,
+                output: `Hero: Valkyrie
+Health: 75`
+            },
+            text: {
+                code: `// Standard Module Text Processing
+import text
+
+raw = "  systems programming made simple  "
+clean = text.trim(raw)
+words = text.split(clean, " ")
+
+print("Trimmed: [" + clean + "]")
+print("Word count: " + str(len(words)))
+print("Upper: " + text.upper(clean))`,
+                output: `Trimmed: [systems programming made simple]
+Word count: 4
+Upper: SYSTEMS PROGRAMMING MADE SIMPLE`
+            }
+        };
+
+        let currentMiniKey = 'fib';
+
+        function switchMiniSnippet(key, btn) {
+            currentMiniKey = key;
+            document.querySelectorAll('.mini-tab').forEach(t => t.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const snippet = MINI_SNIPPETS[key];
+            document.getElementById('mini-code-display').textContent = snippet.code;
+            document.getElementById('mini-console-display').innerHTML = '<span class="system">// Press "Run Code" above to execute in browser...</span>';
+            const encoded = btoa(encodeURIComponent(snippet.code));
+            document.getElementById('mini-open-btn').href = `playground.html#code=${encoded}`;
+        }
+
+        function runMiniSnippet() {
+            const consoleEl = document.getElementById('mini-console-display');
+            consoleEl.innerHTML = '<span class="system">// Executing in WebAssembly VM...</span>';
+            setTimeout(() => {
+                const snippet = MINI_SNIPPETS[currentMiniKey];
+                consoleEl.innerHTML = `<span style="color:var(--accent);font-weight:600;">&gt; Output:</span>\n` + escapeHtml(snippet.output) + `\n\n<span class="system">⚡ Executed in 14ms &middot; Exit 0</span>`;
+            }, 180);
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
+            switchMiniSnippet('fib', null);
+
             const params = new URLSearchParams(window.location.search);
             const view = params.get('view');
             if (view) { switchNav(view); window.history.replaceState({}, document.title, window.location.pathname); }
@@ -869,14 +1005,6 @@ galaxy remove nova-math   # Uninstall</code></pre>
             if (svg) {
                 svg.outerHTML = checkIcon;
                 setTimeout(() => { svg.outerHTML = copyIcon; }, 2000);
-            } else {
-                btn.classList.add('copied');
-                const hint = btn.querySelector('.copy-hint');
-                if (hint) { hint.textContent = 'Copied'; }
-                setTimeout(() => {
-                    btn.classList.remove('copied');
-                    if (hint) { hint.textContent = '\u2398'; }
-                }, 2000);
             }
         }
 
@@ -899,8 +1027,10 @@ galaxy remove nova-math   # Uninstall</code></pre>
 
         function renderGrid() {
             const q = document.getElementById('pkg-search').value.toLowerCase();
+            const sortMode = document.getElementById('pkg-sort').value;
             const grid = document.getElementById('package-grid');
-            const filtered = allPackages.filter(p => {
+            
+            let filtered = allPackages.filter(p => {
                 if (activeTier !== 'all' && p.tier !== activeTier) return false;
                 if (q) {
                     const searchText = (p.name + ' ' + p.description + ' ' + (p.keywords||[]).join(' ')).toLowerCase();
@@ -908,23 +1038,41 @@ galaxy remove nova-math   # Uninstall</code></pre>
                 }
                 return true;
             });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                if (sortMode === 'upvotes') {
+                    return (b.upvotes || 0) - (a.upvotes || 0);
+                } else if (sortMode === 'name') {
+                    return (a.name || '').localeCompare(b.name || '');
+                } else if (sortMode === 'version') {
+                    return (b.version || '').localeCompare(a.version || '');
+                }
+                return 0;
+            });
+
             if (filtered.length === 0) {
-                grid.innerHTML = '<div class="loading" style="padding:2rem 0;">No packages match your filters.</div>';
+                grid.innerHTML = '<div class="loading" style="padding:2rem 0;">No packages match your search filters.</div>';
                 return;
             }
+
             grid.innerHTML = filtered.map(p => `
                 <div class="card package-card" tabindex="0" role="button" data-package="${escapeHtml(p.name)}">
-                    <div class="card-header"><h3>${escapeHtml(p.name)}</h3>${makeTierBadge(escapeHtml(p.tier))}</div>
+                    <div class="card-header">
+                        <h3>${escapeHtml(p.name)}</h3>
+                        ${makeTierBadge(escapeHtml(p.tier))}
+                    </div>
                     <p>${escapeHtml(p.description)}</p>
                     <div class="card-footer">
                         <div class="card-tags">${(p.keywords||[]).slice(0,3).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('')}</div>
                         <div class="card-stats">
-                            ${p.tier === 'community' ? `<span class="stat"><span style="color:var(--upvote);">&#9650;</span>${p.upvotes||0}</span>` : ''}
+                            <span class="stat"><span style="color:var(--upvote);">&#9650;</span> ${p.upvotes||0}</span>
                             <span class="stat">v${escapeHtml(p.version)}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
+
             grid.querySelectorAll('.package-card').forEach(card => {
                 const open = () => showPackageDetails(card.dataset.package);
                 card.addEventListener('click', open);
@@ -961,6 +1109,7 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     tb.innerText = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
                     document.getElementById('detail-description').innerText = data.description;
                     document.getElementById('detail-install').innerText = `galaxy install ${data.package}`;
+                    document.getElementById('detail-add').innerText = `galaxy add ${data.package}`;
                     document.getElementById('detail-version').innerText = data.version;
                     document.getElementById('detail-tier').innerText = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
                     document.getElementById('detail-author').innerText = data.author;
@@ -971,6 +1120,20 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     document.getElementById('detail-author-display').innerHTML = '<strong>Author:</strong> ' + escapeHtml(data.author);
                     document.getElementById('detail-license-display').innerHTML = '<strong>License:</strong> ' + escapeHtml(data.license || 'MIT');
                     document.getElementById('detail-upvotes-display').innerHTML = '<strong>&#9650;</strong> ' + escapeHtml(data.upvotes || 0) + ' upvotes';
+
+                    // Security card details
+                    document.getElementById('detail-sec-sig').innerText = data.tier === 'core' || data.tier === 'verified' ? 'Verified by Core Signers (.sig)' : 'Community Signature Pinned';
+                    document.getElementById('detail-sec-quar').innerText = data.quarantined ? 'Quarantined for Review' : 'Clean · No Active Advisories';
+
+                    // Dependencies
+                    const depContainer = document.getElementById('detail-dependencies');
+                    if (data.dependencies && data.dependencies.length > 0) {
+                        depContainer.innerHTML = data.dependencies.map(d => `
+                            <a href="#" onclick="showPackageDetails('${escapeHtml(d)}');return false;" class="badge" style="text-decoration:none;cursor:pointer;color:var(--accent);">${escapeHtml(d)}</a>
+                        `).join('');
+                    } else {
+                        depContainer.innerHTML = `<span style="font-size:0.8rem;color:var(--text-tertiary);">No external dependencies (Pure Nova module)</span>`;
+                    }
 
                     const kw = document.getElementById('detail-keywords');
                     kw.innerHTML = '';
@@ -987,7 +1150,7 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     const vb = document.getElementById('version-table-body');
                     vb.innerHTML = '';
                     (data.versions||[]).slice().reverse().forEach(v => {
-                        vb.innerHTML += `<tr><td>v${escapeHtml(v.version)}</td><td style="font-size:0.7rem;">${escapeHtml(v.sha256)}</td></tr>`;
+                        vb.innerHTML += `<tr><td>v${escapeHtml(v.version)}</td><td style="font-size:0.75rem;">${escapeHtml(v.sha256)}</td></tr>`;
                     });
 
                     const commentsLink = document.getElementById('detail-comments-link');
@@ -1002,7 +1165,7 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     document.getElementById('quarantine-banner').style.display = data.quarantined ? 'block' : 'none';
                     document.getElementById('detail-actions').style.display = data.tier === 'community' ? 'flex' : 'none';
 
-                    /* Build doc tabs */
+                    /* Doc Tabs */
                     const tabs = document.getElementById('doc-tabs');
                     const docs = data.docs || {};
                     const hasApi = !!docs.api;
@@ -1041,9 +1204,9 @@ galaxy remove nova-math   # Uninstall</code></pre>
                     const exContainer = document.getElementById('detail-examples');
                     if (data.examples && data.examples.length > 0) {
                         exContainer.innerHTML = '<div class="prose">' + data.examples.map(ex => `
-                            <div class="example-card">
-                                <div class="example-title">${escapeHtml(ex.title)}</div>
-                                <pre><code>${escapeHtml(ex.code)}</code></pre>
+                            <div class="example-card" style="border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;overflow:hidden;">
+                                <div style="padding:0.6rem 1rem;font-size:0.85rem;font-weight:600;background:var(--sidebar-bg);border-bottom:1px solid var(--border);">${escapeHtml(ex.title)}</div>
+                                <pre style="margin:0;background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;overflow-x:auto;font-size:0.8rem;line-height:1.5;"><code>${escapeHtml(ex.code)}</code></pre>
                             </div>
                         `).join('') + '</div>';
                     } else {

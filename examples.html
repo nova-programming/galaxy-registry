@@ -7,6 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Shared Theme Engine -->
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
         :root {
             --bg: #ffffff;
@@ -151,6 +154,40 @@
             display: flex; justify-content: space-between; align-items: center;
             font-size: 0.8rem; color: var(--text-tertiary);
         }
+
+        .btn-run-pg {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.35rem 0.75rem; border-radius: 6px;
+            background: var(--bg); border: 1px solid var(--border);
+            color: var(--accent); font-size: 0.78rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .btn-run-pg:hover {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .challenge-card {
+            border: 1px solid var(--border); border-radius: 10px;
+            margin-bottom: 1.75rem; overflow: hidden; background: var(--bg);
+        }
+        .challenge-header {
+            padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+            background: var(--sidebar-bg); display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+        }
+        .challenge-badge {
+            display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 4px;
+            background: rgba(0, 112, 243, 0.12); color: var(--accent);
+        }
+        .challenge-hint, .challenge-solution {
+            margin-top: 0.85rem; padding: 0.75rem 1rem; border-radius: 6px;
+            border: 1px solid var(--border); background: var(--sidebar-bg); font-size: 0.85rem;
+        }
+        .challenge-hint summary, .challenge-solution summary {
+            cursor: pointer; font-weight: 600; color: var(--text); user-select: none;
+        }
+        .challenge-hint p { margin-top: 0.5rem; margin-bottom: 0; color: var(--text-secondary); }
+        .challenge-solution pre { margin-top: 0.65rem; margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -170,6 +207,7 @@
             <a href="examples.html" class="active">Examples</a>
             <a href="templates.html">Templates</a>
             <a href="playground.html">Playground</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
             <a href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
@@ -193,6 +231,7 @@
                 <li><a href="#switch">Switch / Match</a></li>
                 <li><a href="#dict">Dictionary / HashMap</a></li>
                 <li><a href="#binhex">Binary &amp; Hex Literals</a></li>
+                <li class="section-gap"><a href="#challenges">Coding Challenges</a></li>
             </ul>
         </nav>
 
@@ -627,6 +666,146 @@ c = <span class="nv-num">255</span>
                         <div class="output-label">Output</div>
                         255<br>10<br>true
                     </div>
+                </div>
+            </div>
+
+
+            <!-- ===== CODING CHALLENGES & LAB ===== -->
+            <div id="challenges" style="margin: 3.5rem 0 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem;">Interactive Coding Challenges</h2>
+                <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1.5rem;">Apply what you have learned with hands-on exercises. Click <strong>Run in Playground</strong> to edit, compile, and verify your solutions live.</p>
+            </div>
+
+            <!-- Challenge 1 -->
+            <div class="challenge-card" id="challenge-primes">
+                <div class="challenge-header">
+                    <div>
+                        <span class="challenge-badge">Challenge 1 &middot; Logic &amp; Loops</span>
+                        <h3 style="margin-top:0.35rem;font-size:1.1rem;font-weight:600;">Filter Prime Numbers</h3>
+                        <p style="margin:0;color:var(--text-secondary);font-size:0.85rem;">Implement <code>is_prime(n: int) -&gt; bool</code> to test primality and print all primes from 2 to 20.</p>
+                    </div>
+                    <button class="btn-run-pg" onclick="runChallenge(this)">▶ Run in Playground</button>
+                </div>
+                <div class="example-body">
+                    <pre><code>// Exercise 1: Prime Number Filter
+def is_prime(n: int) -&gt; bool {
+    // TODO: Return true if n is prime, false otherwise
+    return false
+}
+
+for n = 2 to 20 step 1 {
+    if is_prime(n) {
+        print(n)
+    }
+}</code></pre>
+                    <details class="challenge-hint">
+                        <summary>💡 Need a hint?</summary>
+                        <p>If <code>n &lt; 2</code> return false. Then loop <code>for i = 2 to n - 1 step 1</code> and check <code>if n % i == 0 { return false }</code>.</p>
+                    </details>
+                    <details class="challenge-solution">
+                        <summary>✅ View Verified Solution</summary>
+                        <pre><code>def is_prime(n: int) -&gt; bool {
+    if n &lt; 2 { return false }
+    for i = 2 to n - 1 step 1 {
+        if n % i == 0 { return false }
+    }
+    return true
+}
+
+for n = 2 to 20 step 1 {
+    if is_prime(n) {
+        print(n)
+    }
+}</code></pre>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Challenge 2 -->
+            <div class="challenge-card" id="challenge-text">
+                <div class="challenge-header">
+                    <div>
+                        <span class="challenge-badge">Challenge 2 &middot; Text Processing</span>
+                        <h3 style="margin-top:0.35rem;font-size:1.1rem;font-weight:600;">Word Frequency Counter</h3>
+                        <p style="margin:0;color:var(--text-secondary);font-size:0.85rem;">Use standard module <code>import text</code> to count occurrences of each word in a string.</p>
+                    </div>
+                    <button class="btn-run-pg" onclick="runChallenge(this)">▶ Run in Playground</button>
+                </div>
+                <div class="example-body">
+                    <pre><code>// Exercise 2: Word Frequency Counter
+import text
+
+sentence = "nova is fast and nova is simple"
+words = text.split(sentence, " ")
+counts = {}
+
+// TODO: Count occurrences in counts dictionary
+// Print word: count</code></pre>
+                    <details class="challenge-hint">
+                        <summary>💡 Need a hint?</summary>
+                        <p>Loop <code>for w in words</code> and check <code>if w in counts { counts[w] = counts[w] + 1 } else { counts[w] = 1 }</code>.</p>
+                    </details>
+                    <details class="challenge-solution">
+                        <summary>✅ View Verified Solution</summary>
+                        <pre><code>import text
+
+sentence = "nova is fast and nova is simple"
+words = text.split(sentence, " ")
+counts = {}
+
+for w in words {
+    if w in counts {
+        counts[w] = counts[w] + 1
+    } else {
+        counts[w] = 1
+    }
+}
+
+for w in counts {
+    print(w + ": " + str(counts[w]))
+}</code></pre>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Challenge 3 -->
+            <div class="challenge-card" id="challenge-invert">
+                <div class="challenge-header">
+                    <div>
+                        <span class="challenge-badge">Challenge 3 &middot; Data Structures</span>
+                        <h3 style="margin-top:0.35rem;font-size:1.1rem;font-weight:600;">Invert a Dictionary</h3>
+                        <p style="margin:0;color:var(--text-secondary);font-size:0.85rem;">Given a key-value dictionary, build an inverted mapping from values to original keys.</p>
+                    </div>
+                    <button class="btn-run-pg" onclick="runChallenge(this)">▶ Run in Playground</button>
+                </div>
+                <div class="example-body">
+                    <pre><code>// Exercise 3: Invert a Dictionary
+dict = {"a": "apple", "b": "banana", "c": "cherry"}
+inverted = {}
+
+// TODO: Invert dict into inverted
+
+for item in inverted {
+    print(item + " -> " + inverted[item])
+}</code></pre>
+                    <details class="challenge-hint">
+                        <summary>💡 Need a hint?</summary>
+                        <p>Iterate with <code>for k in dict</code>, fetch <code>val = dict[k]</code>, and assign <code>inverted[val] = k</code>.</p>
+                    </details>
+                    <details class="challenge-solution">
+                        <summary>✅ View Verified Solution</summary>
+                        <pre><code>dict = {"a": "apple", "b": "banana", "c": "cherry"}
+inverted = {}
+
+for k in dict {
+    val = dict[k]
+    inverted[val] = k
+}
+
+for item in inverted {
+    print(item + " -> " + inverted[item])
+}</code></pre>
+                    </details>
                 </div>
             </div>
 

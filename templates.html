@@ -7,6 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Shared Theme Engine -->
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
         :root {
             --bg: #ffffff; --text: #0a0a0f; --text-secondary: #555; --text-tertiary: #888;
@@ -131,6 +134,64 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .doc-content { animation: fadeIn .35s ease-out; }
         .tree-line { padding-left: 1.5rem; border-left: 1px dashed #333; margin: 0.5rem 0; }
+
+        .template-cards-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+            margin: 1.5rem 0 2rem;
+        }
+        @media (max-width: 800px) { .template-cards-grid { grid-template-columns: 1fr; } }
+        .tmpl-card {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 10px; padding: 1.25rem; transition: all 0.2s ease;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .tmpl-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        .tmpl-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
+        .tmpl-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; }
+        .tmpl-cmd {
+            background: var(--sidebar-bg); border: 1px solid var(--border);
+            border-radius: 6px; padding: 0.4rem 0.65rem; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem; color: var(--accent); user-select: all;
+        }
+        .builder-wrap {
+            border: 1px solid var(--border); border-radius: 12px;
+            background: var(--bg); margin: 2rem 0; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+        .builder-header {
+            padding: 1rem 1.25rem; background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border); display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .builder-header h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+        .builder-body {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 1.5rem;
+        }
+        @media (max-width: 820px) { .builder-body { grid-template-columns: 1fr; } }
+        .builder-form { display: flex; flex-direction: column; gap: 0.85rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+        .form-control {
+            padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--sidebar-bg); color: var(--text); font-size: 0.82rem;
+            outline: none; font-family: inherit; transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: var(--accent); }
+        .builder-preview {
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .preview-box {
+            background: var(--code-bg); color: #e4e4e7; border-radius: 8px;
+            padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+            line-height: 1.5; height: 100%; min-height: 280px; overflow-x: auto; margin: 0;
+        }
+        .copy-manifest-btn {
+            margin-top: 0.75rem; display: inline-flex; align-items: center; justify-content: center;
+            gap: 0.4rem; padding: 0.55rem 1rem; border-radius: 6px; background: var(--accent);
+            color: #fff; border: none; font-weight: 600; font-size: 0.82rem; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .copy-manifest-btn:hover { background: var(--accent-hover); }
     </style>
 </head>
 <body>
@@ -150,6 +211,7 @@
             <a href="examples.html">Examples</a>
             <a href="templates.html" class="active">Templates</a>
             <a href="playground.html">Playground</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
             <a href="https://github.com/lakshgoyal/nova" target="_blank" rel="noopener">GitHub</a>
         </div>
     </nav>
@@ -160,6 +222,8 @@
             <ul>
                 <li><a href="#overview">Overview</a></li>
                 <li><a href="#usage">Usage</a></li>
+                <li><a href="#templates">Scaffolding Templates</a></li>
+                <li><a href="#builder">Live Manifest Builder</a></li>
                 <li><a href="#quick-ref">Quick Reference</a></li>
                 <li><a href="#library">library</a></li>
                 <li class="section-gap"><a href="#customizing">Customizing</a></li>
@@ -200,6 +264,98 @@ galaxy init lib my-lib     <span class="cmt"># same as above</span></code></pre>
             </table>
 
             <!-- ===== LIBRARY ===== -->
+            
+            <!-- ===== VISUAL SCAFFOLDING CARDS ===== -->
+            <h2 id="templates">Visual Project Templates</h2>
+            <p>Choose the project type that fits your application architecture:</p>
+
+            <div class="template-cards-grid">
+                <div class="tmpl-card">
+                    <div>
+                        <div style="font-size:1.5rem;margin-bottom:0.5rem;">📚</div>
+                        <h3>Pure Reusable Library</h3>
+                        <p>Standard library module layout for algorithms, data types, and shared utilities.</p>
+                    </div>
+                    <div class="tmpl-cmd">galaxy init library my-lib</div>
+                </div>
+
+                <div class="tmpl-card">
+                    <div>
+                        <div style="font-size:1.5rem;margin-bottom:0.5rem;">💻</div>
+                        <h3>CLI Terminal Utility</h3>
+                        <p>Command-line tool with argument parsing, interactive prompts, and terminal stdout.</p>
+                    </div>
+                    <div class="tmpl-cmd">galaxy init cli my-tool</div>
+                </div>
+
+                <div class="tmpl-card">
+                    <div>
+                        <div style="font-size:1.5rem;margin-bottom:0.5rem;">🖥️</div>
+                        <h3>Desktop Native GUI App</h3>
+                        <p>60 FPS double-buffered Win32 GDI desktop app with declarative layouts and NSS stylesheets.</p>
+                    </div>
+                    <div class="tmpl-cmd">galaxy init gui my-app</div>
+                </div>
+            </div>
+
+            <!-- ===== INTERACTIVE MANIFEST BUILDER ===== -->
+            <h2 id="builder">Live galaxy.json Manifest Builder</h2>
+            <p>Configure and generate a verified <code>galaxy.json</code> manifest with live validation and one-click copy:</p>
+
+            <div class="builder-wrap">
+                <div class="builder-header">
+                    <h3>Manifest Generator</h3>
+                    <span style="font-size:0.75rem;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace;">galaxy.json v1.0</span>
+                </div>
+                <div class="builder-body">
+                    <div class="builder-form">
+                        <div class="form-group">
+                            <label>Package Name:</label>
+                            <input type="text" id="mf-name" class="form-control" value="my-nova-pkg" oninput="updateManifestPreview()">
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                            <div class="form-group">
+                                <label>Version:</label>
+                                <input type="text" id="mf-version" class="form-control" value="0.1.0" oninput="updateManifestPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>License:</label>
+                                <select id="mf-license" class="form-control" onchange="updateManifestPreview()">
+                                    <option value="MIT">MIT</option>
+                                    <option value="Apache-2.0">Apache-2.0</option>
+                                    <option value="BSD-3-Clause">BSD-3-Clause</option>
+                                    <option value="ISC">ISC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description:</label>
+                            <input type="text" id="mf-desc" class="form-control" value="High performance Nova module" oninput="updateManifestPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Author:</label>
+                            <input type="text" id="mf-author" class="form-control" value="Nova Developer" oninput="updateManifestPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>GitHub Repository (owner/repo):</label>
+                            <input type="text" id="mf-repo" class="form-control" value="username/my-nova-pkg" oninput="updateManifestPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Keywords (comma-separated):</label>
+                            <input type="text" id="mf-keywords" class="form-control" value="utility, system, native" oninput="updateManifestPreview()">
+                        </div>
+                    </div>
+
+                    <div class="builder-preview">
+                        <pre class="preview-box" id="manifest-preview-code"></pre>
+                        <button class="copy-manifest-btn" onclick="copyManifestJSON(this)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span id="copy-mf-label">Copy galaxy.json</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <h2 id="library">library Template</h2>
             <p>The default template. Creates a reusable Nova module with a standard library layout. Use this for packages you intend to publish to the registry.</p>
 

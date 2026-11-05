@@ -2,36 +2,51 @@
 
 ## Project Overview
 - **Name**: Galaxy Registry (`galaxy-registry`)
-- **Purpose**: Official package registry and web portal for the Nova programming language's Galaxy Package Manager.
-- **Language surface the docs cover**: dotted module calls (`fs.read`, `path.join`, `text.trim`, `json.parse`), `for i in range(...)`, data constructors (`Point(1, 2)`), `d["k"]` / `"k" in d`, `\{` `\}` string escapes, inferred `-> string` returns.
-- **Signed metadata**: `tools/sign_registry.py` signs `packages/*.json` (Ed25519, `<file>.sig`); the `sign-metadata` workflow needs the `GALAXY_SIGNING_KEY` secret, and clients verify against `REGISTRY_PUBLIC_KEYS` in Nova's `_galaxy.py`.
-- **Playground compiler source**: `nova_worker.js` loads the Python compiler from GitHub (`NOVA_REF`, default `main`; pin to a tag/commit to freeze). `nova_worker.js?nova=<base-url>` loads from a local checkout for testing.
-- **Compiler Version**: Nova `v0.9.0` (Self-hosted systems programming language compiling to native x86_64/ARM64 machine code with double-buffered Win32 GDI GUI + NSS stylesheets).
+- **Purpose**: Official package registry, interactive documentation portal, WebAssembly playground, and developer ecosystem for the Nova programming language.
+- **Language surface the docs cover**: curly brace block syntax (`def foo(x) { ... }`), dotted module calls (`fs.read`, `path.join`, `text.trim`, `json.parse`), `for i in range(...)`, data constructors (`data Point { x: int, y: int }`), `d["k"]` / `"k" in d`, `\{` `\}` string escapes, inferred `-> string` returns, native Win32 GDI declarative GUI (`import gui`).
+- **Signed metadata**: `tools/sign_registry.py` signs `packages/*.json` (Ed25519, `<file>.sig`); the `sign-metadata` workflow uses the `GALAXY_SIGNING_KEY` secret, and clients verify against `REGISTRY_PUBLIC_KEYS` in Nova's `_galaxy.py`.
+- **Playground compiler source**: `nova_worker.js` runs Pyodide WebAssembly in a Web Worker, providing real-time Monaco diagnostic markers (`monaco.editor.setModelMarkers`) via debounced syntax parsing (`check` action) and direct in-browser execution (`run` action).
+- **Compiler Version**: Nova `v0.9.0` (Self-hosted systems programming language compiling to native x86_64/ARM64 machine code with sub-250KB binaries and 60 FPS double-buffered Win32 GDI GUI + NSS stylesheets).
 - **Architecture**:
-  - Fully static, Git-backed registry hosted on Vercel.
+  - Fully static, Git-backed registry hosted on Vercel (`vercel.json`, `api/search.js`).
+  - Zero server-side database; package submissions, reviews, and releases processed via GitHub Issues / PR workflows.
   - Data stored in `packages/*.json` and indexed by `packages/index.json`.
-  - Zero server-side database; submissions and updates processed via GitHub Issues / PR workflows.
-  - Frontend built with vanilla semantic HTML, CSS tokens, and JavaScript (with Marked.js and DOMPurify for secure markdown rendering).
+  - Frontend built with semantic HTML5, shared CSS design tokens (`theme.css`), and lightweight client scripts (`theme.js`).
+
+## Universal Design & Theming Standards
+- **Unified Dark & Light Themes (`theme.css`, `theme.js`)**:
+  - Universal theme preference synchronization across all pages (`index.html`, `documentation.html`, `reference.html`, `examples.html`, `templates.html`, `playground.html`) via `localStorage.getItem('nova_theme')`.
+  - Zero-FOUC initialization script executing immediately in `<head>`.
+  - Instant theme toggle button in navigation bar (`&#9789;` / `&#9788;`), also updating Monaco Editor (`vs-dark` / `vs`).
+- **Navigation**:
+  - Shared top navbar: `Home` | `Quick Start` | `Packages` | `Docs` | `Reference` | `Examples` | `Templates` | `Playground` | `Theme Toggle` | `GitHub`.
 
 ## Pages & Structure
-- `index.html`: Main landing portal and package catalog.
-  - Views: `view-home` (Hero, tabbed install terminal, 4 architecture pillars), `view-getting-started` (Fast setup guide), `view-libraries` (Filterable package catalog with keyboard quick-focus via `/`), `view-package-details` (Deep package view with GitHub actions), `view-contribute` (Submission workflow).
-- `documentation.html`: Full Nova language manual, compiler internals, stdlib reference, and syntax guides.
-- `reference.html`: Language syntax cheat sheet and standard library function tables.
-- `examples.html`: Interactive collection of runnable Nova code snippets.
-- `templates.html`: Package scaffolding reference (`galaxy init library`).
-- `playground.html`: In-browser Monaco editor and WebAssembly VM runner with curated presets (Fibonacci, FizzBuzz, Primes, Classes, Switch, Sort), theme toggling (Dark/Light), shareable permalink hashes (`#code=...`), and keyboard execution (`Ctrl + Enter`).
-- `admin.html`: Maintainer management interface.
-- `packages/`: Package metadata JSON files (`nova-math.json`, `nova-http.json`, etc.).
-
-## Navigation & UI/UX Standards
-- **Global Synchronized Top Navigation**:
-  - Links: `Packages` | `Docs` | `Reference` | `Examples` | `Templates` | `Playground` | `GitHub`
-  - Active states synchronized across all subpages.
-- **Theme Integrity**:
-  - Crisp, modern light-theme foundation (`Inter` for prose, `JetBrains Mono` for code/commands).
-  - WCAG AA compliant contrast ratios, soft radial accents, and elevated cards.
-  - Zero fake placeholder stats, artificial typewriter delays, or mock alert dialogues. Real, grounded engineering documentation.
+1. `index.html`:
+   - **Hero Section**: Clear product positioning (Pythonic ergonomics, C-speed machine code, <250KB binaries, 60 FPS Win32 declarative GUI).
+   - **Primary CTA**: Prominent `⚡ Try Nova in Playground` button with glowing accent styling.
+   - **Embedded Mini-Try-It Runner**: Live interactive snippet switcher (`Fibonacci`, `OOP Classes`, `Text Processing`) with instant output terminal.
+   - **6 Feature Pillars Showcase**: Direct Native Binaries, Native 60 FPS Win32 GUI, Pythonic Static Typing, Nova Studio & Tooling, Git-Backed Package Registry, Cryptographic Provenance.
+   - **Package Catalog (`view-libraries`)**: Full search with `/` keyboard focus, Tier tabs (`All`, `Core`, `Verified`, `Community`), and multi-mode sorting (`Upvotes`, `Name A-Z`, `Version`).
+   - **Package Details (`view-package-details`)**: Dual install pills (`galaxy install`, `galaxy add`), Dependencies viewer with direct cross-linking, and Security & Provenance Card (Ed25519 signature verification, SHA-256 release checksums, static analysis, supply chain clean status).
+2. `playground.html`:
+   - Full Monaco Editor with real-time error squiggly markers from Pyodide WebAssembly worker.
+   - **Capability Indicator Badge**: `🟢 Browser VM Sandbox` with clickable modal explaining Browser VM features vs Native toolchain requirements (`import gui`, C FFI, OS processes).
+   - Categorized presets: *Beginner Basics*, *Data Structures*, *Algorithms*, *Standard Library*, *Native Showcase (Local Toolchain)*.
+   - Shareable permalinks (`#code=...`), execution timing metrics, console copy/clear shortcuts (`Ctrl+K`, `Ctrl+Enter`).
+3. `examples.html`:
+   - 19 verified code examples, every single one featuring a dynamic **"▶ Run in Playground"** button that bridges directly into the playground.
+   - **Interactive Coding Challenges**: 3 hands-on exercises (Prime Filter, Word Frequency Counter, Dictionary Inversion) with starter code, expandable hints, and verified solutions.
+4. `documentation.html`:
+   - Full language manual with floating "▶ Run in Playground" buttons injected on all runnable Nova code snippets.
+5. `reference.html`:
+   - Quick syntax cheat sheet and standard library functions with synchronized dark/light theming.
+6. `templates.html`:
+   - Visual scaffolding cards for *Pure Library*, *CLI Utility*, and *Desktop Native GUI App*.
+   - **Live `galaxy.json` Manifest Builder**: Real-time form with live JSON preview and one-click copy.
+   - Publishing checklist from project initialization to GitHub PR review.
+7. `packages/`:
+   - Package metadata JSON files (`nova-math.json`, `nova-http.json`, `nova-cli.json`, `nova-db.json`, `nova-img.json`, `index.json`) with declared dependencies and release checksums.
 
 ## Trust Tiers
 1. **Core**: Inbuilt runtime packages maintained by the Nova core team (`nova-math`, etc.).
