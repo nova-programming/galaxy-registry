@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>How Nova Compiles to Native Machine Code — Galaxy</title>
+    <meta name="description" content="How the Nova compiler turns source into native x86_64/ARM64 machine code, and how its self-hosting is verified rather than just claimed.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/compiler-architecture.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="How Nova Compiles to Native Machine Code">
+    <meta property="og:description" content="How the Nova compiler turns source into native x86_64/ARM64 machine code, and how its self-hosting is verified rather than just claimed.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/compiler-architecture.html">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="How Nova Compiles to Native Machine Code">
+    <meta name="twitter:description" content="The real compilation pipeline, and how Nova's self-hosting is verified rather than just claimed.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "TechArticle",
+                "headline": "How Nova Compiles to Native Machine Code",
+                "description": "How the Nova compiler turns source into native x86_64/ARM64 machine code, and how its self-hosting is verified rather than just claimed.",
+                "url": "https://galaxy-registry.vercel.app/compiler-architecture.html",
+                "about": {"@type": "SoftwareApplication", "name": "Nova", "applicationCategory": "DeveloperApplication"}
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://galaxy-registry.vercel.app/"},
+                    {"@type": "ListItem", "position": 2, "name": "How Nova Compiles", "item": "https://galaxy-registry.vercel.app/compiler-architecture.html"}
+                ]
+            }
+        ]
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: var(--leading-normal); }
+        nav.top-nav {
+            position: sticky; top: 0; z-index: var(--z-nav);
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
+        }
+        .nav-brand { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.03em; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; align-items: center; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        main.article { max-width: var(--content-width-doc); margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+        .article h1 { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.6rem; }
+        .article .lede { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 2.5rem; max-width: 680px; }
+        .article h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+        .article p { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem; max-width: 720px; }
+        .article code { font-family: var(--font-mono); font-size: 0.85em; background: var(--sidebar-bg); padding: 0.15em 0.4em; border-radius: var(--radius-sm); }
+        .article ol, .article ul { margin: 0 0 1.25rem 1.4rem; max-width: 720px; }
+        .article li { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .pipeline-list { counter-reset: step; list-style: none; margin: 1.5rem 0; max-width: 720px; }
+        .pipeline-list li {
+            counter-increment: step; position: relative; padding: 0.9rem 0 0.9rem 3rem;
+            border-left: 2px solid var(--border); margin-left: 0.9rem;
+        }
+        .pipeline-list li::before {
+            content: counter(step); position: absolute; left: -0.95rem; top: 0.75rem;
+            width: 1.9rem; height: 1.9rem; border-radius: 50%; background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;
+        }
+        .pipeline-list strong { color: var(--text); display: block; margin-bottom: 0.2rem; }
+        .callout {
+            padding: 1rem 1.25rem; border-radius: var(--radius-md); margin: 1.5rem 0;
+            border-left: 4px solid var(--callout-info-border); background: var(--callout-info-bg);
+            font-size: 0.9rem; max-width: 720px;
+        }
+        .callout strong { display: block; margin-bottom: 0.3rem; color: var(--text); }
+        .related { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .related a {
+            display: inline-flex; align-items: center; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 0.5rem 0.9rem; font-size: 0.85rem;
+            text-decoration: none; color: var(--text);
+        }
+        .related a:hover { border-color: var(--accent); color: var(--accent); }
+        footer { border-top: 1px solid var(--border); padding: 1.75rem 2rem; background: var(--sidebar-bg); }
+        .footer-inner { max-width: 1040px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-tertiary); }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="nav-brand" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            Galaxy
+        </a>
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
+            <a href="index.html?view=view-libraries">Packages</a>
+            <a href="documentation.html">Docs</a>
+            <a href="reference.html">Reference</a>
+            <a href="examples.html">Examples</a>
+            <a href="playground.html">Playground</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
+        </div>
+    </nav>
+
+    <main class="article">
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+            <a href="index.html">Home</a><span class="sep">/</span><span class="current">How Nova Compiles</span>
+        </nav>
+
+        <h1>How Nova Compiles to Native Machine Code</h1>
+        <p class="lede">Nova doesn't shell out to GCC for the heavy lifting and doesn't interpret your code at runtime by default. The pipeline below is what actually runs when you type <code>nova build hello.nv</code> — and the compiler that runs it is written in Nova itself.</p>
+
+        <h2>The pipeline</h2>
+        <p>When you run <code>nova build hello.nv</code>, your source passes through a single in-process pipeline, with no external tools invoked along the way:</p>
+        <ol class="pipeline-list">
+            <li><strong>Lexer</strong>Tokenizes source text into structured <code>Token</code> objects.</li>
+            <li><strong>Parser</strong>A recursive-descent parser builds an AST, with constant folding applied as it goes.</li>
+            <li><strong>Type Checker</strong>Static type inference and validation over the AST.</li>
+            <li><strong>Code Generator</strong>Emits native assembly for your target architecture (x86_64 or ARM64), with bounds-checking and variable-to-register promotion.</li>
+            <li><strong>Tree Shaker</strong>Builds a call-graph dependency map and strips unused stdlib functions from the output.</li>
+            <li><strong>Assembler</strong>Encodes assembly mnemonics into native machine code, in-process.</li>
+            <li><strong>Linker</strong>Packages the machine code into a valid native executable.</li>
+        </ol>
+
+        <h2>Self-hosting, verified rather than claimed</h2>
+        <p>Nova's compiler is self-hosted: the compiler that generates machine code is itself written in Nova (<code>stdlib/compiler.nv</code> and the backend modules under <code>stdlib/backend/</code>), not just the standard library. A Python bootstrap compiler exists to build the very first native Nova compiler binary from scratch — after that, every subsequent version is built by Nova compiling itself.</p>
+        <p>That claim is easy to make and hard to verify, so the project verifies it mechanically on every release rather than asserting it. The procedure has three stages:</p>
+        <ol>
+            <li><strong>Stage 1</strong> — the Python bootstrap compiles the Nova-source compiler into a first native binary.</li>
+            <li><strong>Stage 2</strong> — that Stage 1 binary compiles the same Nova-source compiler again, producing a second native binary and its generated assembly.</li>
+            <li><strong>Stage 3</strong> — the build cache is cleared, and the Stage 2 binary compiles the compiler a third time.</li>
+        </ol>
+        <p>Stage 2's generated assembly is then compared to Stage 3's, byte for byte. If a self-hosted compiler is genuinely stable, compiling itself twice in a row from the same source should produce identical output — any drift would mean the compiler disagrees with itself about its own semantics. This comparison is what gates whether a build is trusted, not a one-time claim in a README.</p>
+
+        <div class="callout">
+            <strong>Why this matters for you</strong>
+            It means the exact toolchain generating your binaries is the same language you're writing in — no separate, differently-maintained bootstrap compiler quietly diverging from what Nova programs can actually express.
+        </div>
+
+        <h2>Two backends, one primary</h2>
+        <p>Code generation targets x86_64 and ARM64. x86_64 is the primary, fully-verified backend; ARM64 is a secondary backend — if you're choosing a target for production work today, x86_64 has had more scrutiny.</p>
+
+        <h2>What this is not</h2>
+        <p>This page describes the compilation pipeline and the self-hosting verification mechanism — it is not a performance benchmark. For honest, disclosed-methodology performance comparisons, see the benchmarking note in the <a href="documentation.html#performance">documentation</a>; this project does not publish bare speed-multiplier claims without the hardware, compiler flags, and reproducible code behind them.</p>
+
+        <h2>Go deeper</h2>
+        <div class="related">
+            <a href="documentation.html#architecture">Full compiler architecture docs &rarr;</a>
+            <a href="playground.html">Try Nova in the Playground &rarr;</a>
+            <a href="documentation.html">Nova documentation &rarr;</a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <span>&copy; 2026 Nova Programming Language</span>
+            <div style="display:flex;gap:1.5rem;">
+                <a href="documentation.html" style="color:var(--text-tertiary);text-decoration:none;">Docs</a>
+                <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
+                <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
+                <a href="playground.html" style="color:var(--text-tertiary);text-decoration:none;">Playground</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

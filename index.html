@@ -3,7 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Galaxy — The Developer Ecosystem for Nova</title>
+    <meta name="description" content="Nova is a self-hosted, native-compiling programming language with Python-like syntax and a built-in GUI framework. Install it, try it instantly in your browser, or browse packages on Galaxy.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="Galaxy — The Developer Ecosystem for Nova">
+    <meta property="og:description" content="Nova is a self-hosted, native-compiling programming language with Python-like syntax and a built-in GUI framework. Install it, try it instantly in your browser, or browse packages on Galaxy.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Galaxy — The Developer Ecosystem for Nova">
+    <meta name="twitter:description" content="Nova is a self-hosted, native-compiling programming language with Python-like syntax and a built-in GUI framework.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "name": "Nova Programming Language",
+                "url": "https://galaxy-registry.vercel.app/",
+                "logo": "https://galaxy-registry.vercel.app/favicon.svg",
+                "sameAs": ["https://github.com/lakshgoyal/nova"]
+            },
+            {
+                "@type": "WebSite",
+                "name": "Galaxy",
+                "url": "https://galaxy-registry.vercel.app/",
+                "description": "The package registry and developer ecosystem for Nova."
+            }
+        ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -63,7 +96,7 @@
         .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
         .search-input {
             width: 100%; padding: 0.75rem 3rem 0.75rem 2.75rem;
-            border: 1px solid var(--border); border-radius: 8px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
             background: var(--bg); color: var(--text); font-size: 0.9rem;
             outline: none; transition: border-color .2s;
         }
@@ -71,11 +104,11 @@
         .search-kbd-hint {
             position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
             background: var(--sidebar-bg); border: 1px solid var(--border); color: var(--text-tertiary);
-            padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.72rem;
+            padding: 0.15rem 0.45rem; border-radius: var(--radius-sm); font-size: 0.72rem;
             font-family: 'JetBrains Mono', monospace; font-weight: 600; pointer-events: none;
         }
         .sort-select {
-            padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border);
+            padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);
             background: var(--bg); color: var(--text); font-size: 0.85rem; font-weight: 500;
             outline: none; cursor: pointer; transition: border-color .2s;
         }
@@ -84,7 +117,7 @@
         /* Tier Badge */
         .tier-badge {
             display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.15rem 0.55rem; border-radius: 4px;
+            padding: 0.15rem 0.55rem; border-radius: var(--radius-sm);
             font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
         }
         .tier-badge.core { background: var(--core-bg); color: var(--core); }
@@ -95,7 +128,7 @@
         /* Tier Tabs */
         .tier-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .tier-tab {
-            padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.82rem; font-weight: 500;
+            padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500;
             cursor: pointer; transition: all .15s; color: var(--text-secondary);
         }
         .tier-tab:hover { color: var(--text); }
@@ -104,7 +137,7 @@
         /* Package Cards Grid */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.25rem; }
         .card {
-            border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;
+            border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;
             background: var(--bg); transition: all .2s; cursor: pointer;
             display: flex; flex-direction: column; justify-content: space-between;
         }
@@ -115,7 +148,7 @@
         .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-tertiary); }
         .card-tags { display: flex; gap: 0.35rem; flex-wrap: wrap; }
         .badge {
-            background: var(--sidebar-bg); padding: 0.15rem 0.45rem; border-radius: 4px;
+            background: var(--sidebar-bg); padding: 0.15rem 0.45rem; border-radius: var(--radius-sm);
             font-size: 0.7rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;
             border: 1px solid var(--border);
         }
@@ -135,7 +168,7 @@
         .pkg-meta-row { display: flex; gap: 1.5rem; font-size: 0.82rem; color: var(--text-tertiary); flex-wrap: wrap; }
         .keyword-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
         .keyword {
-            background: var(--sidebar-bg); padding: 0.2rem 0.5rem; border-radius: 4px;
+            background: var(--sidebar-bg); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm);
             font-size: 0.75rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;
             border: 1px solid var(--border);
         }
@@ -167,12 +200,12 @@
         .prose li { margin-bottom: 0.3rem; color: var(--text-secondary); }
         .prose code {
             font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
-            background: var(--sidebar-bg); padding: 0.15em 0.4em; border-radius: 4px;
+            background: var(--sidebar-bg); padding: 0.15em 0.4em; border-radius: var(--radius-sm);
             border: 1px solid var(--border);
         }
         .prose pre {
             background: var(--code-bg); color: #e4e4e7;
-            padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm); overflow-x: auto;
             margin: 1rem 0; font-size: 0.8rem; line-height: 1.5;
         }
         .prose pre code { background: transparent; padding: 0; color: inherit; border: none; }
@@ -194,7 +227,7 @@
         }
         .install-box-sm {
             display: flex; align-items: center; justify-content: space-between;
-            border: 1px solid var(--border); border-radius: 6px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
             padding: 0.55rem 0.8rem; font-family: 'JetBrains Mono', monospace;
             font-size: 0.78rem; cursor: pointer; transition: all .2s;
             background: var(--sidebar-bg); margin-bottom: 0.5rem;
@@ -210,7 +243,7 @@
 
         /* Security Card */
         .security-card {
-            border: 1px solid var(--border); border-radius: 8px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
             padding: 1rem; background: var(--sidebar-bg); margin-bottom: 1.5rem;
         }
         .sec-item { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.65rem; font-size: 0.78rem; }
@@ -227,7 +260,7 @@
 
         .action-btn {
             display: inline-flex; align-items: center; gap: 0.35rem;
-            padding: 0.45rem 0.9rem; border-radius: 6px;
+            padding: 0.45rem 0.9rem; border-radius: var(--radius-sm);
             font-size: 0.8rem; font-weight: 500; cursor: pointer;
             border: 1px solid var(--border); background: var(--bg); color: var(--text); transition: all .15s;
             text-decoration: none;
@@ -239,7 +272,7 @@
 
         .community-warning {
             background: #fffbeb; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b;
-            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0; font-size: 0.85rem;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm); margin: 1rem 0; font-size: 0.85rem;
         }
         .community-warning strong { color: #92400e; display: block; margin-bottom: 0.25rem; }
         .community-warning p { color: #78350f; margin: 0; }
@@ -249,7 +282,7 @@
 
         .quarantine-banner {
             background: #fef2f2; border: 1px solid var(--flag); border-left: 4px solid var(--flag);
-            padding: 1rem 1.25rem; border-radius: 6px; margin: 1rem 0; font-size: 0.85rem;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm); margin: 1rem 0; font-size: 0.85rem;
         }
         .quarantine-banner strong { color: var(--flag); display: block; margin-bottom: 0.25rem; }
         .quarantine-banner p { color: #991b1b; margin: 0; }
@@ -257,7 +290,7 @@
         .loading { text-align: center; color: var(--text-tertiary); padding: 3rem 0; }
         .error-text { color: var(--flag); }
 
-        .callout { padding: 1rem 1.25rem; border-radius: 6px; margin: 1.25rem 0; border-left: 4px solid; font-size: 0.9rem; }
+        .callout { padding: 1rem 1.25rem; border-radius: var(--radius-sm); margin: 1.25rem 0; border-left: 4px solid; font-size: 0.9rem; }
         .callout strong { display: block; margin-bottom: 0.25rem; }
         .callout-info { background: var(--callout-info-bg); border-color: var(--callout-info-border); }
 
@@ -265,7 +298,7 @@
         .hero-wrap {
             position: relative; overflow: hidden;
             background: var(--bg); border: 1px solid var(--border);
-            border-radius: 16px; padding: 3.5rem 2rem 3rem; margin: 0 0 2.5rem;
+            border-radius: var(--radius-lg); padding: 3.5rem 2rem 3rem; margin: 0 0 2.5rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 20px 40px -15px rgba(0,0,0,0.03);
         }
         .hero-wrap::before {
@@ -277,7 +310,7 @@
         .hero-badge {
             display: inline-flex; align-items: center; gap: 0.5rem;
             background: var(--sidebar-bg); border: 1px solid var(--border);
-            padding: 0.35rem 0.85rem; border-radius: 20px;
+            padding: 0.35rem 0.85rem; border-radius: var(--radius-full);
             font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);
             margin-bottom: 1.5rem;
         }
@@ -306,7 +339,7 @@
         .btn-try-playground {
             display: inline-flex; align-items: center; gap: 0.55rem;
             background: var(--accent-gradient); color: #ffffff;
-            padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 600;
+            padding: 0.75rem 1.6rem; border-radius: var(--radius-sm); font-weight: 600;
             font-size: 0.95rem; text-decoration: none; cursor: pointer;
             box-shadow: 0 4px 16px rgba(0, 112, 243, 0.35); transition: all 0.2s ease;
             border: none;
@@ -317,7 +350,7 @@
         .btn-secondary {
             display: inline-flex; align-items: center; gap: 0.5rem;
             background: var(--bg); color: var(--text); border: 1px solid var(--border);
-            padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 600;
+            padding: 0.75rem 1.4rem; border-radius: var(--radius-sm); font-weight: 600;
             font-size: 0.9rem; text-decoration: none; cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -326,7 +359,7 @@
         /* Interactive Install Terminal */
         .install-box {
             background: #0b0f17; border: 1px solid #1e293b;
-            border-radius: 12px; max-width: 680px; margin: 0 auto 2.5rem;
+            border-radius: var(--radius-md); max-width: 680px; margin: 0 auto 2.5rem;
             text-align: left; overflow: hidden;
             box-shadow: 0 12px 32px rgba(0,0,0,0.18);
         }
@@ -336,7 +369,7 @@
         }
         .install-tab {
             padding: 0.45rem 0.85rem; font-size: 0.78rem; font-weight: 500;
-            color: #94a3b8; background: transparent; border: none; border-radius: 6px;
+            color: #94a3b8; background: transparent; border: none; border-radius: var(--radius-sm);
             cursor: pointer; transition: all 0.15s ease;
         }
         .install-tab:hover { color: #f8fafc; }
@@ -355,7 +388,7 @@
         .install-copy-btn {
             display: flex; align-items: center; gap: 0.4rem;
             background: #1e293b; border: 1px solid #334155; color: #f8fafc;
-            padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.78rem;
+            padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.78rem;
             font-weight: 500; cursor: pointer; transition: all 0.2s ease;
             white-space: nowrap; flex-shrink: 0;
         }
@@ -365,7 +398,7 @@
         /* Mini-Try-It Live Runner on Homepage */
         .mini-runner {
             background: var(--sidebar-bg); border: 1px solid var(--border);
-            border-radius: 12px; max-width: 760px; margin: 0 auto;
+            border-radius: var(--radius-md); max-width: 760px; margin: 0 auto;
             text-align: left; overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
@@ -377,7 +410,7 @@
         .mini-tabs { display: flex; gap: 0.35rem; }
         .mini-tab {
             padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 500;
-            border-radius: 6px; border: 1px solid transparent; background: transparent;
+            border-radius: var(--radius-sm); border: 1px solid transparent; background: transparent;
             color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;
         }
         .mini-tab.active {
@@ -387,7 +420,7 @@
         .mini-run-btn {
             display: inline-flex; align-items: center; gap: 0.4rem;
             background: #10b981; color: #fff; border: none;
-            padding: 0.35rem 0.85rem; border-radius: 6px; font-size: 0.78rem;
+            padding: 0.35rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.78rem;
             font-weight: 600; cursor: pointer; transition: all 0.2s ease;
         }
         .mini-run-btn:hover { background: #059669; }
@@ -411,39 +444,72 @@
         }
         .mini-console .system { color: #64748b; font-style: italic; }
 
-        /* 6 Architecture Guarantees (Feature Pillars) */
-        .pillars-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
-            margin: 3rem 0;
+        /* Editorial homepage sections (replaces the old uniform icon-card grid) */
+        .home-section { margin: 4rem 0; }
+        .home-section-head { max-width: 640px; margin-bottom: 1.5rem; }
+        .home-section-head h2 {
+            font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+            color: var(--text); margin-bottom: 0.4rem;
         }
-        @media (max-width: 900px) { .pillars-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .pillars-grid { grid-template-columns: 1fr; } }
-        .pillar-card {
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 12px; padding: 1.35rem; text-align: left;
-            transition: all 0.2s ease; position: relative;
+        .home-section-head p { font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+        /* Pipeline strip */
+        .pipeline-strip {
+            display: flex; align-items: stretch; gap: 0; flex-wrap: wrap;
+            border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;
         }
-        .pillar-card:hover {
-            border-color: var(--accent); transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        .pipeline-step {
+            flex: 1 1 140px; padding: 1.1rem 1rem; text-align: center;
+            background: var(--bg); position: relative;
         }
-        .pillar-icon {
-            width: 40px; height: 40px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; margin-bottom: 0.85rem;
+        .pipeline-step + .pipeline-step { border-left: 1px solid var(--border); }
+        .pipeline-step .step-num {
+            font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent);
+            font-weight: 700; display: block; margin-bottom: 0.35rem;
         }
-        .pillar-icon.bin  { background: #eff6ff; color: #2563eb; }
-        .pillar-icon.gui  { background: #f0fdf4; color: #16a34a; }
-        .pillar-icon.type { background: #f5f3ff; color: #7c3aed; }
-        .pillar-icon.tool { background: #fff7ed; color: #ea580c; }
-        .pillar-icon.git  { background: #fdf2f8; color: #db2777; }
-        .pillar-icon.sec  { background: #ecfeff; color: #0891b2; }
-        .pillar-card h3 {
-            font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem;
+        .pipeline-step .step-name { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+        .pipeline-note {
+            padding: 0.9rem 1.25rem; font-size: 0.82rem; color: var(--text-secondary);
+            background: var(--sidebar-bg); border-top: 1px solid var(--border);
+            flex-basis: 100%; text-align: left;
         }
-        .pillar-card p {
-            font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin: 0;
+        .pipeline-note strong { color: var(--text); }
+
+        /* Code + explanation split */
+        .split-feature {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;
         }
+        @media (max-width: 760px) { .split-feature { grid-template-columns: 1fr; } }
+        .split-feature.reverse .split-code { order: 2; }
+        .split-feature.reverse .split-copy { order: 1; }
+        .split-code pre {
+            background: var(--code-bg); color: var(--code-text); border-radius: var(--radius-md);
+            padding: 1.1rem 1.25rem; overflow-x: auto; margin: 0; font-size: 0.8rem; line-height: 1.6;
+            border: 1px solid var(--border); font-family: var(--font-mono);
+        }
+        .split-code .nv-kw { color: #ff79c6; }
+        .split-code .nv-str { color: #50fa7b; }
+        .split-code .nv-num { color: #bd93f9; }
+        .split-code .nv-cmt { color: #6272a4; font-style: italic; }
+        .split-copy h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 0.6rem; }
+        .split-copy p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 0.6rem; }
+        .split-copy ul { margin: 0 0 0.6rem 1.1rem; padding: 0; }
+        .split-copy li { font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.3rem; }
+
+        /* Package ecosystem teaser */
+        .pkg-teaser-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        @media (max-width: 760px) { .pkg-teaser-grid { grid-template-columns: 1fr; } }
+        .pkg-teaser-card {
+            border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.1rem;
+            background: var(--bg); text-decoration: none; display: block; transition: all var(--transition-base);
+        }
+        .pkg-teaser-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .pkg-teaser-card .pkg-teaser-head {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;
+        }
+        .pkg-teaser-card .pkg-teaser-name { font-weight: 700; color: var(--text); font-size: 0.92rem; }
+        .pkg-teaser-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+        .pkg-teaser-loading { font-size: 0.85rem; color: var(--text-tertiary); padding: 1rem 0; }
 
         footer {
             border-top: 1px solid var(--border); padding: 1.75rem 2rem;
@@ -473,7 +539,10 @@
             </svg>
             Galaxy
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
             <a class="nav-link active" onclick="switchNav('view-home');return false;">Home</a>
             <a class="nav-link" onclick="switchNav('view-getting-started');return false;">Quick Start</a>
             <a class="nav-link" onclick="switchNav('view-libraries');return false;">Packages</a>
@@ -488,7 +557,7 @@
         </div>
     </nav>
 
-    <div class="container">
+    <main class="container">
         <!-- ===== VIEW: HOME ===== -->
         <section id="view-home" class="view-section active">
             <div class="hero-wrap">
@@ -498,7 +567,7 @@
                     </div>
                     <h1 class="hero-title">The Native Language with <span class="accent">Desktop GUI Built-in</span></h1>
                     <p class="hero-desc">
-                        Pythonic ergonomics, C-speed native machine code (<250KB binaries), and 60 FPS Win32 double-buffered declarative desktop graphics. Built with a self-hosted compiler and verifiable Git-backed package ecosystem.
+                        Pythonic ergonomics, native x86_64/ARM64 machine code compilation, and a built-in Win32 double-buffered GUI framework targeting 60 FPS frame pacing. Built with a self-hosted compiler and a Git-backed package ecosystem.
                     </p>
 
                     <!-- Primary CTAs -->
@@ -559,45 +628,81 @@
                 </div>
             </div>
 
-            <!-- 6 Architecture Guarantees (Feature Pillars) -->
-            <div class="pillars-grid">
-                <div class="pillar-card">
-                    <div class="pillar-icon bin">&#9881;</div>
-                    <h3>Direct Native Binaries</h3>
-                    <p>Compiles directly to optimized x86_64 / ARM64 machine code via GCC with sub-250KB executables and zero C-runtime dependency.</p>
+            <!-- How Nova compiles: pipeline + self-hosting -->
+            <section class="home-section">
+                <div class="home-section-head">
+                    <h2>A self-hosted compiler pipeline</h2>
+                    <p>Nova's own compiler is written in Nova. The pipeline below is what actually runs, both for the Python bootstrap and the self-hosted build.</p>
                 </div>
-                <div class="pillar-card">
-                    <div class="pillar-icon gui">&#128187;</div>
-                    <h3>Native 60 FPS Win32 GUI</h3>
-                    <p>Built-in double-buffered Win32 GDI engine with reactive state management, NSS CSS-like stylesheets, and zero electron bloat.</p>
+                <div class="pipeline-strip">
+                    <div class="pipeline-step"><span class="step-num">01</span><span class="step-name">Lexer</span></div>
+                    <div class="pipeline-step"><span class="step-num">02</span><span class="step-name">Parser</span></div>
+                    <div class="pipeline-step"><span class="step-num">03</span><span class="step-name">Type Checker</span></div>
+                    <div class="pipeline-step"><span class="step-num">04</span><span class="step-name">Codegen (x86_64 / ARM64)</span></div>
+                    <div class="pipeline-step"><span class="step-num">05</span><span class="step-name">Linker</span></div>
+                    <div class="pipeline-note"><strong>Self-hosting is verified, not assumed:</strong> Nova rebuilds itself across three stages, and Stage&nbsp;2's generated assembly is checked byte-identical to Stage&nbsp;3's before a release is trusted. <a href="compiler-architecture.html" style="color:var(--accent);">Read how this works &rarr;</a></div>
                 </div>
-                <div class="pillar-card">
-                    <div class="pillar-icon type">&#9889;</div>
-                    <h3>Pythonic Static Typing</h3>
-                    <p>Clean expressions with Hindley-Milner static type inference, algebraic data types, pattern matching, and zero runtime surprises.</p>
+            </section>
+
+            <!-- Native compilation + typing -->
+            <section class="home-section">
+                <div class="split-feature">
+                    <div class="split-code">
+                        <pre><code>def add(a: int, b: int) -> int {
+    return a + b
+}
+print(add(3, 4))
+<span class="nv-cmt"># $ nova build add.nv &amp;&amp; ./add
+# 7</span></code></pre>
+                    </div>
+                    <div class="split-copy">
+                        <h3>Native binaries, statically typed</h3>
+                        <p>Nova compiles directly to x86_64 or ARM64 machine code via GCC — x86_64 is the primary, fully-verified backend; ARM64 is a secondary backend.</p>
+                        <ul>
+                            <li>Static type inference and enums, checked before codegen</li>
+                            <li>Simple CLI programs typically compile under 150KB</li>
+                            <li>GUI applications are typically under 300KB</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="pillar-card">
-                    <div class="pillar-icon tool">&#128736;</div>
-                    <h3>Nova Studio &amp; Tooling</h3>
-                    <p>Complete self-hosted developer toolchain including Nova Studio IDE, integrated Particle Sandbox, Nova LSP, and <code>nova run/build</code>.</p>
+            </section>
+
+            <!-- GUI framework -->
+            <section class="home-section">
+                <div class="split-feature reverse">
+                    <div class="split-code">
+                        <pre><code><span class="nv-kw">import</span> gui
+
+app = gui.App(<span class="nv-str">"My App"</span>, <span class="nv-num">640</span>, <span class="nv-num">480</span>)
+col = gui.Column()
+col.add(gui.Title(<span class="nv-str">"Hello World!"</span>))
+col.add(gui.Button(<span class="nv-str">"Click Me!"</span>, <span class="nv-str">"on_click"</span>))
+app.set_root(col)
+app.run()</code></pre>
+                    </div>
+                    <div class="split-copy">
+                        <h3>A GUI framework, built in</h3>
+                        <p>No Electron runtime, no separate toolkit to install. <code>import gui</code> gives you a declarative widget tree, reactive state, and NSS (a CSS-like stylesheet system), rendered through a double-buffered Win32 GDI engine targeting 60 FPS frame pacing.</p>
+                    </div>
                 </div>
-                <div class="pillar-card">
-                    <div class="pillar-icon git">&#128230;</div>
-                    <h3>Git-Backed Package Registry</h3>
-                    <p>Decentralized and transparent package ecosystem hosted on GitHub. Package audits and releases are community-verified with no closed databases.</p>
+            </section>
+
+            <!-- Package ecosystem -->
+            <section class="home-section">
+                <div class="home-section-head">
+                    <h2>Signed, checksummed packages</h2>
+                    <p>Ed25519 signatures and SHA-256 checksums are verified by default on install (verification can be disabled for local development via an explicit opt-out flag). Here's what's on Galaxy right now:</p>
                 </div>
-                <div class="pillar-card">
-                    <div class="pillar-icon sec">&#128274;</div>
-                    <h3>Cryptographic Provenance</h3>
-                    <p>Ed25519 digital signatures and SHA-256 integrity checksums guarantee tamper-proof package distribution and supply chain security.</p>
+                <div class="pkg-teaser-grid" id="home-pkg-teaser">
+                    <div class="pkg-teaser-loading">Loading packages&hellip;</div>
                 </div>
-            </div>
+            </section>
         </section>
 
         <!-- ===== VIEW: GETTING STARTED ===== -->
         <section id="view-getting-started" class="view-section">
             <div class="prose" style="max-width:760px;margin:0 auto;">
-                <h1>Get Started with Nova &amp; Galaxy</h1>
+                <h2>Get Started with Nova &amp; Galaxy</h2>
                 <p>Install the native compiler and package manager in 60 seconds.</p>
 
                 <h2>1. Install the Nova Toolchain</h2>
@@ -641,7 +746,7 @@ galaxy publish                # Publish with SHA-256 integrity</code></pre>
         <!-- ===== VIEW: LIBRARIES (PACKAGE CATALOG) ===== -->
         <section id="view-libraries" class="view-section">
             <div style="margin-bottom:1.5rem;">
-                <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:0.25rem;">Package Registry</h1>
+                <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:0.25rem;">Package Registry</h2>
                 <p style="color:var(--text-secondary);font-size:0.92rem;">Explore verified, core, and community packages with cryptographic provenance.</p>
             </div>
             <div class="tier-tabs" id="tier-tabs">
@@ -653,7 +758,7 @@ galaxy publish                # Publish with SHA-256 integrity</code></pre>
             <div class="search-row">
                 <div class="search-container">
                     <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="pkg-search" class="search-input" placeholder="Search by name, description, or keywords... (Press / to focus)" onkeyup="filterPackages()">
+                    <input type="text" id="pkg-search" class="search-input" placeholder="Search by name, description, or keywords... (Press / to focus)" oninput="filterPackages()" aria-label="Search packages by name, description, or keywords">
                     <span class="search-kbd-hint">/</span>
                 </div>
                 <select id="pkg-sort" class="sort-select" onchange="filterPackages()">
@@ -683,7 +788,7 @@ galaxy publish                # Publish with SHA-256 integrity</code></pre>
                 </div>
 
                 <div class="pkg-header">
-                    <h1><span id="detail-name"></span> <span id="detail-tier-badge" class="tier-badge"></span></h1>
+                    <h2><span id="detail-name"></span> <span id="detail-tier-badge" class="tier-badge"></span></h2>
                     <div class="pkg-subtitle" id="detail-description"></div>
                     <div class="keyword-list" id="detail-keywords"></div>
                     <div class="pkg-meta-row">
@@ -808,6 +913,7 @@ galaxy publish                # Publish with SHA-256 integrity</code></pre>
                             <ul class="meta-list">
                                 <li><a href="#" id="detail-repo" target="_blank">GitHub Repository &nearr;</a></li>
                                 <li><a href="#" id="detail-github-issues" target="_blank">Issue Tracker &nearr;</a></li>
+                                <li><a href="#" id="detail-shareable-link">Shareable Page Link &nearr;</a></li>
                             </ul>
                         </div>
 
@@ -823,7 +929,7 @@ galaxy publish                # Publish with SHA-256 integrity</code></pre>
         <!-- ===== VIEW: CONTRIBUTE ===== -->
         <section id="view-contribute" class="view-section">
             <div class="prose" style="max-width:760px;margin:0 auto;">
-                <h1>Publish &amp; Contribute to Galaxy</h1>
+                <h2>Publish &amp; Contribute to Galaxy</h2>
                 <p>Galaxy is an open, Git-backed package registry for the Nova language. Anyone can create and publish a package.</p>
 
                 <h2>Trust Tiers</h2>
@@ -847,7 +953,7 @@ galaxy publish                # Publish with SHA-256 integrity</code></pre>
                 </div>
             </div>
         </section>
-    </div>
+    </main>
 
     <footer>
         <div class="footer-inner">
@@ -1142,6 +1248,7 @@ Upper: SYSTEMS PROGRAMMING MADE SIMPLE`
                     const repo = safeRepo(data.github_repo);
                     document.getElementById('detail-repo').href = repo ? `https://github.com/${repo}` : '#';
                     document.getElementById('detail-github-issues').href = repo ? `https://github.com/${repo}/issues` : '#';
+                    document.getElementById('detail-shareable-link').href = `packages/${encodeURIComponent(name)}.html`;
 
                     const tc = document.getElementById('detail-tags');
                     tc.innerHTML = '';
@@ -1204,7 +1311,7 @@ Upper: SYSTEMS PROGRAMMING MADE SIMPLE`
                     const exContainer = document.getElementById('detail-examples');
                     if (data.examples && data.examples.length > 0) {
                         exContainer.innerHTML = '<div class="prose">' + data.examples.map(ex => `
-                            <div class="example-card" style="border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;overflow:hidden;">
+                            <div class="example-card" style="border:1px solid var(--border);border-radius: var(--radius-sm);margin-bottom:1rem;overflow:hidden;">
                                 <div style="padding:0.6rem 1rem;font-size:0.85rem;font-weight:600;background:var(--sidebar-bg);border-bottom:1px solid var(--border);">${escapeHtml(ex.title)}</div>
                                 <pre style="margin:0;background:var(--code-bg);color:#e4e4e7;padding:1rem 1.25rem;overflow-x:auto;font-size:0.8rem;line-height:1.5;"><code>${escapeHtml(ex.code)}</code></pre>
                             </div>
@@ -1266,10 +1373,33 @@ Upper: SYSTEMS PROGRAMMING MADE SIMPLE`
             }, 2000);
         }
 
+        function renderHomeTeaser() {
+            const el = document.getElementById('home-pkg-teaser');
+            if (!el) return;
+            const top = allPackages.slice().sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0)).slice(0, 3);
+            if (top.length === 0) {
+                el.innerHTML = '<div class="pkg-teaser-loading">No packages published yet.</div>';
+                return;
+            }
+            el.innerHTML = top.map(p => `
+                <a class="pkg-teaser-card" href="packages/${encodeURIComponent(p.name)}.html">
+                    <div class="pkg-teaser-head">
+                        <span class="pkg-teaser-name">${escapeHtml(p.name)}</span>
+                        ${makeTierBadge(escapeHtml(p.tier))}
+                    </div>
+                    <p>${escapeHtml(p.description)}</p>
+                </a>
+            `).join('');
+        }
+
         fetch('/packages/index.json')
             .then(r => r.json())
-            .then(data => { allPackages = data.packages || []; renderGrid(); })
-            .catch(() => { document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to registry.</div>'; });
+            .then(data => { allPackages = data.packages || []; renderGrid(); renderHomeTeaser(); })
+            .catch(() => {
+                document.getElementById('package-grid').innerHTML = '<div class="loading error-text">Failed to connect to registry.</div>';
+                const el = document.getElementById('home-pkg-teaser');
+                if (el) el.innerHTML = '<div class="pkg-teaser-loading">Failed to connect to registry.</div>';
+            });
     </script>
 </body>
 </html>

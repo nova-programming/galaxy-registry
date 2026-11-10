@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>nova-http — Galaxy</title>
+    <meta name="description" content="High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/packages/nova-http.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="nova-http — Galaxy">
+    <meta property="og:description" content="High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/packages/nova-http.html">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="nova-http — Galaxy">
+    <meta name="twitter:description" content="High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link rel="stylesheet" href="../theme.css">
+    <script src="../theme.js"></script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "SoftwareSourceCode", "name": "nova-http", "description": "High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.", "programmingLanguage": "Nova", "url": "https://galaxy-registry.vercel.app/packages/nova-http.html", "version": "1.0.2", "license": "MIT", "codeRepository": "https://github.com/nova-programming/nova-http", "author": {"@type": "Organization", "name": "Nova Core Team"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://galaxy-registry.vercel.app/"}, {"@type": "ListItem", "position": 2, "name": "Packages", "item": "https://galaxy-registry.vercel.app/packages/index.html"}, {"@type": "ListItem", "position": 3, "name": "nova-http", "item": "https://galaxy-registry.vercel.app/packages/nova-http.html"}]}]}</script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: var(--leading-normal); }
+        nav.top-nav {
+            position: sticky; top: 0; z-index: var(--z-nav);
+            background: var(--nav-bg); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; height: 60px;
+        }
+        .nav-brand { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.03em; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; }
+        .nav-brand svg { width: 22px; height: 22px; }
+        .nav-links { display: flex; gap: 1.75rem; align-items: center; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text); }
+        main.pkg-main { max-width: var(--content-width-doc); margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+        .breadcrumbs { margin-bottom: 1.5rem; }
+        .pkg-head { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+        .pkg-head h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; }
+        .tier-badge { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); text-transform: uppercase; }
+        .tier-badge.core { background: var(--core-bg); color: var(--core); }
+        .tier-badge.verified { background: var(--verified-bg); color: var(--verified); }
+        .tier-badge.community { background: var(--community-bg); color: var(--community); }
+        .pkg-desc { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; max-width: 640px; }
+        .keyword-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .keyword { font-size: 0.78rem; background: var(--sidebar-bg); border: 1px solid var(--border); padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); color: var(--text-secondary); }
+        .install-row { display: flex; align-items: center; gap: 0.5rem; background: var(--code-bg); color: var(--code-text); border-radius: var(--radius-md); padding: 0.85rem 1.1rem; font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 2rem; max-width: 640px; }
+        .install-row button { margin-left: auto; background: transparent; border: 1px solid #30363d; color: inherit; border-radius: var(--radius-sm); padding: 0.3rem 0.7rem; font-size: 0.75rem; cursor: pointer; }
+        .install-row button:hover { border-color: var(--accent); color: var(--accent); }
+        .pkg-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2.5rem; align-items: start; }
+        @media (max-width: 760px) { .pkg-grid { grid-template-columns: 1fr; } }
+        .pkg-section { margin-bottom: 2rem; }
+        .pkg-section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+        .pkg-readme { font-size: 0.92rem; color: var(--text-secondary); }
+        .pkg-readme :is(h1,h2,h3) { color: var(--text); margin: 1rem 0 0.5rem; }
+        .pkg-readme p { margin-bottom: 0.75rem; }
+        .pkg-readme pre { background: var(--code-bg); color: var(--code-text); padding: 1rem 1.25rem; border-radius: var(--radius-md); overflow-x: auto; font-size: 0.82rem; margin-bottom: 0.75rem; }
+        .pkg-readme code { font-family: var(--font-mono); }
+        .meta-list { list-style: none; font-size: 0.85rem; }
+        .meta-list li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-subtle); }
+        .meta-list span:first-child { color: var(--text-tertiary); }
+        .dep-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .dep-list a { font-size: 0.8rem; background: var(--sidebar-bg); border: 1px solid var(--border); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); color: var(--accent); text-decoration: none; }
+        .dep-list a:hover { border-color: var(--accent); }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .data-table th { text-align: left; padding: 0.4rem 0.6rem; background: var(--sidebar-bg); border-bottom: 2px solid var(--border); }
+        .data-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary); }
+        .security-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.1rem; font-size: 0.82rem; }
+        .security-card div { display: flex; justify-content: space-between; padding: 0.3rem 0; }
+        footer { border-top: 1px solid var(--border); padding: 1.75rem 2rem; background: var(--sidebar-bg); }
+        .footer-inner { max-width: 1040px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-tertiary); }
+        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links a { color: var(--text-tertiary); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="nav-brand" href="../index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            Galaxy
+        </a>
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
+            <a href="index.html">Packages</a>
+            <a href="../documentation.html">Docs</a>
+            <a href="../reference.html">Reference</a>
+            <a href="../examples.html">Examples</a>
+            <a href="../playground.html">Playground</a>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light theme">&#9789;</button>
+        </div>
+    </nav>
+
+    <main class="pkg-main">
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span><a href="index.html">Packages</a><span class="sep">/</span><span class="current">nova-http</span>
+        </nav>
+
+        <div class="pkg-head">
+            <h1>nova-http</h1>
+            <span class="tier-badge verified">Verified</span>
+        </div>
+        <p class="pkg-desc">High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.</p>
+        <div class="keyword-list"><span class="keyword">network</span><span class="keyword">http</span><span class="keyword">api</span><span class="keyword">rest</span><span class="keyword">client</span></div>
+
+        <div class="install-row">
+            <span>$ galaxy install nova-http</span>
+            <button type="button" onclick="navigator.clipboard.writeText('galaxy install nova-http')">Copy</button>
+        </div>
+
+        <div class="pkg-grid">
+            <div>
+                <section class="pkg-section">
+                    <h2>Overview</h2>
+                    <div class="pkg-readme" id="readme">
+                        <p>High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.</p>
+                        <p>See the <a href="https://github.com/nova-programming/nova-http" target="_blank" rel="noopener">GitHub repository</a> for full documentation.</p>
+                    </div>
+                </section>
+
+                <section class="pkg-section"><h2>Release history</h2><table class="data-table"><thead><tr><th>Version</th><th>SHA-256</th></tr></thead><tbody><tr><td>v1.1.0</td><td>d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9</td></tr><tr><td>v1.0.2</td><td>c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f</td></tr><tr><td>v1.0.1</td><td>b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e</td></tr><tr><td>v1.0.0</td><td>a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d</td></tr></tbody></table></section>
+            </div>
+
+            <div>
+                <section class="pkg-section">
+                    <h2>Package info</h2>
+                    <ul class="meta-list">
+                        <li><span>Version</span><span>1.0.2</span></li>
+                        <li><span>Author</span><span>Nova Core Team</span></li>
+                        <li><span>License</span><span>MIT</span></li>
+                        <li><span>Upvotes</span><span>&#9650; 47</span></li>
+                    </ul>
+                </section>
+
+                <section class="pkg-section">
+                    <h2>Security &amp; provenance</h2>
+                    <div class="security-card">
+                        <div><span>Signature</span><span>Verified by Core Signers</span></div>
+                        <div><span>Status</span><span>Clean &middot; No Active Advisories</span></div>
+                    </div>
+                </section>
+
+                <section class="pkg-section"><h2>Dependencies</h2><div class="dep-list"><a href="nova-math.html">nova-math</a></div></section>
+
+                <section class="pkg-section"><h2>Links</h2><p style="font-size:0.85rem;"><a href="https://github.com/nova-programming/nova-http" target="_blank" rel="noopener">Repository</a> &middot; <a href="https://github.com/nova-programming/galaxy-registry/issues/12" target="_blank" rel="noopener">Discussion</a></p></section>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <span>&copy; 2026 Nova Programming Language</span>
+            <div class="footer-links">
+                <a href="../documentation.html">Docs</a>
+                <a href="../reference.html">Reference</a>
+                <a href="../examples.html">Examples</a>
+                <a href="../playground.html">Playground</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Progressive enhancement only: replaces the static overview paragraph with the
+        // package's real README when it can be fetched, exactly like the registry's
+        // package-detail view does. If the fetch fails (private/renamed/placeholder repo),
+        // the static server-rendered description above stays as-is -- nothing is lost.
+        fetch("https://raw.githubusercontent.com/nova-programming/nova-http/main/README.md")
+            .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+            .then(md => { document.getElementById('readme').innerHTML = DOMPurify.sanitize(marked.parse(md)); })
+            .catch(() => { /* keep the static server-rendered description */ });
+    </script>
+</body>
+</html>

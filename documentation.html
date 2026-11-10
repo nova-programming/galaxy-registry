@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Nova Language Documentation — Galaxy Registry</title>
+    <meta name="description" content="Complete documentation for the Nova programming language: syntax, standard library, type system, GUI framework, self-hosted compiler, and the Galaxy package manager.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/documentation.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="Nova Language Documentation — Galaxy Registry">
+    <meta property="og:description" content="Complete documentation for the Nova programming language: syntax, standard library, type system, GUI framework, self-hosted compiler, and the Galaxy package manager.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/documentation.html">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nova Language Documentation — Galaxy Registry">
+    <meta name="twitter:description" content="Complete documentation for the Nova programming language: syntax, stdlib, type system, GUI framework, and compiler internals.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -116,7 +129,7 @@
             margin-top: 2.5rem; margin-bottom: 0.75rem;
             border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
         }
-        .doc-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: #1a1a2e; }
+        .doc-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: var(--text); }
         .doc-content p { margin-bottom: 1rem; color: var(--text-secondary); }
         .doc-content ul, .doc-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
         .doc-content li { margin-bottom: 0.4rem; color: var(--text-secondary); }
@@ -127,12 +140,12 @@
         .doc-content code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82em; background: #f0f0f2;
-            padding: 0.15em 0.4em; border-radius: 4px;
+            padding: 0.15em 0.4em; border-radius: var(--radius-sm);
             color: #e03e8a;
         }
         .doc-content pre {
             background: var(--code-bg); color: var(--code-text);
-            padding: 1.25rem 1.5rem; border-radius: 8px;
+            padding: 1.25rem 1.5rem; border-radius: var(--radius-sm);
             overflow-x: auto; margin: 1.25rem 0;
             font-size: 0.82rem; line-height: 1.6;
             border: 1px solid #1a1a2e;
@@ -149,10 +162,9 @@
         .nv-fn { color: var(--builtin); }
         .nv-type { color: #8be9fd; }
         .nv-op { color: #f1fa8c; }
-        .hljs { color: var(--code-text); }
         /* -- Callouts -- */
         .callout {
-            padding: 1rem 1.25rem; border-radius: 6px;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm);
             margin: 1.25rem 0; border-left: 4px solid;
             font-size: 0.9rem;
         }
@@ -182,7 +194,7 @@
         .accent-text { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .inline-code-badge {
             display: inline-block; background: #f0f0f2;
-            padding: 0.15em 0.5em; border-radius: 4px;
+            padding: 0.15em 0.5em; border-radius: var(--radius-sm);
             font-family: 'JetBrains Mono', monospace; font-size: 0.8em;
         }
 
@@ -208,7 +220,10 @@
             </svg>
             Galaxy
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
             <a href="index.html?view=view-libraries">Packages</a>
             <a href="documentation.html" class="active">Documentation</a>
             <a href="reference.html">Reference</a>
@@ -222,8 +237,11 @@
 
     <div class="doc-layout">
         <nav class="doc-sidebar" id="sidebar">
-            <h4>Contents</h4>
-            <ul>
+            <div class="doc-sidebar-head" role="button" tabindex="0" aria-expanded="false" aria-controls="sidebar-list" onclick="toggleDocSidebar(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDocSidebar(this);}">
+                <h4 style="margin-bottom:0;">Contents</h4>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <ul id="sidebar-list">
                 <li><a href="#intro">Introduction</a></li>
                 <li><a href="#quickstart">Quick Start</a></li>
                 <li class="section-gap"><a href="#philosophy">Why Nova?</a></li>
@@ -251,10 +269,10 @@
             </ul>
         </nav>
 
-        <div class="doc-content">
+        <main class="doc-content">
 
             <h1 id="intro" style="margin-top:0;">Nova Language Documentation</h1>
-            <p>Welcome to the official Nova documentation. Nova is a systems programming language with a self-hosted compiler, VM execution mode, and native x86_64 and ARM64 targets. It combines C-like control with Python-like readability.</p>
+            <p>Welcome to the official Nova documentation. Nova is a systems programming language with a self-hosted compiler, a VM execution mode, and native code generation for x86_64 (the primary, fully-verified backend) and ARM64 (a secondary backend). It combines C-like control with Python-like readability.</p>
 
             <!-- ========== QUICK START ========== -->
             <h2 id="quickstart">Quick Start</h2>
@@ -860,7 +878,7 @@ galaxy install pkg</code></pre>
             <pre><code>import nova_py
 import math_lib # Automatically compiles math_lib.nv and loads it natively!
 
-# Call Nova's C-speed functions natively from Python
+# Call Nova's compiled native functions from Python
 result = math_lib.calculate_fibonacci(40)
 print(result)</code></pre>
             <div class="callout callout-tip">
@@ -912,7 +930,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
             <p>The entire pipeline runs in a single process. No external tools are invoked.</p>
 
             <h3>Self-Hosting</h3>
-            <p>The Nova compiler is self-hosted — the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself.</p>
+            <p>The Nova compiler is self-hosted — the compiler can compile its own source code. The Python bootstrap compiler was used to build the first binary, which can then compile all future versions of the compiler written in Nova itself. See <a href="compiler-architecture.html">how this is verified, not just claimed &rarr;</a></p>
 
             <!-- ========== PERFORMANCE ========== -->
             <h2 id="performance">Performance Tips</h2>
@@ -930,7 +948,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 Benchmark results depend on workload, compiler version, target, and build settings. Measure your own workload before making performance claims.
             </div>
 
-        </div>
+        </main>
     </div>
 
     <script>
@@ -979,8 +997,7 @@ elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
                 <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
                 <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
                 <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
-            <a class="nav-link" href="playground.html">Playground</a>
-                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+                <a href="playground.html" style="color:var(--text-tertiary);text-decoration:none;">Playground</a>
             </div>
         </div>
     </footer>

@@ -6,12 +6,12 @@
   "currentVersion": "0.9.5",
   "newestVersion": "0.9.5",
   "author": "Nova Core Team",
-  "description": "Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.",
+  "description": "Fast math helpers, a seedable xorshift64 PRNG (not cryptographically secure), and advanced linear algebra structs.",
   "keywords": [
-    "crypto",
     "math",
     "random",
-    "chacha20",
+    "prng",
+    "xorshift",
     "linear-algebra"
   ],
   "license": "MIT",
@@ -35,12 +35,12 @@
   },
   "examples": [
     {
-      "title": "Generate secure random number",
-      "code": "salt = random()\nprint(salt)  # 2049917523"
+      "title": "Generate a pseudo-random number",
+      "code": "n = random()\nprint(n)  # 2049917523"
     },
     {
-      "title": "ChaCha20 encryption",
-      "code": "key = 0x12345678\ncounter = 0x9abcdef0\nstate = chacha20_init(key, counter)\nblock = chacha20_block(state)\nprint(block)"
+      "title": "xorshift64 generator (legacy chacha20_* function names, not actual ChaCha20)",
+      "code": "seed1 = 0x12345678\nseed2 = 0x9abcdef0\nstate = chacha20_init(seed1, seed2)\nblock = chacha20_block(state)\nprint(block)"
     }
   ],
   "download_url": "https://github.com/nova-programming/nova-math/archive/refs/heads/main.zip",

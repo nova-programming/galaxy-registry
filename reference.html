@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Nova Language Reference — Galaxy Registry</title>
+    <meta name="description" content="A concise syntax and standard-library reference for Nova — types, control flow, classes, modules, and built-in functions at a glance.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/reference.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="Nova Language Reference — Galaxy Registry">
+    <meta property="og:description" content="A concise syntax and standard-library reference for Nova — types, control flow, classes, modules, and built-in functions at a glance.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/reference.html">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nova Language Reference — Galaxy Registry">
+    <meta name="twitter:description" content="A concise syntax and standard-library reference for Nova, at a glance.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -105,12 +118,12 @@
         .doc-content code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82em; background: #f0f0f2;
-            padding: 0.15em 0.4em; border-radius: 4px;
+            padding: 0.15em 0.4em; border-radius: var(--radius-sm);
             color: #e03e8a;
         }
         .doc-content pre {
             background: var(--code-bg); color: var(--code-text);
-            padding: 1rem 1.25rem; border-radius: 8px;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm);
             overflow-x: auto; margin: 0.75rem 0;
             font-size: 0.8rem; line-height: 1.5;
         }
@@ -137,7 +150,7 @@
         .nv-fn { color: var(--builtin); }
         .nv-type { color: #8be9fd; }
         .callout {
-            padding: 0.75rem 1rem; border-radius: 6px;
+            padding: 0.75rem 1rem; border-radius: var(--radius-sm);
             margin: 1rem 0; border-left: 4px solid;
             font-size: 0.85rem;
         }
@@ -155,7 +168,7 @@
             font-size: 0.8rem; color: var(--text-tertiary);
         }
         .ref-card {
-            border: 1px solid var(--border); border-radius: 8px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
             padding: 1.25rem; margin-bottom: 1.25rem;
         }
         .ref-card h3 { margin-top: 0; }
@@ -179,7 +192,10 @@
             </svg>
             Galaxy
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
             <a href="index.html?view=view-libraries">Packages</a>
             <a href="documentation.html">Docs</a>
             <a href="reference.html" class="active">Reference</a>
@@ -193,8 +209,11 @@
 
     <div class="doc-layout">
         <nav class="doc-sidebar" id="sidebar">
-            <h4>Reference</h4>
-            <ul>
+            <div class="doc-sidebar-head" role="button" tabindex="0" aria-expanded="false" aria-controls="sidebar-list" onclick="toggleDocSidebar(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDocSidebar(this);}">
+                <h4 style="margin-bottom:0;">Reference</h4>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <ul id="sidebar-list">
                 <li><a href="#syntax">Syntax Summary</a></li>
                 <li><a href="#types">Type System</a></li>
                 <li><a href="#operators">Operators</a></li>
@@ -213,7 +232,7 @@
             </ul>
         </nav>
 
-        <div class="doc-content">
+        <main class="doc-content">
             <h1>Nova Language Reference</h1>
             <p>Quick-reference for the Nova programming language syntax, types, operators, and built-ins.</p>
 
@@ -765,7 +784,7 @@ type            = "int" | "byte" | "float" | "string" | "bool" | "void" | "list"
                 <a href="examples.html">Nova Examples</a> &mdash; runnable programs demonstrating these features in practice.
             </div>
 
-        </div>
+        </main>
     </div>
 
     <script>
@@ -795,8 +814,7 @@ type            = "int" | "byte" | "float" | "string" | "bool" | "void" | "list"
                 <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
                 <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
                 <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
-            <a class="nav-link" href="playground.html">Playground</a>
-                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+                <a href="playground.html" style="color:var(--text-tertiary);text-decoration:none;">Playground</a>
             </div>
         </div>
     </footer>

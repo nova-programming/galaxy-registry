@@ -2,12 +2,12 @@
   "packages": [
     {
       "name": "nova-math",
-      "description": "Fast cryptographic functions, ChaCha20 PRNG helpers, and advanced linear algebra structs.",
+      "description": "Fast math helpers, a seedable xorshift64 PRNG (not cryptographically secure), and advanced linear algebra structs.",
       "version": "0.9.5",
       "currentVersion": "0.9.5",
       "newestVersion": "0.9.5",
       "tier": "core",
-      "keywords": ["crypto", "math", "random", "chacha20", "linear-algebra"],
+      "keywords": ["math", "random", "prng", "xorshift", "linear-algebra"],
       "upvotes": 83,
       "flags": 0,
       "author": "Nova Core Team"

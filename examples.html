@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Nova Examples — Galaxy Registry</title>
+    <meta name="description" content="Runnable Nova code examples covering syntax, data structures, file I/O, error handling, and more — each with real, verified output.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/examples.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="Nova Examples — Galaxy Registry">
+    <meta property="og:description" content="Runnable Nova code examples covering syntax, data structures, file I/O, error handling, and more — each with real, verified output.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/examples.html">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nova Examples — Galaxy Registry">
+    <meta name="twitter:description" content="Runnable Nova code examples with real, verified output.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -89,6 +102,9 @@
         }
         .sidebar a:hover, .sidebar a.active { color: var(--accent); font-weight: 500; }
         .sidebar .section-gap { margin-top: 0.75rem; }
+        @media (max-width: 860px) {
+            .sidebar { position: relative; top: 0; border-right: none; border-bottom: 1px solid var(--border); padding: 1.25rem; }
+        }
         .content {
             padding: 2.5rem 3rem; max-width: 960px; min-width: 0;
         }
@@ -97,7 +113,7 @@
         .content > p { margin-bottom: 2rem; color: var(--text-secondary); }
         .example-card {
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: var(--radius-md);
             margin-bottom: 2rem;
             overflow: hidden;
         }
@@ -113,13 +129,13 @@
         }
         .example-body pre {
             background: var(--code-bg); color: var(--code-text);
-            padding: 1rem 1.25rem; border-radius: 8px;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm);
             overflow-x: auto; font-size: 0.82rem; line-height: 1.5;
         }
         .output-box {
             background: #f0f0f2;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             padding: 0.75rem 1rem;
             margin-top: 0.75rem;
             font-family: 'JetBrains Mono', monospace;
@@ -140,7 +156,7 @@
         .nv-fn { color: var(--builtin); }
         .nv-type { color: #8be9fd; }
         .callout {
-            padding: 0.75rem 1rem; border-radius: 6px;
+            padding: 0.75rem 1rem; border-radius: var(--radius-sm);
             margin: 1rem 0; border-left: 4px solid;
             font-size: 0.85rem;
         }
@@ -157,7 +173,7 @@
 
         .btn-run-pg {
             display: inline-flex; align-items: center; gap: 0.35rem;
-            padding: 0.35rem 0.75rem; border-radius: 6px;
+            padding: 0.35rem 0.75rem; border-radius: var(--radius-sm);
             background: var(--bg); border: 1px solid var(--border);
             color: var(--accent); font-size: 0.78rem; font-weight: 600;
             cursor: pointer; transition: all 0.2s ease; text-decoration: none;
@@ -167,7 +183,7 @@
             background: var(--accent); color: #fff; border-color: var(--accent);
         }
         .challenge-card {
-            border: 1px solid var(--border); border-radius: 10px;
+            border: 1px solid var(--border); border-radius: var(--radius-md);
             margin-bottom: 1.75rem; overflow: hidden; background: var(--bg);
         }
         .challenge-header {
@@ -176,11 +192,11 @@
         }
         .challenge-badge {
             display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 4px;
+            letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm);
             background: rgba(0, 112, 243, 0.12); color: var(--accent);
         }
         .challenge-hint, .challenge-solution {
-            margin-top: 0.85rem; padding: 0.75rem 1rem; border-radius: 6px;
+            margin-top: 0.85rem; padding: 0.75rem 1rem; border-radius: var(--radius-sm);
             border: 1px solid var(--border); background: var(--sidebar-bg); font-size: 0.85rem;
         }
         .challenge-hint summary, .challenge-solution summary {
@@ -200,7 +216,10 @@
             </svg>
             Galaxy
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
             <a href="index.html?view=view-libraries">Packages</a>
             <a href="documentation.html">Docs</a>
             <a href="reference.html">Reference</a>
@@ -214,8 +233,11 @@
 
     <div class="layout">
         <nav class="sidebar" id="sidebar">
-            <h4>Examples</h4>
-            <ul>
+            <div class="doc-sidebar-head" role="button" tabindex="0" aria-expanded="false" aria-controls="sidebar-list" onclick="toggleDocSidebar(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDocSidebar(this);}">
+                <h4 style="margin-bottom:0;">Examples</h4>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <ul id="sidebar-list">
                 <li><a href="#hello">Hello World</a></li>
                 <li><a href="#vars">Variables &amp; Types</a></li>
                 <li><a href="#fizzbuzz">FizzBuzz</a></li>
@@ -235,7 +257,7 @@
             </ul>
         </nav>
 
-        <div class="content">
+        <main class="content">
             <h1>Nova Examples</h1>
             <p>Real, runnable Nova programs. Create a <code>.nv</code> file, run with <code>nova dev filename.nv</code>.</p>
 
@@ -481,11 +503,13 @@ content = <span class="nv-fn">read</span>(fd)
             <div class="example-card" id="random">
                 <div class="example-header">
                     <h2>Random Numbers</h2>
-                    <div class="desc">Cryptographically secure random numbers via ChaCha20 PRNG (native only).</div>
+                    <div class="desc">Pseudo-random numbers via a seedable xorshift64 generator (native only).</div>
                 </div>
                 <div class="example-body">
-                    <pre><code><span class="nv-cmt"># random() is the primary API — ChaCha20 is auto-seeded at startup</span>
-<span class="nv-cmt"># Manual seeding (optional):</span>
+                    <pre><code><span class="nv-cmt"># random() is the primary API — the generator is auto-seeded at startup</span>
+<span class="nv-cmt"># Manual seeding (optional). "chacha20_init" is a legacy function name</span>
+<span class="nv-cmt"># kept for compatibility — it seeds the xorshift64 generator below, not</span>
+<span class="nv-cmt"># an actual ChaCha20 cipher. This is NOT cryptographically secure.</span>
 <span class="nv-fn">chacha20_init</span>(<span class="nv-num">12345</span>, <span class="nv-num">67890</span>)
 
 <span class="nv-cmt"># Generate 5 random numbers</span>
@@ -501,7 +525,7 @@ i = <span class="nv-num">0</span>
                     </div>
                     <div class="callout callout-tip" style="margin-top:0.75rem;">
                         <strong>Native only</strong>
-                        ChaCha20 functions (<code>chacha20_init</code>, <code>chacha20_block</code>) and <code>random()</code> are only available in compiled executables via <code>nova build</code>, not in the VM (<code>nova dev</code>).
+                        <code>chacha20_init</code>, <code>chacha20_block</code>, and <code>random()</code> are only available in compiled executables via <code>nova build</code>, not in the VM (<code>nova dev</code>). Despite the function names, the underlying generator is xorshift64, not the ChaCha20 cipher — do not use it for security-sensitive randomness (tokens, keys, nonces).
                     </div>
                 </div>
             </div>
@@ -809,7 +833,7 @@ for item in inverted {
                 </div>
             </div>
 
-        </div>
+        </main>
     </div>
 
     <script>
@@ -839,8 +863,7 @@ for item in inverted {
                 <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
                 <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
                 <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
-            <a class="nav-link" href="playground.html">Playground</a>
-                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+                <a href="playground.html" style="color:var(--text-tertiary);text-decoration:none;">Playground</a>
             </div>
         </div>
     </footer>

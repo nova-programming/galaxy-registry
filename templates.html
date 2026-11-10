@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Galaxy Templates — Scaffolding Reference</title>
+    <meta name="description" content="Starter templates for Nova projects — CLI tools, libraries, and native GUI apps — scaffolded instantly with the Galaxy CLI.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/templates.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Galaxy">
+    <meta property="og:title" content="Galaxy Templates — Scaffolding Reference">
+    <meta property="og:description" content="Starter templates for Nova projects — CLI tools, libraries, and native GUI apps — scaffolded instantly with the Galaxy CLI.">
+    <meta property="og:url" content="https://galaxy-registry.vercel.app/templates.html">
+    <meta property="og:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Galaxy Templates — Scaffolding Reference">
+    <meta name="twitter:description" content="Starter templates for Nova projects, scaffolded instantly with the Galaxy CLI.">
+    <meta name="twitter:image" content="https://galaxy-registry.vercel.app/og-image.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -86,8 +99,8 @@
             margin-top: 2.5rem; margin-bottom: 0.75rem;
             border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
         }
-        .doc-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: #1a1a2e; }
-        .doc-content h4 { font-size: 0.95rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.4rem; color: #1a1a2e; }
+        .doc-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: var(--text); }
+        .doc-content h4 { font-size: 0.95rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.4rem; color: var(--text); }
         .doc-content p { margin-bottom: 1rem; color: var(--text-secondary); }
         .doc-content ul, .doc-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
         .doc-content li { margin-bottom: 0.4rem; color: var(--text-secondary); }
@@ -97,12 +110,12 @@
         .doc-content code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82em; background: #f0f0f2;
-            padding: 0.15em 0.4em; border-radius: 4px;
+            padding: 0.15em 0.4em; border-radius: var(--radius-sm);
             color: #e03e8a;
         }
         .doc-content pre {
             background: var(--code-bg); color: var(--code-text);
-            padding: 1.25rem 1.5rem; border-radius: 8px;
+            padding: 1.25rem 1.5rem; border-radius: var(--radius-sm);
             overflow-x: auto; margin: 1.25rem 0;
             font-size: 0.82rem; line-height: 1.6;
             border: 1px solid #1a1a2e;
@@ -123,7 +136,7 @@
             color: var(--text-secondary);
         }
         .callout {
-            padding: 1rem 1.25rem; border-radius: 6px;
+            padding: 1rem 1.25rem; border-radius: var(--radius-sm);
             margin: 1.25rem 0; border-left: 4px solid;
             font-size: 0.9rem;
         }
@@ -142,7 +155,7 @@
         @media (max-width: 800px) { .template-cards-grid { grid-template-columns: 1fr; } }
         .tmpl-card {
             background: var(--bg); border: 1px solid var(--border);
-            border-radius: 10px; padding: 1.25rem; transition: all 0.2s ease;
+            border-radius: var(--radius-md); padding: 1.25rem; transition: all 0.2s ease;
             display: flex; flex-direction: column; justify-content: space-between;
         }
         .tmpl-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
@@ -150,11 +163,11 @@
         .tmpl-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; }
         .tmpl-cmd {
             background: var(--sidebar-bg); border: 1px solid var(--border);
-            border-radius: 6px; padding: 0.4rem 0.65rem; font-family: 'JetBrains Mono', monospace;
+            border-radius: var(--radius-sm); padding: 0.4rem 0.65rem; font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem; color: var(--accent); user-select: all;
         }
         .builder-wrap {
-            border: 1px solid var(--border); border-radius: 12px;
+            border: 1px solid var(--border); border-radius: var(--radius-md);
             background: var(--bg); margin: 2rem 0; overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.04);
         }
@@ -172,7 +185,7 @@
         .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
         .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
         .form-control {
-            padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border);
             background: var(--sidebar-bg); color: var(--text); font-size: 0.82rem;
             outline: none; font-family: inherit; transition: border-color 0.2s;
         }
@@ -181,13 +194,13 @@
             display: flex; flex-direction: column; justify-content: space-between;
         }
         .preview-box {
-            background: var(--code-bg); color: #e4e4e7; border-radius: 8px;
+            background: var(--code-bg); color: #e4e4e7; border-radius: var(--radius-sm);
             padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
             line-height: 1.5; height: 100%; min-height: 280px; overflow-x: auto; margin: 0;
         }
         .copy-manifest-btn {
             margin-top: 0.75rem; display: inline-flex; align-items: center; justify-content: center;
-            gap: 0.4rem; padding: 0.55rem 1rem; border-radius: 6px; background: var(--accent);
+            gap: 0.4rem; padding: 0.55rem 1rem; border-radius: var(--radius-sm); background: var(--accent);
             color: #fff; border: none; font-weight: 600; font-size: 0.82rem; cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -204,7 +217,10 @@
             </svg>
             Galaxy
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleMobileNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="nav-links" id="primary-nav">
             <a href="index.html?view=view-libraries">Packages</a>
             <a href="documentation.html">Docs</a>
             <a href="reference.html">Reference</a>
@@ -217,9 +233,12 @@
     </nav>
 
     <div class="doc-layout">
-        <nav class="doc-sidebar">
-            <h4>Template Reference</h4>
-            <ul>
+        <nav class="doc-sidebar" id="sidebar">
+            <div class="doc-sidebar-head" role="button" tabindex="0" aria-expanded="false" aria-controls="sidebar-list" onclick="toggleDocSidebar(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDocSidebar(this);}">
+                <h4 style="margin-bottom:0;">Template Reference</h4>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <ul id="sidebar-list">
                 <li><a href="#overview">Overview</a></li>
                 <li><a href="#usage">Usage</a></li>
                 <li><a href="#templates">Scaffolding Templates</a></li>
@@ -232,7 +251,7 @@
             </ul>
         </nav>
 
-        <div class="doc-content">
+        <main class="doc-content">
 
             <h1 id="overview">Galaxy Project Templates</h1>
             <p>The <code>galaxy init</code> command scaffolds complete project structures from templates. Templates provide a consistent layout for your Nova packages — standardized directory structure, manifest, and boilerplate code.</p>
@@ -292,7 +311,7 @@ galaxy init lib my-lib     <span class="cmt"># same as above</span></code></pre>
                     <div>
                         <div style="font-size:1.5rem;margin-bottom:0.5rem;">🖥️</div>
                         <h3>Desktop Native GUI App</h3>
-                        <p>60 FPS double-buffered Win32 GDI desktop app with declarative layouts and NSS stylesheets.</p>
+                        <p>Double-buffered Win32 GDI desktop app, targeting 60 FPS, with declarative layouts and NSS stylesheets.</p>
                     </div>
                     <div class="tmpl-cmd">galaxy init gui my-app</div>
                 </div>
@@ -495,7 +514,7 @@ import math_extras
                 If you create a useful template, open a PR to <code>nova-programming/Nova</code> with your addition to <code>TEMPLATES</code> in <code>_galaxy.py</code>.
             </div>
 
-        </div>
+        </main>
     </div>
 
     <footer style="border-top:1px solid var(--border);padding:1.75rem 2rem;background:var(--sidebar-bg);">
@@ -507,8 +526,7 @@ import math_extras
                 <a href="reference.html" style="color:var(--text-tertiary);text-decoration:none;">Reference</a>
                 <a href="examples.html" style="color:var(--text-tertiary);text-decoration:none;">Examples</a>
                 <a href="templates.html" style="color:var(--text-tertiary);text-decoration:none;">Templates</a>
-            <a class="nav-link" href="playground.html">Playground</a>
-                <a href="admin.html" style="color:var(--text-tertiary);text-decoration:none;">Admin</a>
+                <a href="playground.html" style="color:var(--text-tertiary);text-decoration:none;">Playground</a>
             </div>
         </div>
     </footer>

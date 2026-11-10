@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Packages — Galaxy Registry</title>
+    <meta name="description" content="Browse every package published to Galaxy, the package registry for the Nova programming language.">
+    <link rel="canonical" href="https://galaxy-registry.vercel.app/packages/index.html">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../theme.css">
+    <script src="../theme.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+        nav.top-nav { position: sticky; top: 0; background: var(--nav-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; height: 60px; }
+        .nav-brand { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; }
+        .nav-brand svg { width: 22px; height: 22px; }
+        main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+        h1 { font-size: 1.9rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .lede { color: var(--text-secondary); margin-bottom: 2rem; }
+        .pkg-row { display: block; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 0.75rem; text-decoration: none; color: inherit; }
+        .pkg-row:hover { border-color: var(--accent); }
+        .pkg-row .name { font-weight: 700; margin-right: 0.5rem; }
+        .tier-badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); text-transform: uppercase; }
+        .tier-badge.core { background: var(--core-bg); color: var(--core); }
+        .tier-badge.verified { background: var(--verified-bg); color: var(--verified); }
+        .tier-badge.community { background: var(--community-bg); color: var(--community); }
+        .pkg-row p { color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.35rem; }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="nav-brand" href="../index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            Galaxy
+        </a>
+    </nav>
+    <main>
+        <h1>Nova Packages</h1>
+        <p class="lede">Every package currently published to Galaxy.</p>
+        <a class="pkg-row" href="nova-math.html"><span class="name">nova-math</span><span class="tier-badge core">Core</span><p>Fast math helpers, a seedable xorshift64 PRNG (not cryptographically secure), and advanced linear algebra structs.</p></a>
+        <a class="pkg-row" href="nova-http.html"><span class="name">nova-http</span><span class="tier-badge verified">Verified</span><p>High-performance HTTP client for REST APIs. Compiles natively to C-level sockets.</p></a>
+        <a class="pkg-row" href="nova-cli.html"><span class="name">nova-cli</span><span class="tier-badge community">Community</span><p>Build CLI apps with argument parsing, colors, and interactive prompts.</p></a>
+        <a class="pkg-row" href="nova-db.html"><span class="name">nova-db</span><span class="tier-badge community">Community</span><p>Minimal SQLite binding with prepared statements and connection pooling.</p></a>
+        <a class="pkg-row" href="nova-img.html"><span class="name">nova-img</span><span class="tier-badge community">Community</span><p>PNG/JPEG decoding and pixel manipulation. Pure Nova implementation.</p></a>
+    </main>
+</body>
+</html>

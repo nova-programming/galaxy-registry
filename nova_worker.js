@@ -2,7 +2,7 @@ importScripts("https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js");
 
 // Try to import bundled compiler files (instant startup, zero network fetch, immune to GitHub rate-limits or ISP blocks)
 try {
-    importScripts("nova_bundle.js");
+    importScripts("nova_bundle.js?v=2");
 } catch(e) {
     console.warn("Local nova_bundle.js not available, will fallback to network fetch", e);
 }
