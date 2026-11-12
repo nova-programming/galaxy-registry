@@ -242,7 +242,7 @@
             <table>
                 <tr><th>Construct</th><th>Syntax</th><th>Example</th></tr>
                 <tr><td>Comment</td><td><code># ...</code></td><td><code># this is a comment</code></td></tr>
-                <tr><td>Variable</td><td><code>name = expr</code> or <code>name: type = expr</code></td><td><code>count: int = 10</code></td></tr>
+                <tr><td>Variable</td><td><code>name = expr</code> (type inferred; a <code>name: type = expr</code> annotation parses only in the Python bootstrap)</td><td><code>count = 10</code></td></tr>
                 <tr><td>Constant</td><td><code>const NAME = expr</code></td><td><code>const MAX = 4096</code></td></tr>
                 <tr><td>Assignment</td><td><code>name = expr</code></td><td><code>x = x + 1</code></td></tr>
                 <tr><td>If / Elif / Else</td><td><code>if cond { ... } elif cond { ... } else { ... }</code></td><td><code>if x > 0 { print("pos") }</code></td></tr>
@@ -287,7 +287,7 @@
                 <tr><td><code>list</code></td><td>heap (16-byte header: len 4, cap 4, data ptr 8)</td><td>Dynamic array of T</td><td><code>[1, 2, 3]</code></td></tr>
                 <tr><td><code>dict</code></td><td>heap (24 bytes)</td><td>HashMap string→any</td><td><code>{"k": 1}</code></td></tr>
                 <tr><td><code>data</code></td><td>heap (fields × 8, aligned)</td><td>Struct with named fields</td><td><code>data Point { x: int, y: int }</code></td></tr>
-                <tr><td><code>class</code></td><td>heap (same as data)</td><td>Struct + methods (fields + def)</td><td><code>class Pt { x: int; def get() { return self.x } }</code></td></tr>
+                <tr><td><code>class</code></td><td>heap (same as data)</td><td>Struct + methods (fields + def)</td><td><code>class Pt { x: int  def get() { return self.x } }</code></td></tr>
             </table>
 
             <div class="callout callout-info">
@@ -298,10 +298,10 @@
             <h3 id="enum">Enum</h3>
             <p>Named integer constants with auto-incrementing values, desugared to const assignments at compile time.</p>
             <pre><code>enum Color { Red, Green, Blue }
-// Desugars to:
-// const Color_Red = 0
-// const Color_Green = 1
-// const Color_Blue = 2</code></pre>
+# Desugars to:
+# const Color_Red = 0
+# const Color_Green = 1
+# const Color_Blue = 2</code></pre>
 
             <h3 id="dict">HashMap / Dictionary</h3>
             <p>Key-value store with <code>{"key": value}</code> literal syntax. Keys must be strings; values can be any type.</p>
@@ -409,10 +409,10 @@ a.append(5)        # [5]</code></pre>
             <!-- ========== CONTROL FLOW ========== -->
             <h2 id="control-flow">Control Flow</h2>
 
-            <h3>If / Else If / Else</h3>
+            <h3>If / Elif / Else</h3>
             <pre><code><span class="nv-kw">if</span> score &gt;= <span class="nv-num">90</span> {
     <span class="nv-fn">print</span>(<span class="nv-str">"A"</span>)
-} <span class="nv-kw">else</span> <span class="nv-kw">if</span> score &gt;= <span class="nv-num">80</span> {
+} <span class="nv-kw">elif</span> score &gt;= <span class="nv-num">80</span> {
     <span class="nv-fn">print</span>(<span class="nv-str">"B"</span>)
 } <span class="nv-kw">else</span> {
     <span class="nv-fn">print</span>(<span class="nv-str">"C"</span>)
@@ -460,14 +460,14 @@ for i in range(len(items)) { print(items[i]) }</code></pre>
             <p>Nova supports structured exception handling via try/catch/throw, using setjmp/longjmp in native compilation.</p>
             <pre><code>try {
     throw "something went wrong"
-} catch(e) {
+} catch e {
     print(e.message)
 }
 
 # No exception: catch body skipped
 try {
     print("all good")
-} catch(e) {
+} catch e {
     print("not reached")
 }
 
@@ -481,7 +481,7 @@ def safe_div(a, b) {
 
 try {
     safe_div(10, 0)
-} catch(e) {
+} catch e {
     print(-1)
 }</code></pre>
 
@@ -654,7 +654,7 @@ p.<span class="nv-fn">take_damage</span>(<span class="nv-num">25</span>)
                 <tr><td><code>fs</code></td><td><code>exists size kind makeDir delete copy move read write</code></td></tr>
                 <tr><td><code>path</code></td><td><code>join</code> (any number of parts, or one list) <code>base dir ext</code></td></tr>
                 <tr><td><code>env</code></td><td><code>get set args platform</code></td></tr>
-                <tr><td><code>process</code></td><td><code>run shell exit</code></td></tr>
+                <tr><td><code>process</code></td><td><code>run shell exit capture</code></td></tr>
                 <tr><td><code>time</code></td><td><code>now ticks</code></td></tr>
                 <tr><td><code>json</code></td><td><code>stringify parse kind asInt asString asBool size at get has keyAt</code></td></tr>
                 <tr><td><code>text</code></td><td><code>toInt trim startsWith endsWith indexOf contains replace split join repeat upper lower words lines padLeft padRight count capitalize</code></td></tr>

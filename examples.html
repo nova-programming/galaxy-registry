@@ -280,12 +280,12 @@
             <div class="example-card" id="vars">
                 <div class="example-header">
                     <h2>Variables &amp; Types</h2>
-                    <div class="desc">Demonstrates explicit types and type inference.</div>
+                    <div class="desc">Demonstrates type inference.</div>
                 </div>
                 <div class="example-body">
-                    <pre><code><span class="nv-cmt"># Explicit type annotation</span>
-name: <span class="nv-type">string</span> = <span class="nv-str">"Nova"</span>
-age: <span class="nv-type">int</span> = <span class="nv-num">42</span>
+                    <pre><code><span class="nv-cmt"># Plain assignment declares a variable</span>
+name = <span class="nv-str">"Nova"</span>
+age = <span class="nv-num">42</span>
 
 <span class="nv-cmt"># Type inference — Nova figures it out</span>
 pi = <span class="nv-num">3.14</span>          <span class="nv-cmt"># inferred as float</span>
@@ -317,9 +317,9 @@ count = <span class="nv-num">100</span>        <span class="nv-cmt"># inferred a
                     <pre><code><span class="nv-kw">for</span> i = <span class="nv-num">1</span> <span class="nv-kw">to</span> <span class="nv-num">20</span> <span class="nv-kw">step</span> <span class="nv-num">1</span> {
     <span class="nv-kw">if</span> i % <span class="nv-num">15</span> == <span class="nv-num">0</span> {
         <span class="nv-fn">print</span>(<span class="nv-str">"FizzBuzz"</span>)
-    } <span class="nv-kw">else</span> <span class="nv-kw">if</span> i % <span class="nv-num">3</span> == <span class="nv-num">0</span> {
+    } <span class="nv-kw">elif</span> i % <span class="nv-num">3</span> == <span class="nv-num">0</span> {
         <span class="nv-fn">print</span>(<span class="nv-str">"Fizz"</span>)
-    } <span class="nv-kw">else</span> <span class="nv-kw">if</span> i % <span class="nv-num">5</span> == <span class="nv-num">0</span> {
+    } <span class="nv-kw">elif</span> i % <span class="nv-num">5</span> == <span class="nv-num">0</span> {
         <span class="nv-fn">print</span>(<span class="nv-str">"Buzz"</span>)
     } <span class="nv-kw">else</span> {
         <span class="nv-fn">print</span>(i)
@@ -598,9 +598,9 @@ count = <span class="nv-num">42</span>
 <span class="nv-fn">print</span>(<span class="nv-str">"Hello {name}, count is {count}"</span>)
 <span class="nv-fn">print</span>(<span class="nv-str">"Sum: {10 + 20}"</span>)
 
-<span class="nv-cmt">// Output:</span>
-<span class="nv-cmt">// Hello World, count is 42</span>
-<span class="nv-cmt">// Sum: 30</span></code></pre>
+<span class="nv-cmt"># Output:</span>
+<span class="nv-cmt"># Hello World, count is 42</span>
+<span class="nv-cmt"># Sum: 30</span></code></pre>
                     <div class="output-box">
                         <div class="output-label">Output</div>
                         Hello World, count is 42<br>Sum: 30
@@ -617,9 +617,9 @@ count = <span class="nv-num">42</span>
                 <div class="example-body">
                     <pre><code><span class="nv-kw">enum</span> Color { Red, Green, Blue }
 
-<span class="nv-fn">print</span>(Color_Red)    <span class="nv-cmt">// 0</span>
-<span class="nv-fn">print</span>(Color_Green)  <span class="nv-cmt">// 1</span>
-<span class="nv-fn">print</span>(Color_Blue)   <span class="nv-cmt">// 2</span></code></pre>
+<span class="nv-fn">print</span>(Color_Red)    <span class="nv-cmt"># 0</span>
+<span class="nv-fn">print</span>(Color_Green)  <span class="nv-cmt"># 1</span>
+<span class="nv-fn">print</span>(Color_Blue)   <span class="nv-cmt"># 2</span></code></pre>
                     <div class="output-box">
                         <div class="output-label">Output</div>
                         0<br>1<br>2
@@ -642,8 +642,8 @@ count = <span class="nv-num">42</span>
     }
 }
 
-<span class="nv-fn">print</span>(<span class="nv-fn">describe</span>(<span class="nv-num">1</span>))  <span class="nv-cmt">// one</span>
-<span class="nv-fn">print</span>(<span class="nv-fn">describe</span>(<span class="nv-num">3</span>))  <span class="nv-cmt">// many</span></code></pre>
+<span class="nv-fn">print</span>(<span class="nv-fn">describe</span>(<span class="nv-num">1</span>))  <span class="nv-cmt"># one</span>
+<span class="nv-fn">print</span>(<span class="nv-fn">describe</span>(<span class="nv-num">3</span>))  <span class="nv-cmt"># many</span></code></pre>
                     <div class="output-box">
                         <div class="output-label">Output</div>
                         one<br>many
@@ -680,12 +680,12 @@ config.<span class="nv-fn">set</span>(<span class="nv-str">"host"</span>, <span 
                     <div class="desc">Write numbers in decimal, binary (<code>0b...</code>), or hex (<code>0x...</code>).</div>
                 </div>
                 <div class="example-body">
-                    <pre><code>a = <span class="nv-num">0xFF</span>      <span class="nv-cmt">// 255</span>
-b = <span class="nv-num">0b1010</span>    <span class="nv-cmt">// 10</span>
+                    <pre><code>a = <span class="nv-num">0xFF</span>      <span class="nv-cmt"># 255</span>
+b = <span class="nv-num">0b1010</span>    <span class="nv-cmt"># 10</span>
 c = <span class="nv-num">255</span>
-<span class="nv-fn">print</span>(a)      <span class="nv-cmt">// 255</span>
-<span class="nv-fn">print</span>(b)      <span class="nv-cmt">// 10</span>
-<span class="nv-fn">print</span>(a == c) <span class="nv-cmt">// True</span></code></pre>
+<span class="nv-fn">print</span>(a)      <span class="nv-cmt"># 255</span>
+<span class="nv-fn">print</span>(b)      <span class="nv-cmt"># 10</span>
+<span class="nv-fn">print</span>(a == c) <span class="nv-cmt"># True</span></code></pre>
                     <div class="output-box">
                         <div class="output-label">Output</div>
                         255<br>10<br>true
@@ -711,9 +711,9 @@ c = <span class="nv-num">255</span>
                     <button class="btn-run-pg" onclick="runChallenge(this)">▶ Run in Playground</button>
                 </div>
                 <div class="example-body">
-                    <pre><code>// Exercise 1: Prime Number Filter
+                    <pre><code># Exercise 1: Prime Number Filter
 def is_prime(n: int) -&gt; bool {
-    // TODO: Return true if n is prime, false otherwise
+    # TODO: Return true if n is prime, false otherwise
     return false
 }
 
@@ -756,15 +756,15 @@ for n = 2 to 20 step 1 {
                     <button class="btn-run-pg" onclick="runChallenge(this)">▶ Run in Playground</button>
                 </div>
                 <div class="example-body">
-                    <pre><code>// Exercise 2: Word Frequency Counter
+                    <pre><code># Exercise 2: Word Frequency Counter
 import text
 
 sentence = "nova is fast and nova is simple"
 words = text.split(sentence, " ")
 counts = {}
 
-// TODO: Count occurrences in counts dictionary
-// Print word: count</code></pre>
+# TODO: Count occurrences in counts dictionary
+# Print word: count</code></pre>
                     <details class="challenge-hint">
                         <summary>💡 Need a hint?</summary>
                         <p>Loop <code>for w in words</code> and check <code>if w in counts { counts[w] = counts[w] + 1 } else { counts[w] = 1 }</code>.</p>
@@ -803,11 +803,11 @@ for w in counts {
                     <button class="btn-run-pg" onclick="runChallenge(this)">▶ Run in Playground</button>
                 </div>
                 <div class="example-body">
-                    <pre><code>// Exercise 3: Invert a Dictionary
+                    <pre><code># Exercise 3: Invert a Dictionary
 dict = {"a": "apple", "b": "banana", "c": "cherry"}
 inverted = {}
 
-// TODO: Invert dict into inverted
+# TODO: Invert dict into inverted
 
 for item in inverted {
     print(item + " -> " + inverted[item])

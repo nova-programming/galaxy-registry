@@ -8,7 +8,7 @@ A fully static, Git-backed registry — no database, no backend server. The webs
 
 1. **Browse** packages at [galaxy-registry.vercel.app](https://galaxy-registry.vercel.app)
 2. **Install** with `galaxy install <pkg>`
-3. **Publish** with `galaxy publish` (opens a GitHub Issue)
+3. **Publish** with `galaxy publish` (opens a pre-filled GitHub issue in the browser; nothing is uploaded directly)
 
 ## Trust Tiers
 
@@ -40,5 +40,15 @@ admin.html         # Admin dashboard (login-gated)
 documentation.html # Full language docs
 templates.html     # Template system reference
 install.py         # Unified installer (served by Vercel)
-.github/workflows/ # PR validation, auto-quarantine, promotion queue
+.github/workflows/ # pr-validation, auto-quarantine, promotion-queue, sign-metadata
+tools/             # build_package_pages.py, sign_registry.py
+api/search.js      # search endpoint
+versions/          # current compiler / galaxy version (0.8.0)
 ```
+
+## Metadata signing
+
+`tools/sign_registry.py` and the `sign-metadata` workflow can produce Ed25519 signatures (`packages/*.json.sig`).
+As of this writing the Galaxy client has no trusted public key configured (`REGISTRY_PUBLIC_KEYS` in `nova/_galaxy.py` is
+empty) and no `.sig` files are published, so installs are verified by content hash (`galaxy.lock`, SHA-256 where the
+package metadata provides one) rather than by signature.

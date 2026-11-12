@@ -449,7 +449,7 @@
         </div>
         <div class="status-group">
             <span>WebAssembly VM (Zero Latency)</span>
-            <span>Nova v0.9.0</span>
+            <span>Nova v0.8.0</span>
         </div>
     </main>
 
@@ -592,12 +592,12 @@ print("Current health: " + str(p.health))
             switch: `# Pattern Evaluation with Switch in Nova
 def get_http_message(status: int) -> string {
     switch status {
-        case 200: { return "200 OK: Request succeeded." }
-        case 201: { return "201 Created: Resource provisioned." }
-        case 400: { return "400 Bad Request: Invalid payload." }
-        case 404: { return "404 Not Found: Endpoint does not exist." }
-        case 500: { return "500 Internal Error: Server failure." }
-        default:  { return "Unknown status code: " + str(status) }
+        case 200 { return "200 OK: Request succeeded." }
+        case 201 { return "201 Created: Resource provisioned." }
+        case 400 { return "400 Bad Request: Invalid payload." }
+        case 404 { return "404 Not Found: Endpoint does not exist." }
+        case 500 { return "500 Internal Error: Server failure." }
+        else { return "Unknown status code: " + str(status) }
     }
 }
 
@@ -707,17 +707,15 @@ print(json.asString(json.at(langs, 0)))
 
 import gui
 
-app = gui.App("Nova Desktop App", 640, 480)
-app.set_theme(gui.THEME_DARK)
+def run() {
+    title = gui.Title("Welcome to Nova Native GUI", {})
+    note = gui.Text("Double-buffered Win32 desktop graphics.", {})
+    btn = gui.Button("Click Me!", 1, {})
+    root = gui.Column([title, note, btn], {"padding": 24, "gap": 8})
+    gui.App("Nova Desktop App", root, 640, 480, {})
+}
 
-col = gui.Column()
-col.add(gui.Title("Welcome to Nova Native GUI"))
-col.add(gui.Text("Double-buffered Win32 desktop graphics."))
-col.add(gui.Button("Click Me!", "on_btn_clicked"))
-
-app.set_root(col)
-print("To run native GUI apps targeting 60 FPS Win32 rendering:")
-print("Install the Nova CLI and run: nova run app.nv")
+run()
 `
         };
 

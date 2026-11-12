@@ -26,17 +26,31 @@ After installation, open a **new** terminal, then:
 ```bash
 nova --version           # Check Nova version (or 'nova version')
 nova help                # Display help and available commands
-nova build hello.nv      # Compile a Nova program (requires GCC)
+nova build hello.nv      # Compile a Nova program to a native executable
 nova build -o out.exe hello.nv  # Compile with custom output executable name
 nova build -b hello.nv   # Compile and benchmark build phases
+nova build --os linux hello.nv  # Target OS: windows, linux or macos (-arch x86_64|arm64)
 nova run hello.nv        # Compile, link, and immediately execute
 nova check hello.nv      # Parse and type-check without building
-nova lint hello.nv       # Show advisory style warnings; does not rewrite files
-nova lint --strict hello.nv  # Treat advisory warnings as failures
-nova fmt hello.nv        # Check deterministic formatting
-nova fmt --write hello.nv  # Apply formatting explicitly
-nova dev hello.nv        # Run in VM mode (no GCC needed)
 ```
+
+Two entry points exist, and they do not offer the same commands:
+
+| Entry point | Commands |
+|---|---|
+| `nova.exe` (the self-hosted compiler, `nova.nv`) | `build`, `run`, `check`, `assemble-link`, `build-bare`, `assemble-bare`, `version`, `help`, `update`, `uninstall` |
+| `python bootstrap/main.py ...` / the `nova` script from `pip install -e .` (Python bootstrap) | everything above except the `assemble-*`/`build-bare` forms, plus `dev` (VM mode, no GCC), `lint`, `fmt`, `repl` and `galaxy` |
+
+```bash
+python bootstrap/main.py dev hello.nv       # Run in the bytecode VM (no GCC needed)
+python bootstrap/main.py lint hello.nv      # Advisory style warnings; does not rewrite files
+python bootstrap/main.py lint --strict hello.nv   # Treat advisory warnings as failures
+python bootstrap/main.py fmt hello.nv       # Check deterministic formatting
+python bootstrap/main.py fmt --write hello.nv     # Apply formatting explicitly
+```
+
+> The undefined-name error described under *Language Features* is implemented in the self-hosted type checker
+> (`stdlib/type_checker.nv`), so it applies to `nova.exe build/run/check`; the frozen Python bootstrap does not have it.
 
 ## Portable standard library
 
@@ -67,14 +81,16 @@ print(time.ticks())
 | `fs` | `exists size kind makeDir delete copy move read write` |
 | `path` | `join` (any number of parts, or one list), `base dir ext` |
 | `env` | `get set args platform` |
-| `process` | `run shell exit` |
+| `process` | `run shell exit capture` |
 | `time` | `now ticks` |
-| `json` | `stringify` |
+| `json` | `stringify parse kind asInt asString asBool size at get has keyAt` |
 | `text` | `toInt trim startsWith endsWith indexOf contains replace split join repeat upper lower words lines padLeft padRight count capitalize` |
 
 Members use camelCase (`makeDir`, `startsWith`, `.asList`, `.valueByte`).
-`nova lint` flags old spellings (`STYLE003`) and
-`nova fmt --write --modernize file.nv` rewrites them for you.
+`lint` flags old spellings (`STYLE003`) and
+`fmt --write --modernize file.nv` rewrites them for you (both via the Python entry point, see above).
+The name table is `bootstrap/names.py`, mirrored in `stdlib/names.nv`; `tests/test_names.py` keeps the two in sync.
+Other modules without a dotted namespace: `net.nv`, `audio.nv`, `buffer.nv`, `system.nv`, `gui.nv`, `nss.nv`, `slice.nv`, `ffi.nv`.
 `read`, `write`, `close`, `api`, `openf` and `data` are only keywords where
 they are used as built-ins or declarations, so they are fine as variable names.
 
@@ -82,8 +98,8 @@ These modules are backed by the existing
 cross-platform runtime boundary. Filesystem helpers return simple status/value
 results instead of hiding operational failures. `process_shell` is explicitly
 named because it invokes a shell. `json_stringify(value)` is available from
-the `json` module for compact serialization; JSON parsing remains pending
-until recursive VM/native conversion is complete.
+the `json` module for compact serialization, and `json.parse(text)` returns a typed tree you read with
+`json.get`, `json.at`, `json.asInt`, ... (see `stdlib/json.nv`).
 `env_get(name)` returns `""` when an environment variable is absent.
 `env_set(name, value)` updates the current process environment and returns
 `1` on success or `0` on failure.
@@ -101,9 +117,13 @@ galaxy init my-lib       # Create a library
 galaxy install pkg       # Install a package
 galaxy verify            # Check installed packages against galaxy.lock (content hashes)
 galaxy keygen            # (maintainers) create an Ed25519 key to sign registry metadata
+galaxy list | search | info <pkg>   # Browse installed / registry packages
+galaxy remove <pkg>      # Remove an installed package (alias: uninstall)
+galaxy test [--vm]       # Run a library's tests
+galaxy publish           # Opens a pre-filled GitHub issue for the registry
 ```
 
-Registry metadata can be signed (Ed25519): `packages/*.json.sig` is checked against the keys in `REGISTRY_PUBLIC_KEYS` (`_galaxy.py`) or `GALAXY_REGISTRY_KEYS`. With keys configured, missing or invalid signatures stop the install; `GALAXY_ALLOW_UNSIGNED=1` overrides and `GALAXY_REQUIRE_SIGNATURE=1` enforces even without configured keys. Installed packages are also pinned by content hash in `galaxy.lock` (`galaxy verify`).
+Registry metadata can be signed (Ed25519): `packages/*.json.sig` is checked against the keys in `REGISTRY_PUBLIC_KEYS` (`_galaxy.py`) or `GALAXY_REGISTRY_KEYS`. **Current state:** `REGISTRY_PUBLIC_KEYS` is empty and `galaxy-registry/packages/` contains no `.sig` files, so signature checking is dormant until a key is configured and signed metadata is published (`galaxy-registry/tools/sign_registry.py`, `.github/workflows/sign-metadata.yml`). With keys configured, missing or invalid signatures stop the install; `GALAXY_ALLOW_UNSIGNED=1` overrides and `GALAXY_REQUIRE_SIGNATURE=1` enforces even without configured keys. Installed packages are also pinned by content hash in `galaxy.lock` (`galaxy verify`).
 
 **To use `nova` and `galaxy` immediately without restarting your terminal:**
 
@@ -157,7 +177,7 @@ python main.py dev program.nv
 
 ## Python Bridge (Seamless Interop)
 
-Nova features a zero-friction Python Bridge (`nova_py.py`) that allows you to natively import `.nv` files directly into Python scripts. The bridge automatically compiles the Nova code into high-speed native assembly (`.dll`/`.so`), handles SysV ABI translations, maps C-types to Python types, and binds the functions—all transparently on import.
+Nova features a zero-friction Python Bridge (`tools/nova_py.py`) that allows you to natively import `.nv` files directly into Python scripts. The bridge automatically compiles the Nova code into high-speed native assembly (`.dll`/`.so`), handles SysV ABI translations, maps C-types to Python types, and binds the functions—all transparently on import.
 
 To use it, just import `nova_py` once, then import your Nova modules as if they were standard Python modules:
 
@@ -165,7 +185,7 @@ To use it, just import `nova_py` once, then import your Nova modules as if they 
 import nova_py
 import math_lib # Automatically compiles math_lib.nv and loads it natively!
 
-# Call Nova's C-speed functions natively from Python
+# Call Nova's natively compiled functions from Python
 result = math_lib.calculate_fibonacci(40)
 print(result)
 ```
@@ -185,8 +205,8 @@ The compiler pipeline within a single invocation:
 ```
 
 Supported architectures:
-- **x86_64** — primary target, fully verified self-hosted bootstrap
-- **ARM64** — secondary target, codegen implemented (CI-tested on macOS)
+- **x86_64** — primary target; the self-hosted bootstrap is checked by compiling the compiler with itself and comparing the generated assembly between stages
+- **ARM64** — secondary target, codegen implemented; CI (`.github/workflows/ci.yml`) also runs on macOS runners
 
 Additional standard library modules:
 - `types.nv` — Type system abstraction (scalar, struct, list, func types)
@@ -210,11 +230,12 @@ nova/
 │   ├── compiler/         # Type checker + x86_64/ARM64 codegen backends
 │   └── vm/               # Bytecode compiler and VM (`nova dev`)
 ├── stdlib/           # Self-hosted compiler and standard library, written in Nova
-│   ├── lexer.nv parser.nv type_checker.nv types.nv compiler.nv
+│   ├── lexer.nv parser.nv type_checker.nv infer.nv types.nv compiler.nv names.nv
 │   ├── codegen_common.nv peephole.nv errors.nv vm.nv
 │   ├── backend/x86_64/   # codegen*.nv, assembler*.nv, linker.nv, os_windows.nv, os_unix.nv
-│   ├── backend/arm64/    # same layout for ARM64
-│   ├── fs.nv path.nv env.nv process.nv time.nv json.nv slice.nv ffi.nv system.nv
+│   ├── backend/arm64/    # same file layout for ARM64
+│   ├── fs.nv path.nv env.nv process.nv time.nv json.nv text.nv slice.nv ffi.nv system.nv
+│   ├── net.nv audio.nv buffer.nv
 │   └── gui.nv nss.nv     # Win32 GDI GUI toolkit and NSS stylesheets
 ├── tools/            # nova_py (Python bridge), libtest, galaxy wrapper
 ├── docs/             # Language features, internals, libraries
@@ -239,6 +260,7 @@ nova/
 - **Boolean short-circuit** — `and`/`or` skip right operand evaluation when left determines the result
 - **Debug prints (`printd`)** — `printd(x)` outputs `debug - [line N]: <value>` with automatic line number, enabled via `--debug` flag
 - **Smart error messages** — compiler errors include error category, line number, and fix suggestions
+- **Undefined names are a compile error** — reading a name that is never assigned in the function (or defined as a parameter, global or function) fails with `undefined name 'totl'` and, when a close match exists, `did you mean 'total'?`. A variable is declared by assigning it (`x = 1`); an optional leading `let` (`let x = 1`) is accepted as a declaration marker. `catch e` and `for` loop variables count as definitions. Self-hosted compiler only.
 - Variables and expressions (inferred typing)
 - Mutable by default; `const` for immutability
 - Functions with typed parameters and return types
@@ -257,7 +279,7 @@ nova/
 - Bare-metal flat binary output (`build-bare` / `assemble-bare`, no PE headers)
 - `@raw` block assembly passthrough (lines starting with x86 mnemonics emit raw assembly; others compile as normal Nova)
 - `@export { name1, name2 }` inside `@raw` blocks for `.global` symbol export
-- **Tree-Shaking Dead Code Elimination** — the compiler natively builds dependency graphs of function calls and slices out unused standard library functions, reducing final binary sizes by up to 70%.
+- **Tree-Shaking Dead Code Elimination** — the compiler natively builds dependency graphs of function calls and slices out unused standard library functions, which keeps final binaries smaller (the saving depends on how much of the standard library a program uses).
 - **Self-Hosted Assembler & Linker** — integrated in-process x86_64 and ARM64 assembly/linking paths; Unix targets currently use GCC for final linking.
 - **Variable-to-Register Promotion** — greedily maps local variables to CPU registers (`esi`/`edi`), massively boosting runtime performance.
 - **Native Standard Library Injection** — standard library functions (from `os_windows`, `os_unix`, and built-in runtime helpers) are automatically injected and natively compiled into all executables, removing the need for manual imports of core modules.
@@ -265,11 +287,11 @@ nova/
 - **HashMap/Dictionary** — `{"key": value}` literals with native codegen for `get()`, `set()`, `has()`, `remove()`, `keys()`, `values()`, `items()`, `len()`
 - **Switch/match** — `switch expr { case val { body } else { body } }` desugars to if-elif chain at parse time
 - **List comprehensions** — `[expr for x in list if cond]` desugars to Block + ForIn + append at parse time
-- **Exceptions (try/catch/throw)** — full implementation with `setjmp`/`longjmp` native runtime, 10 tests
-- **REPL** — `nova repl` interactive Read-Eval-Print Loop with multi-line input and persistent state
+- **Exceptions (try/catch/throw)** — `catch e { ... }` binds the thrown value; native runtime uses `setjmp`/`longjmp` (tests: `tests/test_exceptions.py`, `tests/test_selfhost_try_catch.py`)
+- **REPL** — `python bootstrap/main.py repl` interactive Read-Eval-Print Loop with multi-line input and persistent state
 - **Cross-compilation** — `target_os`-aware codegen with platform-specific GCC commands and output extension
 - **Frame pointer optimization** — x86_64 and ARM64 use `rsp`/`sp`-relative offsets, saving 1-2 instructions per function call
-- **VM self-hosting** — `stdlib/vm.nv` implements bytecode VM in Nova with 20+ opcodes, stack-based execution
+- **VM self-hosting** — `stdlib/vm.nv` implements a stack-based bytecode VM in Nova
 - Self-hosted lexer, parser, codegen, type checker, assembler, linker, VM
 
 ### Compatibility note

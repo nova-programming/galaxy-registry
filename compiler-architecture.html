@@ -135,7 +135,7 @@
 
         <h2>Self-hosting, verified rather than claimed</h2>
         <p>Nova's compiler is self-hosted: the compiler that generates machine code is itself written in Nova (<code>stdlib/compiler.nv</code> and the backend modules under <code>stdlib/backend/</code>), not just the standard library. A Python bootstrap compiler exists to build the very first native Nova compiler binary from scratch — after that, every subsequent version is built by Nova compiling itself.</p>
-        <p>That claim is easy to make and hard to verify, so the project verifies it mechanically on every release rather than asserting it. The procedure has three stages:</p>
+        <p>That claim is easy to make and hard to verify, so the project provides a mechanical check (tools/run_selfhost_gate.py, run manually; CI only smoke-tests the Stage 1 build) rather than just asserting it. The procedure has three stages:</p>
         <ol>
             <li><strong>Stage 1</strong> — the Python bootstrap compiles the Nova-source compiler into a first native binary.</li>
             <li><strong>Stage 2</strong> — that Stage 1 binary compiles the same Nova-source compiler again, producing a second native binary and its generated assembly.</li>

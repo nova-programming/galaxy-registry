@@ -308,7 +308,7 @@ nova build hello.nv
 
             <!-- ========== BASICS ========== -->
             <h2 id="syntax-guide">Comprehensive Syntax Guide (Playground Ready)</h2>
-            <p>Nova is strictly typed via static inference and explicit type annotations. Below is a comprehensive guide to all Nova syntax. <strong>All examples can be copied directly into the Playground to test!</strong></p>
+            <p>Nova is statically typed with type inference; function parameters and return types can be annotated. Below is a comprehensive guide to all Nova syntax. <strong>All examples can be copied directly into the Playground to test!</strong></p>
 
             <h3 id="syntax-variables">1. Variables & Types</h3>
             <pre><code><span class="nv-kw">def</span> <span class="nv-fn">test_variables</span>() {
@@ -317,10 +317,10 @@ nova build hello.nv
     age = <span class="nv-num">1</span>
     is_fast = <span class="nv-kw">true</span>
     
-    <span class="nv-cmt"># Explicit typing</span>
-    count: <span class="nv-type">int</span> = <span class="nv-num">10</span>
-    pi: <span class="nv-type">float</span> = <span class="nv-num">3.14159</span>
-    message: <span class="nv-type">string</span> = <span class="nv-str">"Hello!"</span>
+    <span class="nv-cmt"># Types are inferred (a `x: int = 1` annotation parses only in the Python bootstrap)</span>
+    count = <span class="nv-num">10</span>
+    pi = <span class="nv-num">3.14159</span>
+    message = <span class="nv-str">"Hello!"</span>
     
     <span class="nv-fn">print</span>(name)
     <span class="nv-fn">print</span>(pi)
@@ -375,9 +375,9 @@ test_loops()</code></pre>
             <p>Use switch statements for clean multi-branch logic.</p>
             <pre><code><span class="nv-kw">def</span> <span class="nv-fn">get_name</span>(id: <span class="nv-type">int</span>) -&gt; <span class="nv-type">string</span> {
     <span class="nv-kw">switch</span> id {
-        <span class="nv-kw">case</span> <span class="nv-num">1</span>: { <span class="nv-kw">return</span> <span class="nv-str">"Alice"</span> }
-        <span class="nv-kw">case</span> <span class="nv-num">2</span>: { <span class="nv-kw">return</span> <span class="nv-str">"Bob"</span> }
-        <span class="nv-kw">default</span>: { <span class="nv-kw">return</span> <span class="nv-str">"Unknown"</span> }
+        <span class="nv-kw">case</span> <span class="nv-num">1</span> { <span class="nv-kw">return</span> <span class="nv-str">"Alice"</span> }
+        <span class="nv-kw">case</span> <span class="nv-num">2</span> { <span class="nv-kw">return</span> <span class="nv-str">"Bob"</span> }
+        <span class="nv-kw">else</span> { <span class="nv-kw">return</span> <span class="nv-str">"Unknown"</span> }
     }
 }
 <span class="nv-fn">print</span>(get_name(1))
@@ -804,15 +804,15 @@ galaxy upgrade nova-math</code></pre>
             <!-- ========== IMPORTS ========== -->
             <h2 id="imports">Import System</h2>
             <p>Nova uses a simple module system. The <code>import</code> keyword loads another <code>.nv</code> file and makes its public functions available.</p>
-            <pre><code><span class="nv-cmt">// file: math_utils.nv</span>
+            <pre><code><span class="nv-cmt"># file: math_utils.nv</span>
 <span class="nv-kw">def</span> <span class="nv-fn">double</span>(x: <span class="nv-type">int</span>) -&gt; <span class="nv-type">int</span> {
     <span class="nv-kw">return</span> x * <span class="nv-num">2</span>
 }
 
-<span class="nv-cmt">// file: main.nv</span>
+<span class="nv-cmt"># file: main.nv</span>
 <span class="nv-kw">import</span> math_utils
 
-result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</span>)   <span class="nv-cmt">// -> 42</span></code></pre>
+result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</span>)   <span class="nv-cmt"># -> 42</span></code></pre>
             <p>The import system uses module prefixing — you call imported functions as <code>module_name.function_name()</code>.</p>
 
             <!-- ========== COMPILER CLI ========== -->
@@ -829,6 +829,8 @@ result = <span class="nv-fn">math_utils.double</span>(<span class="nv-num">21</s
                 <tr><td><code>nova update</code></td><td>Update the Nova compiler itself to the latest version</td></tr>
                 <tr><td><code>nova galaxy &lt;cmd&gt;</code></td><td>Run Galaxy Package Manager commands through Nova</td></tr>
             </table>
+            <p><strong>Which binary has what:</strong> the self-hosted <code>nova.exe</code> provides <code>build</code>, <code>run</code>, <code>check</code>, <code>version</code>, <code>update</code> and the low-level <code>assemble-link</code> / <code>build-bare</code> / <code>assemble-bare</code>. <code>dev</code>, <code>repl</code>, <code>lint</code>, <code>fmt</code> and <code>galaxy</code> are provided by the Python entry point (<code>python bootstrap/main.py</code>, or <code>nova</code> after <code>pip install -e .</code>). Check <code>nova help</code> on your install to see what it offers.</p>
+            <p><strong>Undefined names:</strong> in the self-hosted compiler, reading a variable that is never assigned is a compile error (<code>undefined name 'totl'</code>, with a <code>did you mean</code> hint). Variables are declared by assigning them; a leading <code>let</code> is optional.</p>
 
             <h4>nova run &lt;file.nv&gt;</h4>
             <pre><code>nova run main.nv
@@ -913,7 +915,7 @@ code = <span class="nv-fn">sys_system</span>(<span class="nv-str">"dir"</span>)
 start = <span class="nv-fn">sys_get_tick_count</span>()
 <span class="nv-cmt"># ... do work ...</span>
 elapsed = <span class="nv-fn">sys_get_tick_count</span>() - start
-<span class="nv-fn">print</span>(<span class="nv-str">"Took "</span> + elapsed + <span class="nv-str">" ms"</span>)</code></pre>
+<span class="nv-fn">print</span>(<span class="nv-str">"Took "</span> + <span class="nv-fn">str</span>(elapsed) + <span class="nv-str">" ms"</span>)</code></pre>
 
             <!-- ========== ARCHITECTURE ========== -->
             <h2 id="architecture">Compiler Architecture</h2>

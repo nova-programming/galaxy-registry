@@ -563,7 +563,7 @@
             <div class="hero-wrap">
                 <div class="hero">
                     <div class="hero-badge">
-                        <span class="badge-dot"></span> Nova v0.9.0 &middot; Self-Hosted Systems Language &amp; GUI Framework
+                        <span class="badge-dot"></span> Nova v0.8.0 &middot; Self-Hosted Systems Language &amp; GUI Framework
                     </div>
                     <h1 class="hero-title">The Native Language with <span class="accent">Desktop GUI Built-in</span></h1>
                     <p class="hero-desc">
@@ -673,12 +673,15 @@ print(add(3, 4))
                     <div class="split-code">
                         <pre><code><span class="nv-kw">import</span> gui
 
-app = gui.App(<span class="nv-str">"My App"</span>, <span class="nv-num">640</span>, <span class="nv-num">480</span>)
-col = gui.Column()
-col.add(gui.Title(<span class="nv-str">"Hello World!"</span>))
-col.add(gui.Button(<span class="nv-str">"Click Me!"</span>, <span class="nv-str">"on_click"</span>))
-app.set_root(col)
-app.run()</code></pre>
+<span class="nv-kw">def</span> run() {
+    title = gui.Title(<span class="nv-str">"Hello World!"</span>, {})
+    note = gui.Text(<span class="nv-str">"Built with Nova."</span>, {})
+    btn = gui.Button(<span class="nv-str">"Click Me!"</span>, <span class="nv-num">1</span>, {})
+    root = gui.Column([title, note, btn], {<span class="nv-str">"padding"</span>: <span class="nv-num">24</span>, <span class="nv-str">"gap"</span>: <span class="nv-num">8</span>})
+    gui.App(<span class="nv-str">"My App"</span>, root, <span class="nv-num">640</span>, <span class="nv-num">480</span>, {})
+}
+
+run()</code></pre>
                     </div>
                     <div class="split-copy">
                         <h3>A GUI framework, built in</h3>
@@ -718,15 +721,17 @@ app.run()</code></pre>
 galaxy --version</code></pre>
 
                 <h2>3. Create Your First Native App</h2>
-                <pre><code>// app.nv
+                <pre><code># app.nv
 import gui
 
-app = gui.App("My First Nova App", 640, 480)
-col = gui.Column()
-col.add(gui.Title("Hello World!"))
-col.add(gui.Text("Running at 60 FPS natively."))
-app.set_root(col)
-app.run()</code></pre>
+def run() {
+    title = gui.Title("Hello World!", {})
+    note = gui.Text("Targeting 60 FPS.", {})
+    root = gui.Column([title, note], {"padding": 24, "gap": 8})
+    gui.App("My First Nova App", root, 640, 480, {})
+}
+
+run()</code></pre>
                 <p>Run immediately with:</p>
                 <pre><code>nova run app.nv</code></pre>
 
