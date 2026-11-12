@@ -448,6 +448,8 @@ def check_source(file_path, target_arch="x86_64", target_os=None, json_output=Fa
         return 1
 
     try:
+        import names
+        print("[DEBUG NAMES]", names.__file__, names.MODULE_FUNCS.get('text', {}).get('toInt'))
         tokens = tokenize(source)
         ast = Parser(tokens).parse()
         ast = expand_imports(ast, base_dir, target_arch=target_arch, target_os=target_os)

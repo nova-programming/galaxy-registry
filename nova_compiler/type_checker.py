@@ -277,7 +277,8 @@ class TypeInferer:
         if isinstance(t, AnyType):
             all_names = set()
             for env in self.env_stack:
-                all_names.update(env.keys())
+                for k in env.keys():
+                    all_names.add(k.name if hasattr(k, "name") else str(k))
             all_names.update(self.functions.keys())
             all_names.update(self.structs.keys())
             all_names.update(BUILTIN_SIGS.keys())
@@ -394,7 +395,7 @@ class TypeInferer:
             and node.name not in BUILTIN_SIGS
         ):
             alias = _camel_alias(node.name)
-            if alias != node.name:
+            if alias in self.functions or alias in self.structs or alias in BUILTIN_SIGS:
                 node.name = alias
         if node.name == "random":
             for arg in node.args:
@@ -570,9 +571,12 @@ class TypeInferer:
         return AnyType()
 
     def visit_Block(self, node):
-        for stmt in node.stmts[:-1]:
-            self.visit(stmt)
-        return self.visit(node.stmts[-1])
+        last_t = AnyType()
+        for stmt in node.stmts:
+            t = self.visit(stmt)
+            if t:
+                last_t = t
+        return last_t
 
     def visit_Try(self, node):
         for stmt in node.body:
