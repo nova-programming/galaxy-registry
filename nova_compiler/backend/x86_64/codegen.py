@@ -2048,24 +2048,23 @@ class X86_64Codegen:
                 self.assembly.append("    mov eax, [rax]")
                 self.assembly.append("    push rax")
         elif isinstance(node, Slice):
-            if self._is_string_expr(node.base):
+            if node.end is not None:
                 self.compile_expr(node.end)
-                self.compile_expr(node.start)
-                self.compile_expr(node.base)
-                self.assembly.append("    pop rdi")
-                self.assembly.append("    pop rsi")
-                self.assembly.append("    pop rdx")
-                self.assembly.append("    call _str_sub")
-                self.assembly.append("    push rax")
             else:
-                self.compile_expr(node.end)
+                self.assembly.append("    push 2147483647")
+            if node.start is not None:
                 self.compile_expr(node.start)
-                self.compile_expr(node.base)
-                self.assembly.append("    pop rdi")
-                self.assembly.append("    pop rsi")
-                self.assembly.append("    pop rdx")
+            else:
+                self.assembly.append("    push 0")
+            self.compile_expr(node.base)
+            self.assembly.append("    pop rdi")
+            self.assembly.append("    pop rsi")
+            self.assembly.append("    pop rdx")
+            if self._is_string_expr(node.base):
+                self.assembly.append("    call _str_sub")
+            else:
                 self.assembly.append("    call _slice_list")
-                self.assembly.append("    push rax")
+            self.assembly.append("    push rax")
         elif isinstance(node, StrConvert):
             self.compile_expr(node.target)
             self.assembly.append("    pop rdx")

@@ -1830,8 +1830,17 @@ class Arm64Codegen:
                 self.assembly.append("    ldr w0, [x0]")
             self.assembly.append("    str x0, [sp, #-16]!")
         elif isinstance(node, Slice):
-            end_reg = self._compile_expr_to_reg(node.end)
-            start_reg = self._compile_expr_to_reg(node.start)
+            if node.end is not None:
+                end_reg = self._compile_expr_to_reg(node.end)
+            else:
+                end_reg = self._alloc_reg()
+                self.assembly.append(f"    movz {end_reg}, #65535")
+                self.assembly.append(f"    movk {end_reg}, #32767, lsl 16")
+            if node.start is not None:
+                start_reg = self._compile_expr_to_reg(node.start)
+            else:
+                start_reg = self._alloc_reg()
+                self.assembly.append(f"    movz {start_reg}, #0")
             base_reg = self._compile_expr_to_reg(node.base)
             self.assembly.append(f"    str {end_reg}, [sp, #-16]!")    # push end (bottom)
             self.assembly.append(f"    str {start_reg}, [sp, #-16]!")   # push start
