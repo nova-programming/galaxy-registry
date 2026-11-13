@@ -90,7 +90,7 @@ Members use camelCase (`makeDir`, `startsWith`, `.asList`, `.valueByte`).
 `lint` flags old spellings (`STYLE003`) and
 `fmt --write --modernize file.nv` rewrites them for you (both via the Python entry point, see above).
 The name table is `bootstrap/names.py`, mirrored in `stdlib/names.nv`; `tests/test_names.py` keeps the two in sync.
-Other modules without a dotted namespace: `net.nv`, `audio.nv`, `buffer.nv`, `system.nv`, `gui.nv`, `nss.nv`, `slice.nv`, `ffi.nv`.
+Other modules without a dotted namespace: `net.nv`, `audio.nv`, `buffer.nv`, `system.nv`, `ui.nv` (with backends `ui_host.nv` / `ui_os.nv`), `slice.nv`, `ffi.nv`.
 `read`, `write`, `close`, `api`, `openf` and `data` are only keywords where
 they are used as built-ins or declarations, so they are fine as variable names.
 
@@ -236,10 +236,10 @@ nova/
 │   ├── backend/arm64/    # same file layout for ARM64
 │   ├── fs.nv path.nv env.nv process.nv time.nv json.nv text.nv slice.nv ffi.nv system.nv
 │   ├── net.nv audio.nv buffer.nv
-│   └── gui.nv nss.nv     # Win32 GDI GUI toolkit and NSS stylesheets
+│   └── ui.nv ui_host.nv ui_os.nv   # windows: one API for the desktop (Win32 GDI) and Nova OS
 ├── tools/            # nova_py (Python bridge), libtest, galaxy wrapper
 ├── docs/             # Language features, internals, libraries
-├── examples/         # GUI and UI demos
+├── examples/         # ui demos (ui_counter, ui_widgets) and tools
 └── tests/            # Python tests and .nv fixtures (run with `python -m pytest`)
 ```
 
