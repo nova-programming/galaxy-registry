@@ -52,3 +52,12 @@
 1. **Core**: Inbuilt runtime packages maintained by the Nova core team (`nova-math`, etc.).
 2. **Verified**: Community packages audited and human-reviewed for safety and code quality (`nova-http`, etc.).
 3. **Community**: Openly published community packages with cryptographic SHA-256 release integrity.
+
+## Nova Language Updates (Nov 2026)
+- **Unified Memory System (`mem.*`)**:
+  - Legacy `peek` and `poke` keywords are permanently deprecated and removed from the language.
+  - Replaced by unified `mem.read_u8/u16/u32/u64` and `mem.write_u8/u16/u32/u64` memory intrinsics.
+  - Zero-cost memory struct projection added: `mem.view(Type, addr)`.
+- **Struct Default Field Values**:
+  - `data` definitions now support default field expressions: `data Process { pid: int = 0, state: int = 1 }`.
+  - Missing parameters in constructor calls (`Process()`, `Process(pid=10)`) automatically populate defaults.
