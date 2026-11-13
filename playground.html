@@ -479,9 +479,8 @@
                     <div class="cap-col native-only">
                         <h4>⚡ Requires Native Compiler (<code>nova run</code>)</h4>
                         <ul>
-                            <li>&bull; <code>import gui</code> Native Win32 GDI Graphics</li>
+                            <li>&bull; <code>import ui</code> Native Win32 GDI window</li>
                             <li>&bull; Double-Buffered Framebuffer Engine</li>
-                            <li>&bull; NSS CSS-like Desktop Stylesheets</li>
                             <li>&bull; <code>extern def</code> &amp; Direct C-ABI FFI</li>
                             <li>&bull; Direct Memory Pointers (<code>@raw</code>, <code>.ptr</code>)</li>
                             <li>&bull; Operating System Subprocesses</li>
@@ -700,22 +699,26 @@ langs = json.get(doc, "langs")
 print(json.size(langs))
 print(json.asString(json.at(langs, 0)))
 `,
-            gui_showcase: `# Nova Native Declarative GUI (Local Win32 GDI)
-# NOTE: 'import gui' runs natively with double-buffered rendering
-# targeting a 60 FPS frame budget.
+            gui_showcase: `# Nova window with the ui library (local Win32 GDI window)
+# NOTE: 'import ui' runs natively; the same program also runs on Nova OS.
 # To execute this application, run locally with: nova run my_app.nv
 
-import gui
+import ui
 
-def run() {
-    title = gui.Title("Welcome to Nova Native GUI", {})
-    note = gui.Text("Double-buffered Win32 desktop graphics.", {})
-    btn = gui.Button("Click Me!", 1, {})
-    root = gui.Column([title, note, btn], {"padding": 24, "gap": 8})
-    gui.App("Nova Desktop App", root, 640, 480, {})
+def main() {
+    ui.window("Nova Desktop App", 360, 200)
+    while ui.eventKey() != 27 {
+        ui.frame {
+            ui.stack(padding=24, gap=8) {
+                ui.text("Welcome to Nova", bold=true)
+                ui.button("Click Me!", style=style.primary, id="go")
+            }
+        }
+    }
+    ui.quit()
 }
 
-run()
+main()
 `
         };
 

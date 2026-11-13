@@ -671,21 +671,27 @@ print(add(3, 4))
             <section class="home-section">
                 <div class="split-feature reverse">
                     <div class="split-code">
-                        <pre><code><span class="nv-kw">import</span> gui
+                        <pre><code><span class="nv-kw">import</span> ui
 
-<span class="nv-kw">def</span> run() {
-    title = gui.Title(<span class="nv-str">"Hello World!"</span>, {})
-    note = gui.Text(<span class="nv-str">"Built with Nova."</span>, {})
-    btn = gui.Button(<span class="nv-str">"Click Me!"</span>, <span class="nv-num">1</span>, {})
-    root = gui.Column([title, note, btn], {<span class="nv-str">"padding"</span>: <span class="nv-num">24</span>, <span class="nv-str">"gap"</span>: <span class="nv-num">8</span>})
-    gui.App(<span class="nv-str">"My App"</span>, root, <span class="nv-num">640</span>, <span class="nv-num">480</span>, {})
+<span class="nv-kw">def</span> main() {
+    ui.window(<span class="nv-str">"My App"</span>, <span class="nv-num">360</span>, <span class="nv-num">200</span>)
+    <span class="nv-kw">while</span> ui.eventKey() != <span class="nv-num">27</span> {
+        ui.frame {
+            ui.stack(padding=<span class="nv-num">24</span>, gap=<span class="nv-num">8</span>) {
+                ui.text(<span class="nv-str">"Hello World!"</span>, bold=true)
+                ui.text(<span class="nv-str">"Built with Nova."</span>)
+                ui.button(<span class="nv-str">"Click Me!"</span>, style=style.primary, id=<span class="nv-str">"go"</span>)
+            }
+        }
+    }
+    ui.quit()
 }
 
-run()</code></pre>
+main()</code></pre>
                     </div>
                     <div class="split-copy">
-                        <h3>A GUI framework, built in</h3>
-                        <p>No Electron runtime, no separate toolkit to install. <code>import gui</code> gives you a declarative widget tree, reactive state, and NSS (a CSS-like stylesheet system), rendered through a double-buffered Win32 GDI engine targeting 60 FPS frame pacing.</p>
+                        <h3>A window library, built in</h3>
+                        <p>No Electron runtime, no separate toolkit to install. <code>import ui</code> gives you layout, buttons, checkboxes, sliders and text fields, and the same program runs on Nova OS, rendered through a double-buffered Win32 GDI engine targeting 60 FPS frame pacing.</p>
                     </div>
                 </div>
             </section>
@@ -722,16 +728,22 @@ galaxy --version</code></pre>
 
                 <h2>3. Create Your First Native App</h2>
                 <pre><code># app.nv
-import gui
+import ui
 
-def run() {
-    title = gui.Title("Hello World!", {})
-    note = gui.Text("Targeting 60 FPS.", {})
-    root = gui.Column([title, note], {"padding": 24, "gap": 8})
-    gui.App("My First Nova App", root, 640, 480, {})
+def main() {
+    ui.window("My First Nova App", 360, 200)
+    while ui.eventKey() != 27 {
+        ui.frame {
+            ui.stack(padding=24, gap=8) {
+                ui.text("Hello World!", bold=true)
+                ui.text("Targeting 60 FPS.")
+            }
+        }
+    }
+    ui.quit()
 }
 
-run()</code></pre>
+main()</code></pre>
                 <p>Run immediately with:</p>
                 <pre><code>nova run app.nv</code></pre>
 
