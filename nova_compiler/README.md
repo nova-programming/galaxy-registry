@@ -38,7 +38,7 @@ Two entry points exist, and they do not offer the same commands:
 
 | Entry point | Commands |
 |---|---|
-| `nova.exe` (the self-hosted compiler, `nova.nv`) | `build`, `run`, `check`, `assemble-link`, `build-bare`, `assemble-bare`, `version`, `help`, `update`, `uninstall` |
+| `nova.exe` (the self-hosted compiler, `nova.nv`) | `build` (also `--os nova` for `.nva` app packages), `run`, `check`, `test`, `assemble-link`, `build-bare`, `assemble-bare`, `version`, `help`, `update`, `uninstall` |
 | `python bootstrap/main.py ...` / the `nova` script from `pip install -e .` (Python bootstrap) | everything above except the `assemble-*`/`build-bare` forms, plus `dev` (VM mode, no GCC), `lint`, `fmt`, `repl` and `galaxy` |
 
 ```bash
