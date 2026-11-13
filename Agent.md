@@ -61,3 +61,8 @@
 - **Struct Default Field Values**:
   - `data` definitions now support default field expressions: `data Process { pid: int = 0, state: int = 1 }`.
   - Missing parameters in constructor calls (`Process()`, `Process(pid=10)`) automatically populate defaults.
+- **Text-Based UI Widget IDs & Automatic Label Fallback**:
+  - `ui.button(label, id="submit")` supports semantic text-based IDs and automatically defaults to hashing `label` when `id` is omitted.
+  - `ui.clicked("submit")` tests clicks via 32-bit positive djb2 hashing (`uiHashId`), completely replacing numeric IDs.
+- **Nova Service Framework (`stdlib/nsf.nv`)**:
+  - Added standard library module `nsf` for IPC service calls to Nova OS services (`nsfCall`, `notifyShow`, `notifyDismiss`).
