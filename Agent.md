@@ -66,3 +66,9 @@
   - `ui.clicked("submit")` tests clicks via 32-bit positive djb2 hashing (`uiHashId`), completely replacing numeric IDs.
 - **Nova Service Framework (`stdlib/nsf.nv`)**:
   - Added standard library module `nsf` for IPC service calls to Nova OS services (`nsfCall`, `notifyShow`, `notifyDismiss`).
+- **Display List V2 (`NUI2`) & Modern UI Architecture (`stdlib/ui.nv`)**:
+  - Versioned display list with low-level primitives: `rect`, `clear`, `textRaw`, `line`, `clipPush`, `clipPop`.
+  - Window server hit-testing and hover dispatch (`UI_EV_HOVER = 4`, `isHovered(id)`).
+  - Scroll containers (`@container def scroll(height, id)`), flex layout (`flexRow`, `flexCol`, `sidebar`, `spacer`, `dialog`).
+  - Rich modern components: `toggle`, `tabs`, `textarea`, `progressRing`, design tokens (`TONE_*`, `SIZE_*`, `RADIUS_*`).
+  - Per-app dynamic heap: `.nva` applications shrunk from ~314 KB to ~52 KB by allocating arena via `.section .bss`.
